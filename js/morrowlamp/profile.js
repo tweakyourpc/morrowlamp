@@ -106,8 +106,25 @@
       ? ml.outcome.normalize(p.darkness.onFail || (given.darkness || {}).death, ['The dark closes over you.'])
       : p.darkness.onFail;
 
-    /* Encounters need somewhere for the player's health to live. */
-    if (p.combat.enabled && !p.stats.enabled) p.stats = mergeSection(p.stats, { enabled: true });
+    /* Combat needs somewhere for the player's health to live.
+       OMITTED IS NOT THE SAME AS EXPLICITLY FALSE:
+
+         combat: true, stats: { … }   configured character system
+         combat: true  (stats absent) minimal default — a health pool, no
+                                      named stats, no classes, no growth
+         combat: true, stats: false   a contradiction, and a build error;
+                                      the validator refuses it rather than
+                                      quietly inventing a character system
+                                      the author said they did not want
+
+       The runtime still has to do *something* with a cartridge that reaches
+       it in the contradictory state (a hand-edited compiled game, say), so
+       it fails safe: stats stay off, and the combat kind then refuses to
+       start for want of a health pool. It does not fabricate one. */
+    p.stats.declared = given.stats !== undefined;
+    if (p.combat.enabled && !p.stats.enabled && !p.stats.declared) {
+      p.stats = mergeSection(p.stats, { enabled: true, declared: false });
+    }
 
     return p;
   }

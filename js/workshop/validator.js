@@ -370,6 +370,12 @@
     /* ---------------- stats ---------------- */
     const statsRaw = profileRaw.stats;
     const statsOn = statsRaw === true || (statsRaw && statsRaw !== false && statsRaw.enabled !== false);
+    /* `stats` omitted entirely is a different statement from `stats: false`.
+       The first leaves the decision to the Machine; the second is the author
+       saying this game has no character system — which combat contradicts,
+       because a fight needs somewhere to keep the player's health. */
+    const statsDeclaredOff = statsRaw === false || statsRaw === null ||
+      (statsRaw && typeof statsRaw === 'object' && statsRaw.enabled === false);
     const statIds = statsOn ? Object.keys((statsRaw === true ? {} : statsRaw).list || {}) : [];
     if (statsOn) {
       if (!statIds.length) err('STATS', 'stats are enabled but no stat list is declared.');
@@ -402,6 +408,18 @@
 
     /* ---------------- encounters ---------------- */
     const combatOn = profileRaw.combat === true || (profileRaw.combat && profileRaw.combat.enabled !== false);
+
+    /* The one constraint combat places on another capability. It belongs to
+       combat, not to the encounter layer: a non-combat encounter would have
+       no such requirement. */
+    if (combatOn && statsDeclaredOff) {
+      err('PROFILE', 'combat is enabled but stats is explicitly disabled. ' +
+        'Combat needs somewhere to keep the player\'s health: configure stats, or disable combat.');
+    }
+    if (combatOn && statsRaw === undefined) {
+      warn('PROFILE', 'combat is enabled and stats is not configured; the player will get a ' +
+        'default health pool with no named stats, classes or growth. Declare `stats` to change that.');
+    }
     const encounterKinds = (ml.encounter && ml.encounter.KINDS) || [];
     const actionKinds = (ml.encounter && ml.encounter.ACTION_KINDS) || [];
     for (const id in (cartridge.encounters || {})) {

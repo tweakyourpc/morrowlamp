@@ -301,6 +301,13 @@
       if (!profile.combat.enabled) return false;
       const def = ml.encounter.definition(cart, id);
       if (!def) return false;
+      /* This kind of encounter may need something this cartridge has not
+         given it. Refuse rather than start a fight nobody can lose. */
+      const blocked = ml.encounter.cannotRun(def, ctx());
+      if (blocked) {
+        if (global.console) global.console.warn('morrowlamp: encounter "' + id + '" cannot run — ' + blocked);
+        return false;
+      }
       if (S.encounter && !S.encounter.over) return true;
       S.encounter = ml.encounter.begin(def, id);
       say(def.intro || (S.encounter.name + ' blocks your way.'), 'bad');

@@ -10,7 +10,7 @@ const assert = require('node:assert');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
-const vm = require('node:vm');
+const { bootArtifact } = require('./artifact-harness.js');
 
 const ROOT = path.join(__dirname, '..');
 const Z = require('../js/morrowlamp/core.js');
@@ -28,6 +28,7 @@ require('../js/workshop/compiler.js');
 require('../js/world.js');
 require('../js/cartridges/sunken-crown.js');
 require('../js/cartridges/captains-thistle.js');
+require('../js/cartridges/sir-crumbly.js');
 
 const ml = Z.ml;
 const NOW = '2026-08-11T12:00:00.000Z';
@@ -58,13 +59,18 @@ function build(id) {
 function testCompiles() {
   const crown = build('the-sunken-crown');
   const thistle = build('captains-thistle');
+  const crumbly = build('sir-crumbly');
   assert.strictEqual(path.basename(crown.file), 'the-sunken-crown.html');
   assert.strictEqual(path.basename(thistle.file), 'captains-thistle.html');
-  assert.ok(crown.html.startsWith('<!doctype html>'));
-  assert.ok(crown.html.trimEnd().endsWith('</html>'));
-  console.log('  ok — both cartridges compile to a single HTML file each');
-  console.log('       ' + path.basename(crown.file) + '  ' + Math.round(crown.html.length / 1024) + ' KB');
-  console.log('       ' + path.basename(thistle.file) + '  ' + Math.round(thistle.html.length / 1024) + ' KB');
+  assert.strictEqual(path.basename(crumbly.file), 'sir-crumbly.html');
+  for (const id in built) {
+    assert.ok(built[id].html.startsWith('<!doctype html>'), id + ' starts with a doctype');
+    assert.ok(built[id].html.trimEnd().endsWith('</html>'), id + ' is a complete document');
+  }
+  console.log('  ok — every cartridge compiles to a single HTML file');
+  for (const id in built) {
+    console.log('       ' + path.basename(built[id].file).padEnd(24) + Math.round(built[id].html.length / 1024) + ' KB');
+  }
 }
 
 /* ---------------- the header a programmer will read ---------------- */
@@ -172,97 +178,6 @@ function testRefusesBrokenCartridge() {
    Run the compiled game's own script blocks in a sandbox with a stub
    DOM. If the Machine, the cartridge and the shell disagree about
    anything, this is where it surfaces — without a browser. */
-function stubDom() {
-  function makeNode(tag) {
-    const node = {
-      tagName: String(tag || 'div').toUpperCase(),
-      children: [], style: {}, dataset: {}, classList: {
-        _set: new Set(),
-        add(...c) { c.forEach((x) => node.classList._set.add(x)); },
-        remove(...c) { c.forEach((x) => node.classList._set.delete(x)); },
-        toggle(c, on) { if (on) node.classList._set.add(c); else node.classList._set.delete(c); },
-        contains: (c) => node.classList._set.has(c)
-      },
-      textContent: '', innerHTML: '', value: '', id: '', className: '',
-      appendChild(child) { node.children.push(child); return child; },
-      append(...kids) { kids.forEach((k) => node.children.push(k)); },
-      remove() {},
-      addEventListener() {}, removeEventListener() {},
-      focus() {}, click() {},
-      getBoundingClientRect: () => ({ left: 0, top: 0, width: 320, height: 200 }),
-      getContext: () => makeContext(),
-      width: 0, height: 0
-    };
-    return node;
-  }
-  function makeContext() {
-    const noop = () => {};
-    return {
-      imageSmoothingEnabled: false, fillStyle: '', strokeStyle: '', font: '', textAlign: '',
-      setTransform: noop, fillRect: noop, strokeRect: noop, clearRect: noop, fillText: noop,
-      createPattern: () => ({}), createImageData: (w, h) => ({ data: new Uint8ClampedArray(w * h * 4) }),
-      getImageData: (x, y, w, h) => ({ data: new Uint8ClampedArray(w * h * 4) }),
-      putImageData: noop, drawImage: noop, save: noop, restore: noop, translate: noop, scale: noop,
-      beginPath: noop, rect: noop, clip: noop, fill: noop, stroke: noop, ellipse: noop, arc: noop,
-      moveTo: noop, lineTo: noop, closePath: noop
-    };
-  }
-  const head = makeNode('head');
-  const body = makeNode('body');
-  const document = {
-    head, body,
-    createElement: makeNode,
-    getElementById(id) {
-      const walk = (node) => {
-        if (node.id === id) return node;
-        for (const child of node.children) { const found = walk(child); if (found) return found; }
-        return null;
-      };
-      return walk(body) || walk(head);
-    },
-    addEventListener() {}, querySelector: () => null
-  };
-  const sandbox = {
-    document,
-    window: null,
-    location: { protocol: 'http:', href: 'http://localhost/game.html' },
-    localStorage: {
-      _d: {},
-      getItem(k) { return Object.prototype.hasOwnProperty.call(this._d, k) ? this._d[k] : null; },
-      setItem(k, v) { this._d[k] = String(v); },
-      removeItem(k) { delete this._d[k]; }
-    },
-    console, setTimeout, clearTimeout, setInterval: () => 0, clearInterval: () => {},
-    Blob: function () {}, URL: { createObjectURL: () => 'blob:', revokeObjectURL: () => {} },
-    Math, Date, JSON, parseInt, parseFloat, isNaN, Object, Array, String, Number, Boolean,
-    Error, RegExp, Set, Map, Uint8ClampedArray, Promise
-  };
-  sandbox.window = sandbox;
-  sandbox.globalThis = sandbox;
-  return sandbox;
-}
-
-function bootArtifact(html) {
-  const sandbox = stubDom();
-  vm.createContext(sandbox);
-  const blocks = [];
-  const re = /<script(?![^>]*type="application\/json")[^>]*>([\s\S]*?)<\/script>/gi;
-  let match;
-  while ((match = re.exec(html))) blocks.push(match[1]);
-  const jsonRe = /<script id="morrowlamp-cartridge" type="application\/json">([\s\S]*?)<\/script>/i;
-  const jsonMatch = jsonRe.exec(html);
-  if (jsonMatch) {
-    const node = sandbox.document.createElement('script');
-    node.id = 'morrowlamp-cartridge';
-    node.textContent = jsonMatch[1];
-    sandbox.document.body.appendChild(node);
-  }
-  for (const block of blocks) {
-    vm.runInContext(block.replace(/<\\\/script/g, '</script'), sandbox, { timeout: 15000 });
-  }
-  return sandbox;
-}
-
 function testArtifactBoots() {
   for (const id in built) {
     const sandbox = bootArtifact(built[id].html);
@@ -313,8 +228,89 @@ function testCompiledThistleIsWinnable() {
   console.log('  ok — the compiled Captain Thistle plays through to its ending');
 }
 
+/* ---------------- the compiled RPG cartridge, end to end ----------------
+   Sir Crumbly is the cartridge that proves stats and combat are generic.
+   Proving it at source level is not the same as proving the *compiled*
+   artifact still does it — the RPG capability crosses four modules and a
+   bundle manifest on its way into the file. This plays the whole game
+   inside the artifact and checks the character system at every step. */
+function testCompiledCrumblyPlaythrough() {
+  const sandbox = bootArtifact(built['sir-crumbly'].html);
+  const Zc = sandbox.Z;
+
+  /* boots, with its own capabilities compiled in */
+  assert.ok(Zc && Zc.ml && Zc.ml.runtime, 'the Machine loaded out of the artifact');
+  const cart = Zc.cartridges['sir-crumbly'];
+  assert.ok(cart, 'the cartridge registered itself');
+  assert.ok(Zc.ml.stats && Zc.ml.encounter && Zc.ml.outcome, 'stats, encounters and outcomes are in the bundle');
+
+  const rt = Zc.ml.runtime.create(cart, { random: () => 0.1 });
+  const txt = (r) => r.messages.map((m) => m.text).join(' | ');
+
+  /* stats initialise from cartridge data, not from anything Sunken-Crown-shaped */
+  assert.ok(rt.hasStats() && rt.hasCombat(), 'both capabilities are on in the compiled game');
+  const sheet = rt.sheet();
+  /* Values crossing the vm boundary carry the sandbox's prototypes, so
+     compare copies rather than references. */
+  assert.deepStrictEqual(Array.from(sheet.stats, (s) => s.id), ['might', 'nerve'], 'its own two stats');
+  assert.strictEqual(sheet.maxHp, 10, 'its own health formula: base 6 + nerve 4');
+  assert.strictEqual(sheet.hp, 10);
+  assert.strictEqual(sheet.level, 1);
+  assert.strictEqual(sheet.className, 'Knight, Impoverished');
+
+  /* the puzzle resists before the fight */
+  rt.command('d');
+  assert.strictEqual(rt.meta().room, 'cellar');
+  assert.ok(txt(rt.command('take cheese')).includes('You reconsider'), 'the rat guards the cheese');
+  assert.ok(!rt.inventory().includes('cheese'));
+
+  /* the encounter starts */
+  assert.ok(txt(rt.command('attack rat')).includes('6 points of rat'), 'the encounter introduces itself');
+  const fight = rt.encounter();
+  assert.ok(fight, 'an encounter is running inside the artifact');
+  assert.strictEqual(fight.name, 'Cellar Rat');
+  assert.strictEqual(fight.hp, 6);
+  assert.deepStrictEqual(Array.from(fight.actions, (a) => a.id), ['attack', 'guard', 'flee']);
+
+  /* combat actually resolves, round by round */
+  let rounds = 0;
+  let sawDamage = false;
+  while (rt.encounter() && rounds++ < 20) {
+    const before = rt.encounter().hp;
+    rt.encounterAct('attack');
+    if (rt.encounter() && rt.encounter().hp < before) sawDamage = true;
+  }
+  assert.ok(sawDamage || rounds > 1, 'the rat took damage across rounds');
+  assert.ok(rounds > 1, 'it was not a one-hit formality');
+  assert.strictEqual(rt.meta().dead, false, 'Sir Crumbly survived');
+
+  /* victory state */
+  assert.ok(rt.flags().ratBeaten, 'the onWin outcome ran');
+  assert.ok(rt.sheet().xp >= 12, 'experience was awarded');
+  assert.strictEqual(rt.sheet().wins, 1, 'the win was recorded on the sheet');
+  assert.ok(rt.sheet().stats.find((s) => s.id === 'might').value > sheet.stats.find((s) => s.id === 'might').value,
+    'Might rose by being used');
+
+  /* legitimate ending */
+  const won = rt.command('take cheese');
+  assert.ok(txt(won).includes('WILL RETURN'), 'the ending fired');
+  assert.strictEqual(rt.meta().win, true);
+  assert.strictEqual(rt.meta().score, 20);
+  assert.strictEqual(rt.meta().rank, 'Cheese-Bearer');
+
+  /* and the loss is reachable in the artifact too */
+  const doomed = Zc.ml.runtime.create(cart, { random: () => 0.99 });
+  doomed.command('d');
+  doomed.command('attack rat');
+  let guard = 25;
+  while (doomed.encounter() && guard--) doomed.encounterAct('attack');
+  assert.strictEqual(doomed.meta().dead, true, 'and the rat can still win');
+  console.log('  ok — the compiled Sir Crumbly initialises stats, fights, wins, and ends');
+}
+
 const tests = [testCompiles, testHeader, testSelfContained, testReadable, testBundleIsSpecific,
-  testRefusesBrokenCartridge, testArtifactBoots, testCompiledGameIsWinnable, testCompiledThistleIsWinnable];
+  testRefusesBrokenCartridge, testArtifactBoots, testCompiledGameIsWinnable, testCompiledThistleIsWinnable,
+  testCompiledCrumblyPlaythrough];
 let failed = 0;
 console.log('\nMORROWLAMP — BUILD GAME\n');
 for (const t of tests) {

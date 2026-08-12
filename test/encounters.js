@@ -17,6 +17,7 @@ require('../js/morrowlamp/vocabulary.js');
 require('../js/morrowlamp/stats.js');
 require('../js/morrowlamp/encounter.js');
 require('../js/morrowlamp/runtime.js');
+require('../js/workshop/validator.js');
 
 const ml = Z.ml;
 
@@ -99,13 +100,79 @@ function testCapabilityShape() {
   const vetoed = ml.profile.normalize({ stats: { enabled: false, list: { brio: 'Brio' } } });
   assert.strictEqual(vetoed.stats.enabled, false, 'an explicit enabled:false wins');
 
-  /* Combat needs somewhere to keep your health. */
-  const implied = ml.profile.normalize({ combat: true });
-  assert.strictEqual(implied.stats.enabled, true, 'combat implies stats');
-
   const none = ml.profile.normalize({});
   assert.strictEqual(none.stats.enabled, false, 'and none of it happens by default');
   console.log('  ok — a capability is false, or a configuration that implies enabled');
+}
+
+/* ---------------- omitted is not the same as explicitly false ----------------
+   Combat needs somewhere to keep the player's health. A cartridge that says
+   nothing about stats gets a documented minimal default; a cartridge that
+   says `stats: false` has stated a position, and combat contradicts it. The
+   Machine must not resolve that contradiction by inventing a character
+   system the author explicitly declined. */
+function testCombatStatsContract() {
+  const omitted = ml.profile.normalize({ combat: true });
+  assert.strictEqual(omitted.stats.enabled, true, 'omitted stats: combat gets a default health pool');
+  assert.strictEqual(omitted.stats.declared, false, 'and the Machine records that the author did not ask for it');
+
+  const refused = ml.profile.normalize({ combat: true, stats: false });
+  assert.strictEqual(refused.stats.enabled, false, 'explicit stats:false is never overridden');
+
+  const alsoRefused = ml.profile.normalize({ combat: true, stats: { enabled: false, list: { brio: 'Brio' } } });
+  assert.strictEqual(alsoRefused.stats.enabled, false, 'nor is an explicit enabled:false inside a config object');
+
+  /* The validator is where an author finds out. */
+  function check(profile) {
+    const cart = cartridge();
+    cart.profile = Object.assign({}, cart.profile, profile);
+    return ml.validator.validate(cart);
+  }
+  const combatFalseStats = check({ combat: true, stats: false });
+  assert.ok(!combatFalseStats.ok, 'combat + stats:false is refused at build time');
+  assert.ok(combatFalseStats.errors.some((e) =>
+    e.includes('combat is enabled but stats is explicitly disabled')), 'with an addressed error');
+  assert.ok(combatFalseStats.errors.some((e) => e.includes('configure stats, or disable combat')),
+    'that tells the author what to do about it');
+
+  assert.ok(!check({ combat: true, stats: { enabled: false } }).ok, 'and so is the long-hand version');
+
+  /* Every other combination is silent on this point. (This fixture declares
+     encounters, so switching combat off draws unrelated complaints; the
+     assertion is that THIS constraint does not fire, not that the cartridge
+     is otherwise perfect.) */
+  const goodStats = { list: { brio: 'Brio' }, classes: { v: { name: 'V', stats: { brio: 1 } } } };
+  const contract = (r) => r.errors.filter((e) => e.includes('combat is enabled but stats'));
+  assert.strictEqual(contract(check({ combat: false, stats: false })).length, 0, 'combat off, stats off');
+  assert.strictEqual(contract(check({ combat: false, stats: goodStats })).length, 0, 'combat off, stats configured');
+  assert.strictEqual(contract(check({ combat: true, stats: goodStats })).length, 0, 'combat on, stats configured');
+
+  const defaulted = check({ combat: true, stats: undefined });
+  assert.strictEqual(contract(defaulted).length, 0, 'combat on with stats omitted is legal');
+  assert.ok(defaulted.warnings.some((w) => w.includes('default health pool')), 'but says so');
+
+  /* And the runtime fails safe if a contradictory cartridge reaches it
+     anyway — a hand-edited compiled game, for instance. The requirement
+     belongs to the combat kind, not to the generic encounter layer. */
+  const cart = cartridge();
+  cart.profile = Object.assign({}, cart.profile, { combat: true, stats: false });
+  const rt = ml.runtime.create(cart, { random: () => 0.1 });
+  assert.strictEqual(rt.sheet(), null, 'no character sheet was fabricated');
+  const warned = [];
+  const realWarn = console.warn;
+  console.warn = (m) => warned.push(String(m));
+  try {
+    assert.strictEqual(rt.startEncounter('theGoose'), false, 'and the fight refuses to start');
+  } finally { console.warn = realWarn; }
+  assert.strictEqual(rt.encounter(), null);
+  assert.ok(warned.some((m) => m.includes('cannot run')), 'and says why rather than failing silently');
+
+  /* The generic layer itself imposes no stats requirement: the constraint
+     is declared by the combat kind and asked for by the runtime. */
+  assert.ok(ml.encounter.REQUIREMENTS.combat, 'combat declares its requirement');
+  assert.strictEqual(ml.encounter.cannotRun({ kind: 'combat' }, { sheet: {} }), null, 'satisfied when a sheet exists');
+  assert.ok(ml.encounter.cannotRun({ kind: 'combat' }, { sheet: null }), 'unsatisfied when it does not');
+  console.log('  ok — combat requires stats; omitted and explicitly-false are different answers');
 }
 
 /* ---------------- stats are entirely cartridge-defined ---------------- */
@@ -251,7 +318,7 @@ function testPersistence() {
   console.log('  ok — the sheet and a running encounter both survive save/load');
 }
 
-const tests = [testCapabilityShape, testStatsAreCartridgeDefined, testEncounterFlow,
+const tests = [testCapabilityShape, testCombatStatsContract, testStatsAreCartridgeDefined, testEncounterFlow,
   testActionConditions, testLosingAndFleeing, testParserCanFight, testOutcomeTypes,
   testMissingEncounterFallsBack, testPersistence];
 let failed = 0;

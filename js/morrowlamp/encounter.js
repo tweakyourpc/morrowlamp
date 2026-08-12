@@ -43,6 +43,21 @@
     return ((cartridge.encounters || {})[id]) || null;
   }
 
+  /* What each KIND of encounter needs before it can run. Combat needs a
+     health pool to subtract from; a future `debate` or `chase` would declare
+     its own requirement, or none. The generic layer asks — it does not know
+     why the answer is what it is, and it does not require stats itself. */
+  const REQUIREMENTS = {
+    combat: (ctx) => (ctx.sheet
+      ? null
+      : 'there is nowhere to keep the player\'s health (stats are disabled)')
+  };
+
+  function cannotRun(def, ctx) {
+    const check = REQUIREMENTS[def.kind || 'combat'];
+    return check ? check(ctx) : null;
+  }
+
   function actionsFor(def) {
     return list(def.actions).length ? list(def.actions) : DEFAULT_ACTIONS;
   }
@@ -195,6 +210,6 @@
     return { lines, over: false, won, fled, died };
   }
 
-  ml.encounter = { KINDS, ACTION_KINDS, DEFAULT_ACTIONS, definition, actionsFor, begin, available, act };
+  ml.encounter = { KINDS, ACTION_KINDS, DEFAULT_ACTIONS, REQUIREMENTS, definition, cannotRun, actionsFor, begin, available, act };
   if (typeof module !== 'undefined') module.exports = Z;
 })(typeof window !== 'undefined' ? window : globalThis);
