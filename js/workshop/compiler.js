@@ -236,6 +236,10 @@
     [/\bfetch\s*\(/i, 'a fetch() call'],
     [/XMLHttpRequest/i, 'an XMLHttpRequest'],
     [/new\s+WebSocket/i, 'a WebSocket'],
+    [/new\s+EventSource/i, 'an EventSource'],
+    [/navigator\.sendBeacon/i, 'a sendBeacon call'],
+    [/import\s*\(/i, 'a dynamic import()'],
+    [/<iframe/i, 'an iframe'],
     [/new\s+(Image|Audio)\s*\(/i, 'an Image or Audio loader'],
     [/["'](?:https?:)?\/\/[a-z0-9.-]+\.[a-z]{2,}/i, 'a URL to another host']
   ];

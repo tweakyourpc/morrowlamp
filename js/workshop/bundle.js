@@ -14,8 +14,10 @@
   const Z = global.Z = global.Z || {};
   const ml = Z.ml = Z.ml || {};
 
-  /* The Machine, in load order. Every compiled game gets these. */
-  const MACHINE = [
+  /* The gameplay runtime, in load order. This is the part that decides
+     what happens in a game, and every page and every compiled adventure
+     loads exactly this list — that is what "one Machine" means. */
+  const RUNTIME = [
     'js/morrowlamp/core.js',
     'js/morrowlamp/world.js',
     'js/morrowlamp/profile.js',
@@ -24,9 +26,14 @@
     'js/morrowlamp/vocabulary.js',
     'js/morrowlamp/stats.js',
     'js/morrowlamp/encounter.js',
-    'js/morrowlamp/runtime.js',
-    'js/morrowlamp/sound.js'
+    'js/morrowlamp/runtime.js'
   ];
+
+  /* Everything a compiled adventure needs from the Machine: the runtime
+     plus the sound-hardware adapter its shell drives. The hand-written
+     pages drive js/audio.js and js/music.js directly instead, which is a
+     presentation choice and changes no gameplay. */
+  const MACHINE = RUNTIME.concat(['js/morrowlamp/sound.js']);
 
   /* Rendering primitives, needed only by the canvas interface. */
   const RENDERER = [
@@ -108,6 +115,6 @@
     return out;
   }
 
-  ml.bundle = { MACHINE, RENDERER, SHELLS, AUDIO, CARTRIDGE_FILES, filesFor, allFiles };
+  ml.bundle = { RUNTIME, MACHINE, RENDERER, SHELLS, AUDIO, CARTRIDGE_FILES, filesFor, allFiles };
   if (typeof module !== 'undefined') module.exports = Z;
 })(typeof window !== 'undefined' ? window : globalThis);
