@@ -392,12 +392,29 @@
       }
       const startClass = (statsRaw === true ? {} : statsRaw).startClass;
       if (startClass && !classes[startClass]) err('STATS', 'startClass "' + startClass + '" is not a declared class.');
+      /* Triggers the runtime fires by itself, plus any name a rule invokes
+         with `{ award: '…' }` — a cartridge may define its own moments. */
+      const BUILT_IN_TRIGGERS = ['examine', 'treasureFound', 'treasureSecured'];
+      const ruleTriggers = new Set();
+      for (const rule of (cartridge.rules || [])) {
+        for (const step of listOf(rule.do).concat(listOf(rule.otherwise))) {
+          if (step && step.award) ruleTriggers.add(step.award);
+        }
+      }
       const awards = (statsRaw === true ? {} : statsRaw).awards || {};
       for (const trigger in awards) {
-        if (trigger !== 'examine') err('STATS', 'unknown award trigger "' + trigger + '" (known: examine).');
-        else if (!statIds.includes(awards[trigger].stat)) {
-          err('STATS', 'the examine award names unknown stat "' + awards[trigger].stat + '".');
+        if (!BUILT_IN_TRIGGERS.includes(trigger) && !ruleTriggers.has(trigger)) {
+          err('STATS', 'award trigger "' + trigger + '" is never fired (built in: ' +
+            BUILT_IN_TRIGGERS.join(', ') + '; or name it in a rule\'s { award: … }).');
         }
+        const spec = awards[trigger] || {};
+        if (spec.stat && !statIds.includes(spec.stat)) {
+          err('STATS', 'the ' + trigger + ' award names unknown stat "' + spec.stat + '".');
+        }
+        if (!spec.stat && !spec.xp) err('STATS', 'the ' + trigger + ' award grants nothing.');
+      }
+      for (const trigger of ruleTriggers) {
+        if (!awards[trigger]) err('STATS', 'a rule fires award "' + trigger + '", which is not declared in stats.awards.');
       }
     }
     function checkStat(id, where, what) {

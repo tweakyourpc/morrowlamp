@@ -219,6 +219,7 @@
         { say: 'You whisper: "Echo."' },
         { set: 'gatesOpen' },
         { say: 'The word rolls across the cavern, and the cavern rolls it back — twice, richer each time. Somewhere deep in the brass, something unlatches. The great doors groan apart, thirty feet of patience giving in all at once.' },
+        { award: 'riddleSolved' },
         { sound: 'chime' }
       ]
     },
@@ -531,7 +532,12 @@
          any compiled game quietly had an eternal lantern. */
       fuel: {
         object: 'lantern',
-        turns: 120,
+        /* 260 turns is the figure the point-and-click build was tuned with.
+           This is tension, not a timer puzzle, and the sunstone is a
+           permanent backup light. Both shells now burn at this rate; before
+           consolidation the graphical build used 260 and everything else
+           used 120. */
+        turns: 260,
         warnings: [
           [60, 'The lantern\'s flame shortens. Half the oil is gone.'],
           [25, 'The lantern gutters. You can see the oil line from outside the glass now.'],
@@ -580,7 +586,12 @@
       /* Looking closely at something new teaches you a little, once per
          thing — and the Scholar gets more out of it, which is the whole
          point of being a Scholar. */
-      awards: { examine: { stat: 'lore', by: 1 } },
+      awards: {
+        examine: { stat: 'lore', by: 1 },
+        treasureFound: { xp: 30 },
+        treasureSecured: { xp: 25 },
+        riddleSolved: { stat: 'lore', by: 3, xp: 50 }
+      },
       health: { from: 'vit', base: 24, perPoint: 0.7, perLevel: 6 },
       growth: { base: 3, per: 8, max: 100 },
       levels: { max: 20, factor: 40, power: 1.6 },
@@ -665,10 +676,10 @@
                lights it — which solves the problem that summoned the
                creature in the first place. `do` runs ordinary rule
                actions, so nothing new had to be invented for this. */
-            when: { carrying: ['lantern'] },
+            when: { carryingAny: ['sunstone', 'lantern', 'candle'] },
             deny: 'You have nothing bright enough to matter here.',
             always: true, damage: [10, 18], bonusFrom: 'lore', trains: 'lore',
-            hitText: 'You hold the lantern up and force it forward. The Umbra recoils, shrieking, and comes apart at the edges — {damage} damage.',
+            hitText: 'You hold the light up and force it forward. The Umbra recoils, shrieking, and comes apart at the edges — {damage} damage.',
             cls: 'good',
             do: [{ light: 'lantern' }] },
           { id: 'flee', label: 'Flee', kind: 'escape', uses: 'agi', trains: 'agi',

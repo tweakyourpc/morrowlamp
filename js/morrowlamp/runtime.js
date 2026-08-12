@@ -231,12 +231,23 @@
       if (!isTreasure(id) || S.found.includes(id)) return;
       S.found.push(id);
       addScore(profile.score.treasureFound, 'treasure found');
+      grantAward('treasureFound');
     }
     function noteTreasureSecured(id) {
       if (!isTreasure(id) || S.secured.includes(id)) return false;
       S.secured.push(id);
       addScore(profile.score.treasureSecured, 'treasure secured');
+      grantAward('treasureSecured');
       return true;
+    }
+
+    /* Awards are the character system's reaction to something the cartridge
+       cares about. The runtime knows the trigger names; the cartridge
+       decides whether each is worth a stat, some experience, or nothing. */
+    function grantAward(trigger, weight) {
+      const spec = (profile.stats.awards || {})[trigger];
+      if (!spec || !S.sheet) return;
+      say(ml.stats.grant(statsConfig, S.sheet, spec, weight));
     }
 
     /* ---------------- rule operations ---------------- */
@@ -272,6 +283,7 @@
          Returns false when this cartridge has no such encounter, so the
          outcome dispatcher can fall back rather than strand the player. */
       encounter(id) { return startEncounter(id); },
+      award(trigger, weight) { grantAward(trigger, weight); },
       train(stat, by) {
         if (!S.sheet) return;
         const line = ml.stats.use(statsConfig, S.sheet, stat, by);
@@ -387,12 +399,10 @@
         /* Studying something new can teach you something, once, if the
            cartridge says so. `awards.examine` names the stat; the Machine
            does not know or care that this game calls it Lore. */
-        const award = (profile.stats.awards || {}).examine;
-        if (award && S.sheet && !S.sheet.seen[target]) {
+        if ((profile.stats.awards || {}).examine && S.sheet && !S.sheet.seen[target]) {
           S.sheet.seen[target] = true;
           const klass = statsConfig.classes[S.sheet.cls] || {};
-          const weight = (klass.awards && klass.awards.examine) || award.by || 1;
-          ops.train(award.stat, weight);
+          grantAward('examine', (klass.awards && klass.awards.examine) || undefined);
         }
         bus.emit('examine', { id: target });
       },
@@ -844,6 +854,9 @@
       inventory: () => S.inv.slice(),
       visibleObjects: () => world.itemsHere().map((id) => describeObject(id)),
       describeObject,
+      /* Which rooms the player has been in — what a map UI draws. */
+      visited: () => Object.keys(S.visited),
+      canGo: (dir) => world.canGo(dir),
       exits: () => {
         const outExits = [];
         for (const dir in world.exitsOf()) {
@@ -867,6 +880,11 @@
         return S.sheet;
       },
       sheet: () => (S.sheet ? ml.stats.summary(statsConfig, S.sheet) : null),
+      /* A shell may report that the player did something strenuous — a
+         gesture the parser would have expressed as a verb. Whether that
+         is worth anything is the cartridge's business. */
+      train(stat, by) { ops.train(stat, by); },
+      award(trigger, weight) { ops.award(trigger, weight); },
 
       /* Encounters. `encounterAct` is the shell's door in; the parser
          shell reaches the same place by typing an action's name. */

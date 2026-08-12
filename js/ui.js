@@ -1,17 +1,25 @@
 /* ============================================================
-   THE SUNKEN CROWN — UI layer
+   THE SUNKEN CROWN — terminal shell
    Terminal rendering, typewriter, HUD, map, inventory, save
    slots, overlays, title screen, tab completion, settings.
-   Requires the DOM; skipped entirely under Node (tests).
+
+   A presentation layer over the Morrowlamp Machine — the same
+   runtime index.html and every compiled adventure use. It owns
+   no gameplay. Requires the DOM; skipped entirely under Node.
    ============================================================ */
 (function (global) {
   'use strict';
   const Z = global.Z = global.Z || {};
-  const world = Z.world;
-  const engine = Z.engine;
-  const parser = Z.parser;
+  const ml = Z.ml;
   const audio = Z.audio;
   const save = Z.save;
+
+  const CARTRIDGE_ID = 'the-sunken-crown';
+  let rt = null;
+
+  /* Read the world through the runtime rather than a second copy of it. */
+  const rooms = () => rt.cartridge.world.rooms;
+  const objects = () => rt.cartridge.world.objects;
 
   const TITLE_ART = [
     ' SSSS  U   U N   N K   K EEEEE N   N',
@@ -157,10 +165,10 @@
     /* ---------------- HUD / panels ---------------- */
 
     function refresh() {
-      const m = engine.meta();
+      const m = rt.meta();
       byId('hud-score').textContent = 'Score ' + m.score;
       byId('hud-turns').textContent = m.turns + ' moves';
-      byId('hud-treasure').textContent = 'Treasures ' + m.treasuresPlaced + '/6';
+      byId('hud-treasure').textContent = 'Treasures ' + m.secured + '/' + m.treasures;
       byId('room-status').textContent = '✦ ' + m.roomName;
       renderInventory();
       renderMap();
@@ -169,13 +177,13 @@
     function renderInventory() {
       const list = byId('inv-list');
       list.innerHTML = '';
-      const ids = engine.inventory();
+      const ids = rt.inventory();
       if (!ids.length) {
         list.appendChild(el('li', 'inv-empty', '— empty —'));
         return;
       }
       for (const id of ids) {
-        const o = world.objects[id];
+        const o = objects()[id];
         if (!o) continue;
         const li = el('li');
         const dot = el('span', 'inv-dot', '◆');
@@ -202,7 +210,7 @@
 
     // Which direction leads from the current room to rid (if any).
     function directionTo(rid) {
-      const cur = world.rooms[engine.currentRoom()];
+      const cur = rooms()[rt.meta().room];
       for (const dir of DIRECTIONS) {
         if (exitTarget(cur, dir) === rid) return dir;
       }
@@ -212,14 +220,14 @@
     function renderMap() {
       const svg = byId('map');
       svg.innerHTML = '';
-      const visited = engine.visited();
+      const visited = rt.visited();
       const vset = new Set(visited);
-      const cur = engine.currentRoom();
+      const cur = rt.meta().room;
 
       // edges — dedupe pairs, only between visited rooms
       const seen = new Set();
       for (const rid of visited) {
-        const room = world.rooms[rid];
+        const room = rooms()[rid];
         if (!room || !room.map) continue;
         for (const dir of DIRECTIONS) {
           const t = exitTarget(room, dir);
@@ -229,8 +237,8 @@
           const key = a + '|' + b;
           if (seen.has(key)) continue;
           seen.add(key);
-          const ra = world.rooms[a];
-          const rb = world.rooms[b];
+          const ra = rooms()[a];
+          const rb = rooms()[b];
           if (!ra || !ra.map || !rb || !rb.map) continue;
           const line = document.createElementNS(NS, 'line');
           line.setAttribute('x1', ra.map[0]);
@@ -239,8 +247,8 @@
           line.setAttribute('y2', rb.map[1]);
           let cls = 'edge';
           if (exitGated(ra, dirFor(ra, b)) || exitGated(rb, dirFor(rb, a))) cls += ' secret';
-          if (rid === cur && engine.canGo(dir).ok) cls += ' open';
-          if (t === cur && engine.canGo(opposite(dir)).ok) cls += ' open';
+          if (rid === cur && rt.canGo(dir).ok) cls += ' open';
+          if (t === cur && rt.canGo(opposite(dir)).ok) cls += ' open';
           line.setAttribute('class', cls);
           svg.appendChild(line);
         }
@@ -248,7 +256,7 @@
 
       // nodes
       for (const rid of visited) {
-        const room = world.rooms[rid];
+        const room = rooms()[rid];
         if (!room || !room.map) continue;
         const g = document.createElementNS(NS, 'g');
         g.setAttribute('class', 'node visited' + (rid === cur ? ' current' : ''));
@@ -272,7 +280,7 @@
     }
 
     function dirFor(rid, target) {
-      const room = world.rooms[rid];
+      const room = rooms()[rid];
       if (!room) return null;
       for (const dir of DIRECTIONS) {
         if (exitTarget(room, dir) === target) return dir;
@@ -287,9 +295,9 @@
     /* ---------------- autosave / save slots ---------------- */
 
     function autosaveNow() {
-      const m = engine.meta();
-      if (m.death || m.win) return;
-      save.autosave({ state: engine.serialize(), score: m.score, turns: m.turns, roomName: m.roomName });
+      const m = rt.meta();
+      if (m.dead || m.win) return;
+      save.autosave(save.payload(rt, CARTRIDGE_ID));
     }
 
     function openSlotModal(mode, slot) {
@@ -324,9 +332,9 @@
     }
 
     function useSlot(s) {
-      const m = engine.meta();
+      const m = rt.meta();
       if (slotMode === 'save') {
-        save.write(s, { state: engine.serialize(), score: m.score, turns: m.turns, roomName: m.roomName });
+        save.write(s, save.payload(rt, CARTRIDGE_ID));
         printMessages([{ text: 'Game saved to slot ' + s + '.', cls: 'info' }]);
       } else {
         const data = save.read(s);
@@ -335,10 +343,15 @@
           closeSlotModal();
           return;
         }
-        engine.restore(data.state);
+        if (!save.isCurrent(data)) {
+          printMessages([{ text: save.staleMessage, cls: 'bad' }]);
+          closeSlotModal();
+          return;
+        }
+        rt.restore(data.state);
         clearOutput();
         printMessages([{ text: 'Game restored from slot ' + s + '.', cls: 'info' }]);
-        printMessages(engine.describeRoom(engine.currentRoom(), true));
+        printMessages(rt.describeRoom(rt.meta().room, true));
         refresh();
         autosaveNow();
       }
@@ -363,14 +376,14 @@
     }
 
     function showWinOverlay() {
-      const m = engine.meta();
+      const m = rt.meta();
       byId('win-rank').textContent = rankName(m.score) + ' — Score ' + m.score;
       byId('win-overlay').hidden = false;
     }
 
     function rankName(score) {
       let name = 'Wandering Stranger';
-      for (const [s, r] of world.ranks) {
+      for (const [s, r] of rt.profile.score.ranks) {
         if (score >= s) name = r;
       }
       return name;
@@ -384,8 +397,8 @@
       if (!text) { byId('command').focus(); return; }
       echo(text);
 
-      const action = parser.parse(text);
-      const res = engine.handleAction(action);
+      const action = rt.parse(text);
+      const res = rt.perform(action);
       const m = res.meta || {};
       const messages = res.messages || [];
 
@@ -395,7 +408,7 @@
       if (m.loadRequest !== undefined) { openSlotModal('load', m.loadRequest); return; }
 
       // sounds
-      if (m.death) {
+      if (m.dead) {
         audio.sting();
       } else if (m.win) {
         audio.fanfare();
@@ -412,7 +425,7 @@
       printMessages(messages);
       refresh();
 
-      if (m.death) { showDeathOverlay(); return; }
+      if (m.dead) { showDeathOverlay(); return; }
       if (m.win) { showWinOverlay(); return; }
       autosaveNow();
     }
@@ -421,10 +434,10 @@
 
     function buildVocab() {
       const words = new Set();
-      for (const v of parser.verbs) words.add(v);
-      for (const d of parser.directions) words.add(d);
-      for (const id in world.objects) {
-        const o = world.objects[id];
+      for (const v of rt.vocabulary.verbs()) words.add(v);
+      for (const d of Object.keys(rt.vocabulary.DIRECTIONS)) words.add(d);
+      for (const id in objects()) {
+        const o = objects()[id];
         const src = [o.name].concat(o.aliases || []).join(' ');
         for (const w of src.toLowerCase().split(/[^a-z']+/)) {
           if (w.length > 1) words.add(w);
@@ -522,7 +535,7 @@
       clearOutput();
       titleShowing = true;
       const auto = save.readAutosave();
-      const hasSave = !!(auto && auto.state);
+      const hasSave = save.isCurrent(auto);
       const wrap = el('div');
       wrap.appendChild(el('pre', 'title-art', TITLE_ART));
       wrap.appendChild(el('p', 'title-sub', 'the Sunken Halls — an original homage to the great text adventures'));
@@ -533,24 +546,24 @@
 
     function startNew() {
       titleShowing = false;
-      engine.newGame();
+      rt.newGame();
       clearOutput();
-      printMessages(engine.intro);
-      printMessages(engine.describeRoom(engine.currentRoom(), true));
-      lastRoom = engine.currentRoom();
+      printMessages(rt.intro());
+      printMessages(rt.describeRoom(rt.meta().room, true));
+      lastRoom = rt.meta().room;
       refresh();
       autosaveNow();
     }
 
     function continueGame() {
       const auto = save.readAutosave();
-      if (!auto || !auto.state) { startNew(); return; }
+      if (!save.isCurrent(auto)) { startNew(); return; }
       titleShowing = false;
-      engine.restore(auto.state);
+      rt.restore(auto.state);
       clearOutput();
       printMessages([{ text: 'Welcome back to Ashcombe. The mist remembers you.', cls: 'dim' }]);
-      printMessages(engine.describeRoom(engine.currentRoom(), true));
-      lastRoom = engine.currentRoom();
+      printMessages(rt.describeRoom(rt.meta().room, true));
+      lastRoom = rt.meta().room;
       refresh();
       autosaveNow();
     }
@@ -558,6 +571,9 @@
     /* ---------------- init ---------------- */
 
     function init() {
+      /* The one gameplay implementation, from the cartridge. */
+      rt = ml.runtime.create(Z.cartridges[CARTRIDGE_ID]);
+
       loadSettings();
       vocab = buildVocab();
 
@@ -645,6 +661,7 @@
     return { init: init };
   })();
 
+  ui.runtime = () => rt;
   Z.ui = ui;
   if (typeof module !== 'undefined') module.exports = Z;
 

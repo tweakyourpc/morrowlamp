@@ -130,6 +130,21 @@
     };
   }
 
-  ml.stats = { DEFAULTS, config, create, use, award, damage, heal, xpFor, xpToNext, maxHpFor, summary };
+  /* An award is a small, once-per-thing recognition that the player did
+     something the cartridge cares about: `{ stat, by, xp }`. What the
+     triggers are is up to the runtime; what they are worth is up to the
+     cartridge. */
+  function grant(cfg, sheet, spec, weight) {
+    const lines = [];
+    if (!sheet || !spec) return lines;
+    if (spec.stat) {
+      const line = use(cfg, sheet, spec.stat, weight || spec.by || 1);
+      if (line) lines.push({ text: line, cls: 'scored' });
+    }
+    if (spec.xp) for (const line of award(cfg, sheet, spec.xp)) lines.push(line);
+    return lines;
+  }
+
+  ml.stats = { DEFAULTS, config, create, use, award, grant, damage, heal, xpFor, xpToNext, maxHpFor, summary };
   if (typeof module !== 'undefined') module.exports = Z;
 })(typeof window !== 'undefined' ? window : globalThis);

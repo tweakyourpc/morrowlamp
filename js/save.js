@@ -24,6 +24,28 @@
   const save = {
     slots: [1, 2, 3],
 
+    /* One state representation, one compatibility boundary.
+       Saves written before the shells were consolidated held a legacy
+       engine snapshot plus a separate character sheet. Their shape is not
+       the Machine's, and restoring one would produce a subtly broken game
+       rather than an obvious error, so they are refused by name. Any shell
+       that reads a save asks this first. */
+    isCurrent(payload) {
+      return !!(payload && payload.state && payload.machine);
+    },
+    staleMessage: 'That save was written by the pre-consolidation engine and cannot be read. Start a new game.',
+
+    /* The payload every shell writes. */
+    payload(runtime, cartridgeId) {
+      const m = runtime.meta();
+      return {
+        machine: (global.Z && global.Z.ml && global.Z.ml.VERSION) || '?',
+        cartridge: cartridgeId,
+        state: runtime.serialize(),
+        score: m.score, turns: m.turns, roomName: m.roomName
+      };
+    },
+
     write(slot, payload) {
       try {
         const record = Object.assign({}, payload, { saveVersion: SAVE_VERSION, gameId: GAME_ID, savedAt: Date.now() });

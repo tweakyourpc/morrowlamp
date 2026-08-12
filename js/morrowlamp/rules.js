@@ -32,12 +32,12 @@
     /* Optional capabilities. A cartridge that has not switched stats or
        encounters on simply never writes these, and the validator says so
        if it writes them anyway. */
-    'encounter', 'train', 'heal', 'hurt', 'outcome'
+    'encounter', 'train', 'heal', 'hurt', 'outcome', 'award'
   ];
 
   /* The clauses `when` understands, for the same reason. */
   const CONDITIONS = [
-    'room', 'notRoom', 'carrying', 'notCarrying', 'present', 'notPresent',
+    'room', 'notRoom', 'carrying', 'carryingAny', 'notCarrying', 'present', 'notPresent',
     'flags', 'open', 'lit', 'placed', 'notPlaced', 'visited', 'score', 'turns'
   ];
 
@@ -108,6 +108,13 @@
     if (when.notRoom !== undefined && list(when.notRoom).map(id).includes(S.room)) return false;
 
     for (const item of list(when.carrying)) if (!w.carrying(id(item))) return false;
+    /* `carrying` is every one of these; `carryingAny` is at least one —
+       "whichever light source you happen to have" cannot be written with
+       an AND. */
+    if (when.carryingAny !== undefined) {
+      const held = list(when.carryingAny).map(id);
+      if (!held.some((item) => w.carrying(item))) return false;
+    }
     for (const item of list(when.notCarrying)) if (w.carrying(id(item))) return false;
     for (const item of list(when.present)) if (!w.present(id(item))) return false;
     for (const item of list(when.notPresent)) if (w.present(id(item))) return false;
@@ -179,6 +186,7 @@
           case 'describe': ctx.ops.describe(); break;
           case 'encounter': ctx.ops.encounter(ref(value)); stopped = true; break;
           case 'train': ctx.ops.train(value.stat || value, value.by || 1); break;
+          case 'award': ctx.ops.award(value); break;
           case 'heal': ctx.ops.heal(value); break;
           case 'hurt': ctx.ops.hurt(value); break;
           case 'outcome': ml.outcome.apply(value, ctx); stopped = true; break;

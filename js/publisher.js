@@ -1,25 +1,30 @@
 /* ============================================================
-   THE SUNKEN CROWN — point-and-click controller
-   Drives the pure engine with synthesized action objects, so
-   every puzzle, flag and score rule from the text game still
-   applies. This layer owns the actor, the cursor verbs, the
-   darkness encounter, and the combat round.
+   THE SUNKEN CROWN — point-and-click shell
+   A presentation layer over the Morrowlamp Machine. It owns the
+   actor, the cursor verbs, the scene, the panels and the sound;
+   it owns no gameplay. Every puzzle, flag, score, treasure,
+   stat, encounter and darkness rule lives in the Sunken Crown
+   cartridge and is executed by the generic runtime, which is the
+   same runtime a compiled adventure ships with.
+
+   If you find yourself adding a game rule to this file, it
+   belongs in js/cartridges/sunken-crown.js instead.
 
    AI orchestration author: @tweakyourpc
    ============================================================ */
 (function (global) {
   'use strict';
   const Z = global.Z = global.Z || {};
-  const world = Z.world, engine = Z.engine, scenes = Z.scenes;
-  const gfx = Z.gfx, sprites = Z.sprites, rpg = Z.rpg;
+  const scenes = Z.scenes, gfx = Z.gfx, sprites = Z.sprites;
   const audio = Z.audio, music = Z.music, save = Z.save;
+
+  /* The one gameplay implementation. Created at boot from the cartridge. */
+  const CARTRIDGE_ID = 'the-sunken-crown';
+  let rt = null;
+  const ml = Z.ml;
 
   const VERBS = ['walk', 'look', 'hand', 'talk', 'attack'];
   const VERB_LABEL = { walk: 'Walk', look: 'Look', hand: 'Hand', talk: 'Talk', attack: 'Attack', item: 'Use' };
-  const UNDO_MAX = 20;
-  /* Turns of burn time in the dark. Generous — this is tension, not a
-     timer puzzle — and the sunstone is a permanent backup light. */
-  const LAMP_FULL = 260;
   /* Where the two of you stand when it comes to blows. */
   const FOE_X = 214, FOE_Y = 178, HERO_X = 96, HERO_Y = 178;
 
@@ -41,6 +46,13 @@
     let undoStack = [];
 
     const $ = (id) => document.getElementById(id);
+
+    /* Object queries, asked of the runtime rather than of a second copy
+       of the world data. */
+    const info = (id) => rt.describeObject(id) || {};
+    const isOpen = (id) => !!info(id).open;
+    const contentsOf = (id) => info(id).contents || [];
+    const nameOf = (id) => info(id).name || id;
 
     /* ---------------- procedural publisher splash ---------------- */
 
@@ -164,14 +176,14 @@
     /* ---------------- scene state ---------------- */
 
     function sceneFlags() {
-      const F = engine.flags;
-      const vis = engine.visibleItems();
+      const F = rt.flags();
+      const vis = rt.visibleObjects().map((o) => o.id);
       return {
         gatesOpen: !!F.gatesOpen, tunnelDug: !!F.tunnelDug,
         mirrorOpened: !!F.mirrorOpened, flourRevealed: !!F.flourRevealed,
         boatPatched: !!F.boatPatched, guardDancing: !!F.guardDancing,
-        hatchOpen: engine.isOpen('hatch'), clockOpen: engine.isOpen('clock'),
-        vaultOpen: engine.isOpen('vaultDoor'), sarcOpen: engine.isOpen('sarcophagus'),
+        hatchOpen: isOpen('hatch'), clockOpen: isOpen('clock'),
+        vaultOpen: isOpen('vaultDoor'), sarcOpen: isOpen('sarcophagus'),
         crownTaken: !vis.includes('crown'), idolTaken: !vis.includes('idol'),
         sunstoneTaken: !vis.includes('sunstone')
       };
@@ -180,8 +192,8 @@
     /* Hotspot rectangles, normalised and filtered to what's actually there. */
     function activeSpots() {
       if (!scene) return [];
-      const vis = engine.visibleItems();
-      const F = engine.flags;
+      const vis = rt.visibleObjects().map((o) => o.id);
+      const F = rt.flags();
       const out = [];
       const defined = new Set();
       for (const s of (scene.spots || [])) {
@@ -198,7 +210,7 @@
         out.push({
           id: s.id, rect, walkTo: s.walkTo,
           icon: !!s.icon, iconAt: s.iconAt || [s.x, s.y],
-          label: (world.objects[s.id] || {}).name || s.id
+          label: nameOf(s.id)
         });
       }
 
@@ -206,21 +218,21 @@
       // authored hotspot for one of those contents, synthesize a small icon
       // hotspot inside the open container so the player can recover it.
       for (const id of vis) {
-        if (defined.has(id) || !world.objects[id]) continue;
-        for (const containerId in world.objects) {
-          const container = world.objects[containerId];
-          if (!container.container || !engine.isOpen(containerId)) continue;
-          if (!engine.contentsOf(containerId).includes(id)) continue;
+        if (defined.has(id) || !info(id).name) continue;
+        for (const containerId of Object.keys(rt.cartridge.world.objects)) {
+          const container = info(containerId);
+          if (!container.container || !isOpen(containerId)) continue;
+          if (!contentsOf(containerId).includes(id)) continue;
           const cs = (scene.spots || []).find((spot) => spot.id === containerId);
           if (!cs) continue;
-          const contents = engine.contentsOf(containerId);
+          const contents = contentsOf(containerId);
           const index = contents.indexOf(id);
           const cx = (cs.x || 0) + (cs.w || 22) / 2 + ((index % 3) - 1) * 10;
           const cy = (cs.y || 0) + Math.min((cs.h || 22) / 2, 18) + Math.floor(index / 3) * 10;
           out.push({
             id, rect: [cx - 9, cy - 9, 18, 18], walkTo: cs.walkTo || [cx, cy],
             icon: true, iconAt: [cx, cy],
-            label: (world.objects[id] || {}).name || id
+            label: nameOf(id)
           });
           break;
         }
@@ -231,7 +243,7 @@
     function activeExits() {
       if (!scene) return [];
       return (scene.exits || []).filter((e) => {
-        if (e.needs && !engine.flags[e.needs]) return false;
+        if (e.needs && !rt.flags()[e.needs]) return false;
         return true;
       });
     }
@@ -260,7 +272,7 @@
       repaintBackground();
       g.ctx.drawImage(bg, 0, 0, gfx.W, gfx.H);
 
-      const f = engine.flags;
+      const f = rt.flags();
       const drawables = [];
 
       // loose items lying in the room
@@ -281,15 +293,15 @@
       drawables.push({
         y: actor.y,
         fn: () => sprites.drawActor(g, actor.x, actor.y, {
-          cls: rpg.avatar() ? rpg.avatar().cls : 'delver',
+          cls: (rt.sheet() && rt.sheet().cls) || 'delver',
           scale: scenes.actorScale(scene, actor.y) * (g.profileName === 'vga' ? 1.10 : 1),
           facing: actor.facing, frame: actor.frame, walking: actor.walking,
-          lantern: engine.inventory().includes('lantern') && engine.isDark() && engine.hasLight()
+          lantern: rt.inventory().includes('lantern') && rt.meta().dark && rt.meta().hasLight
         })
       });
 
       // an active monster squares up on the right, in front of everything
-      const fight = rpg.active();
+      const fight = rt.encounter();
       if (fight) {
         drawables.push({ y: 999, fn: () => sprites.monster(fight.kind)(g, FOE_X, FOE_Y, T, fight.hp < fight.maxHp * 0.4) });
       }
@@ -300,11 +312,11 @@
       if (scene.fg) scene.fg(g, sceneFlags(), T);
 
       // darkness: a pool of lamplight, or nothing at all
-      if (engine.isDark()) {
-        if (engine.hasLight()) {
+      if (rt.meta().dark) {
+        if (rt.meta().hasLight) {
           // centred above the actor's head so wall-height scenery — thrones,
           // portraits, altars — falls inside the pool rather than above it
-          const r = engine.inventory().includes('sunstone') ? 146 : 120;
+          const r = rt.inventory().includes('sunstone') ? 146 : 120;
           g.darkness(actor.x, actor.y - 30, r);
           g.lightPool(actor.x, actor.y - 8, r * 0.46, g.C.yellow);
         } else {
@@ -356,7 +368,7 @@
       const d = Math.hypot(actor.tx - actor.x, actor.ty - actor.y);
       if (d < 2) { actor.moving = false; arrive(); return; }
       actor.moving = true;
-      rpg.use('agi', 1);
+      rt.train('agi', 1);
     }
 
     function arrive() {
@@ -367,22 +379,12 @@
 
     /* ---------------- the engine bridge ---------------- */
 
-    function pushUndo() {
-      undoStack.push(rpg.serialize());
-      if (undoStack.length > UNDO_MAX) undoStack.shift();
-    }
-
+    /* One turn. Everything that decides what happens is behind
+       rt.perform(); this function only reacts to what came back. */
     function run(action) {
       if (!action) return;
-      pushUndo();
 
-      // watch for treasure milestones so the adventure feeds the RPG layer
-      const t = action.target;
-      const isTreasure = t && world.treasures.includes(t);
-      const hadIt = isTreasure && !!engine.flags['treasureTaken_' + t];
-      const placedBefore = engine.meta().treasuresPlaced;
-
-      const res = engine.handleAction(action);
+      const res = rt.perform(action);
       const m = res.meta || {};
       const msgs = res.messages || [];
 
@@ -392,107 +394,83 @@
 
       say(msgs);
 
-      if (isTreasure && !hadIt && engine.flags['treasureTaken_' + t]) say(rpg.award(30));
-      if (engine.meta().treasuresPlaced > placedBefore) say(rpg.award(25));
-
       // the lullaby is the one tune the game plays diegetically
       if (action.verb === 'play' || action.verb === 'sing') {
-        if (engine.flags.melodyKnown) {
+        if (rt.flags().melodyKnown) {
           music.play('lullaby', { then: scene.music || 'manor' });
-          if (engine.flags.guardDancing && !danceUntil) danceUntil = T + 6000;
+          if (rt.flags().guardDancing && !danceUntil) danceUntil = T + 6000;
         }
       }
 
       refresh();
 
       if (m.win) { onWin(); return; }
-      if (m.death) { onDeath('engine'); return; }
-
-      burnLamp();
-      checkDark();
+      if (m.dead) { onDeath(m.encounter ? 'combat' : 'engine'); return; }
+      /* Darkness, lamp fuel and the encounters they lead to are the
+         Machine's business now; if a fight started, show the panel. */
+      if (m.encounter) openFight();
       autosave();
     }
 
     /* Is the lantern specifically the thing that is burning? */
     function lanternLit() {
-      if (!engine.inventory().includes('lantern')) return false;
-      const o = engine.state.obj.lantern;
-      return !o || o.lit !== false;
-    }
-
-    /* The lamp only burns oil where it is actually needed. Fuel lives on
-       engine.flags so it rides along with saves and undo for free. */
-    function burnLamp() {
-      if (!engine.isDark() || !lanternLit()) return;
-      const F = engine.flags;
-      if (F.lampFuel === undefined) F.lampFuel = LAMP_FULL;
-      F.lampFuel--;
-      if (F.lampFuel === 60) say([{ text: 'The lantern flame has gone thin and blue. It will not last forever.', cls: 'dim' }]);
-      else if (F.lampFuel === 25) say([{ text: 'The lantern gutters. You can see the oil line from outside the glass now.', cls: 'bad' }]);
-      else if (F.lampFuel <= 0) {
-        engine.handleAction({ verb: 'turn', target: 'lantern', with: 'off' });   // messages discarded on purpose
-        say([{ text: 'The lantern burns down to nothing and goes out. The dark steps in immediately, as if it had been queuing.', cls: 'bad' }]);
-        audio.thud();
-      }
+      const o = rt.describeObject('lantern');
+      return !!o && o.carried && o.lit;
     }
 
     /* Verb + hotspot -> an engine action. */
     function actionFor(id) {
-      const o = world.objects[id];
+      const o = info(id);
       if (!o) return null;
 
       if (verb === 'look') {
-        const up = rpg.firstLook(id);
         if (up) say([{ text: up, cls: 'scored' }]);
         return { verb: 'examine', target: id };
       }
       if (verb === 'talk') {
-        if (id === 'gates' && sceneId === 'caveMouth' && !engine.flags.gatesOpen) {
+        if (id === 'gates' && sceneId === 'caveMouth' && !rt.flags().gatesOpen) {
           openSpeak();
           return null;
         }
         return { verb: 'talk', target: id };
       }
       if (verb === 'attack') {
-        rpg.use('str', 1);
+        rt.train('str', 1);
         return { verb: 'attack', target: id };
       }
       if (verb === 'item' && held) return useOn(held, id);
 
       // Hand: the context-sensitive one
       if (o.takeable) return { verb: 'take', target: id };
-      if (o.container) return engine.isOpen(id)
+      if (o.container) return isOpen(id)
         ? { verb: 'close', target: id }
         : { verb: 'open', target: id };
       if (id === 'door') return { verb: 'open', target: id };
       if (id === 'sarcophagus' || id === 'mirror') return { verb: 'push', target: id };
-      rpg.use('str', 1);
+      rt.train('str', 1);
       return { verb: 'push', target: id };
     }
 
     /* Using a carried item on something. Mirrors the gestures the
        text parser supported, so no puzzle needs typing. */
     function useOn(item, id) {
-      const target = world.objects[id];
-      if (item === 'oilJar' && id === 'lantern') {
-        engine.flags.lampFuel = LAMP_FULL;
-        engine.handleAction({ verb: 'turn', target: 'lantern', with: 'on' });
-        return { verb: 'use', target: 'oilJar', with: 'lantern' };
-      }
+      const target = rt.describeObject(id);
+      if (item === 'oilJar' && id === 'lantern') return { verb: 'use', target: 'oilJar', with: 'lantern' };
       if (item === 'lyre') return { verb: 'play', target: 'lyre' };
       if (item === 'musicSheet') return { verb: 'read', target: 'musicSheet' };
-      if (item === 'shovel' && (id === 'crack' || sceneId === 'cellar')) { rpg.use('str', 3); return { verb: 'dig' }; }
+      if (item === 'shovel' && (id === 'crack' || sceneId === 'cellar')) return { verb: 'dig' };
       if ((item === 'pitchPot' || item === 'curtain') && id === 'boat') return { verb: 'fix', target: 'boat' };
       if (item === 'flour' && id === 'mirror') return { verb: 'throw', target: 'flour' };
-      if (target && target.key === item) return { verb: 'unlock', target: id, with: item };
-      if (target && target.container && !engine.isLocked(id)) return { verb: 'put', target: item, with: id };
+      const def = rt.cartridge.world.objects[id];
+      if (def && def.key === item) return { verb: 'unlock', target: id, with: item };
+      if (target && target.container && !target.locked) return { verb: 'put', target: item, with: id };
       return { verb: 'use', target: item, with: id };
     }
 
     /* ---------------- clicking ---------------- */
 
     function stageClick(cx, cy) {
-      if (rpg.active()) return;                      // combat owns the input
+      if (rt.encounter()) return;                      // combat owns the input
       if (!$('speak-panel').hidden) return;
 
       const spots = activeSpots();
@@ -521,7 +499,7 @@
       if (ex && verb === 'look') { say([{ text: 'A way ' + dirName(ex.dir) + '.', cls: 'dim' }]); return; }
 
       if (verb === 'look') { say([{ text: 'You see nothing special there.', cls: 'dim' }]); return; }
-      if (verb === 'item') { say([{ text: 'You wave the ' + world.objects[held].name + ' at nothing in particular.', cls: 'dim' }]); return; }
+      if (verb === 'item') { say([{ text: 'You wave the ' + nameOf(held) + ' at nothing in particular.', cls: 'dim' }]); return; }
       say([{ text: 'Nothing there responds to that.', cls: 'dim' }]);
     }
 
@@ -530,9 +508,9 @@
     }
 
     function go(dir) {
-      const before = engine.currentRoom();
+      const before = rt.meta().room;
       run({ verb: 'move', text: dir });
-      const after = engine.currentRoom();
+      const after = rt.meta().room;
       if (after !== before) enterRoom(after, dir);
     }
 
@@ -558,10 +536,10 @@
       if (music.current() !== track && music.current() !== 'lullaby') music.play(track);
 
       // an optional early scrap, to teach the combat panel. The flag lives
-      // on engine.flags so it survives saves and page reloads — as a plain
+      // on rt.flags() so it survives saves and page reloads — as a plain
       // controller variable it re-triggered every time the page was loaded.
-      if (rid === 'lakeShore' && !engine.flags.lurkerMet) {
-        engine.flags.lurkerMet = true;
+      if (rid === 'lakeShore' && !rt.flags().lurkerMet) {
+        rt.flags().lurkerMet = true;
         global.setTimeout(() => beginFight('lurker'), 700);
       }
       refresh();
@@ -570,24 +548,15 @@
 
     /* ---------------- darkness and the Umbra ---------------- */
 
-    function checkDark() {
-      if (!engine.isDark() || engine.hasLight()) { darkTurns = 0; return; }
-      if (rpg.active()) return;
-      darkTurns++;
-      if (darkTurns === 1) {
-        say([{ text: 'It is pitch black. Something in here is deciding what you are.', cls: 'bad' }]);
-        audio.thud();
-        return;
-      }
-      if (darkTurns >= 2) beginFight('umbra');
-    }
+    /* ---------------- encounters ----------------
+       The Machine decides that a fight has started (darkness runs out of
+       patience, or a timer wakes the lurker). This shell only puts a panel
+       on screen and renders whatever actions the encounter declared — it
+       does not know what an Umbra is, only what the runtime told it. */
 
-    /* ---------------- combat ---------------- */
-
-    function beginFight(kind) {
-      if (rpg.active()) return;
-      const f = rpg.start(kind, { room: sceneId });
-      if (!f) return;
+    function openFight() {
+      const fight = rt.encounter();
+      if (!fight) return;
       // square off, so the pair of you are both actually visible
       const p = scenes.clampToWalk(scene, HERO_X, HERO_Y);
       actor.x = p[0]; actor.y = p[1];
@@ -596,69 +565,58 @@
       actor.facing = 'right';
       music.play('combat');
       audio.sting();
-      say(f.log);
       $('combat-panel').hidden = false;
       renderCombat();
     }
 
-    function renderCombat() {
-      const f = rpg.active();
-      if (!f) return;
-      const a = rpg.avatar();
-      $('cb-name').textContent = f.name;
-      const pct = Math.max(0, (f.hp / f.maxHp) * 100);
-      $('cb-hp').style.width = pct + '%';
-      $('cb-round').textContent = 'Round ' + f.round;
-      const lit = lightSource();
-      const btn = $('cb-light');
-      btn.disabled = !lit;
-      btn.textContent = lit ? ('Raise ' + world.objects[lit].name) : 'No light to raise';
-      $('cb-you').style.width = Math.max(0, (a.hp / a.maxHp) * 100) + '%';
-      $('cb-youhp').textContent = a.hp + ' / ' + a.maxHp;
-    }
+    /* index.html carries four fixed buttons; an encounter may offer fewer.
+       Buttons the current encounter does not declare are hidden, and ones
+       it declares but will not allow explain themselves. */
+    const COMBAT_BUTTONS = { attack: 'cb-attack', defend: 'cb-defend', light: 'cb-light', flee: 'cb-flee' };
 
-    /* What could we hold up at a thing that hates light? */
-    function lightSource() {
-      const inv = engine.inventory();
-      if (inv.includes('sunstone')) return 'sunstone';
-      if (inv.includes('lantern')) return 'lantern';
-      if (inv.includes('candle')) return 'candle';
-      return null;
+    function renderCombat() {
+      const fight = rt.encounter();
+      if (!fight) return;
+      const sheet = rt.sheet();
+      $('cb-name').textContent = fight.name;
+      $('cb-hp').style.width = Math.max(0, (fight.hp / fight.maxHp) * 100) + '%';
+      $('cb-round').textContent = 'Round ' + fight.round;
+      if (sheet) {
+        $('cb-you').style.width = Math.max(0, (sheet.hp / sheet.maxHp) * 100) + '%';
+        $('cb-youhp').textContent = sheet.hp + ' / ' + sheet.maxHp;
+      }
+      const offered = {};
+      for (const action of fight.actions) offered[action.id] = action;
+      for (const id in COMBAT_BUTTONS) {
+        const button = $(COMBAT_BUTTONS[id]);
+        const action = offered[id];
+        button.hidden = !action;
+        if (!action) continue;
+        button.disabled = !action.enabled;
+        button.textContent = action.enabled ? action.label : (action.deny || action.label);
+      }
     }
 
     function combatAct(what) {
-      const f = rpg.active();
-      if (!f || f.over) return;
-      const ctx = {};
-      if (what === 'light') {
-        const src = lightSource();
-        if (!src) return;
-        ctx.light = world.objects[src].name;
-        // raising an unlit lantern means lighting it first — which also
-        // happens to solve the darkness that summoned the Umbra
-        if (src === 'lantern' || src === 'candle') {
-          engine.handleAction({ verb: 'turn', target: src, with: 'on' });
-        }
-      }
-      if (what === 'attack') ctx.weapon = engine.inventory().includes('knife');
+      const fight = rt.encounter();
+      if (!fight || fight.over) return;
 
-      const r = rpg.act(what, ctx);
-      say(r.lines);
-      if (r.lines.some((l) => l.cls === 'bad')) audio.thud();
-      else if (r.lines.some((l) => l.cls === 'good')) audio.chime();
+      const res = rt.encounterAct(what);
+      const lines = res.messages || [];
+      say(lines);
+      if (lines.some((l) => l.cls === 'bad')) audio.thud();
+      else if (lines.some((l) => l.cls === 'good')) audio.chime();
 
-      renderCombat();
       refresh();
 
-      if (!r.over) return;
+      if (rt.encounter()) { renderCombat(); return; }
 
-      rpg.endFight();
       $('combat-panel').hidden = true;
-
-      if (r.died) { onDeath('combat'); return; }
+      if (res.meta.dead) { onDeath('combat'); return; }
+      if (res.meta.win) { onWin(); return; }
       music.play(scene.music || 'manor');
-      if (r.won) audio.fanfare();
-      darkTurns = -4;                         // a grace period before the dark tries again
+      audio.fanfare();
+      bgKey = '';
       autosave();
     }
 
@@ -675,28 +633,28 @@
     }
 
     function refresh() {
-      const m = engine.meta();
-      const a = rpg.avatar();
+      const m = rt.meta();
+      const sheet = rt.sheet();
       $('hud-room').textContent = m.roomName;
       $('hud-score').textContent = 'Score ' + m.score;
-      $('hud-treasure').textContent = 'Regalia ' + m.treasuresPlaced + '/6';
+      $('hud-treasure').textContent = 'Regalia ' + m.secured + '/' + m.treasures;
 
-      if (a) {
-        $('st-class').textContent = rpg.CLASSES[a.cls].name + ' · Level ' + a.level;
-        $('st-hp-bar').style.width = Math.max(0, (a.hp / a.maxHp) * 100) + '%';
-        $('st-hp-text').textContent = a.hp + ' / ' + a.maxHp;
-        const need = rpg.xpFor(a.level + 1), have = a.xp, base = rpg.xpFor(a.level);
-        const pct = Math.max(0, Math.min(100, ((have - base) / Math.max(1, need - base)) * 100));
-        $('st-xp-bar').style.width = pct + '%';
-        $('st-xp-text').textContent = a.xp + ' xp (' + rpg.xpToNext() + ' to go)';
+      if (sheet) {
+        $('st-class').textContent = sheet.className + ' · Level ' + sheet.level;
+        $('st-hp-bar').style.width = Math.max(0, (sheet.hp / sheet.maxHp) * 100) + '%';
+        $('st-hp-text').textContent = sheet.hp + ' / ' + sheet.maxHp;
+        const span = Math.max(1, sheet.xp + sheet.xpToNext);
+        $('st-xp-bar').style.width = Math.max(0, Math.min(100, (sheet.xp / span) * 100)) + '%';
+        $('st-xp-text').textContent = sheet.xp + ' xp (' + sheet.xpToNext + ' to go)';
         const list = $('st-stats');
         list.innerHTML = '';
-        for (const k of ['str', 'agi', 'vit', 'lore', 'luck']) {
+        /* Whatever stats this cartridge declared, in its own order. */
+        for (const stat of sheet.stats) {
           const li = document.createElement('li');
           const n = document.createElement('span');
-          n.textContent = rpg.STAT_NAMES[k];
+          n.textContent = stat.name;
           const v = document.createElement('b');
-          v.textContent = a.stats[k];
+          v.textContent = stat.value;
           li.appendChild(n); li.appendChild(v);
           list.appendChild(li);
         }
@@ -704,7 +662,7 @@
 
       const strip = $('inv-strip');
       strip.innerHTML = '';
-      const inv = engine.inventory();
+      const inv = rt.inventory();
       if (!inv.length) {
         const d = document.createElement('div');
         d.className = 'inv-empty';
@@ -712,7 +670,7 @@
         strip.appendChild(d);
       }
       for (const id of inv) {
-        const o = world.objects[id];
+        const o = info(id);
         if (!o) continue;
         const b = document.createElement('button');
         b.className = 'inv-item' + (held === id ? ' held' : '');
@@ -721,7 +679,7 @@
         const lab = document.createElement('span');
         lab.textContent = o.name;
         if (id === 'lantern') {
-          const fuel = engine.flags.lampFuel;
+          const fuel = rt.flags().lampFuel;
           if (!lanternLit()) { lab.textContent = o.name + ' (out)'; b.classList.add('spent'); }
           else if (fuel !== undefined && fuel <= 60) { lab.textContent = o.name + ' (low)'; b.classList.add('low'); }
         }
@@ -774,7 +732,7 @@
       const stage = $('stage');
       stage.dataset.verb = verb;
       $('cursor-label').textContent = verb === 'item' && held
-        ? 'Use ' + world.objects[held].name + ' on…'
+        ? 'Use ' + nameOf(held) + ' on…'
         : VERB_LABEL[verb];
     }
 
@@ -794,10 +752,7 @@
       if (!v) return;
       say([{ text: '"' + v + '"', cls: 'command' }]);
       run({ verb: 'say', text: v });
-      if (engine.flags.gatesOpen) {
-        rpg.use('lore', 3);
-        const lines = rpg.award(50);
-        say(lines);
+      if (rt.flags().gatesOpen) {
         bgKey = '';
         refresh();
       }
@@ -808,6 +763,7 @@
     function onDeath(how) {
       music.stop();
       audio.sting();
+      $('combat-panel').hidden = true;
       $('death-why').textContent = how === 'combat'
         ? 'Whatever was in the dark with you has finished its business.'
         : 'Ashcombe keeps what it is given.';
@@ -816,61 +772,61 @@
 
     function onWin() {
       music.play('victory');
-      $('win-rank').textContent = 'Score ' + engine.meta().score + ' · ' +
-        rpg.CLASSES[rpg.avatar().cls].name + ' level ' + rpg.avatar().level;
+      const sheet = rt.sheet();
+      $('combat-panel').hidden = true;
+      $('win-rank').textContent = 'Score ' + rt.meta().score +
+        (sheet ? ' · ' + sheet.className + ' level ' + sheet.level : '');
       $('overlay-win').hidden = false;
     }
 
     function doUndo() {
-      const res = engine.handleAction({ verb: 'undo' });
-      const snap = undoStack.pop();
-      if (snap) rpg.restore(snap);
+      /* One undo stack, inside the runtime, covering world state and the
+         character sheet together — they are one snapshot now. */
+      const res = rt.perform({ verb: 'undo' });
       say(res.messages);
       $('overlay-death').hidden = true;
       $('combat-panel').hidden = true;
-      rpg.endFight();
-      darkTurns = 0;
-      enterRoom(engine.currentRoom(), 'u');
+      enterRoom(rt.meta().room, 'u');
       music.play(scene.music || 'manor');
+      refresh();
     }
 
-    /* ---------------- save ---------------- */
+    /* ---------------- save ----------------
+       One serialized state, not two. The Machine's snapshot already
+       contains the world, the flags, the sheet and any running encounter. */
+
+    const payload = () => save.payload(rt, CARTRIDGE_ID);
+
+    function usable(data) {
+      if (!data || !data.state) return false;
+      if (save.isCurrent(data)) return true;
+      say([{ text: save.staleMessage, cls: 'bad' }]);
+      return false;
+    }
 
     function autosave() {
-      const m = engine.meta();
-      if (m.death || m.win) return;
-      save.autosave({
-        state: engine.serialize(), rpg: rpg.serialize(),
-        score: m.score, turns: m.turns, roomName: m.roomName
-      });
+      const m = rt.meta();
+      if (m.dead || m.win) return;
+      save.autosave(payload());
     }
 
     function saveTo(slot) {
-      const m = engine.meta();
-      save.write(slot, {
-        state: engine.serialize(), rpg: rpg.serialize(),
-        score: m.score, turns: m.turns, roomName: m.roomName
-      });
+      save.write(slot, payload());
       say([{ text: 'Saved to slot ' + slot + '.', cls: 'info' }]);
     }
 
     function loadFrom(slot) {
       const d = save.read(slot);
-      if (!d || !d.state) { say([{ text: 'Slot ' + slot + ' is empty.', cls: 'bad' }]); return false; }
-      engine.restore(d.state);
-      if (d.rpg) rpg.restore(d.rpg);
+      if (!d) { say([{ text: 'Slot ' + slot + ' is empty.', cls: 'bad' }]); return false; }
+      if (!usable(d)) return false;
+      rt.restore(d.state);
       resumeInto();
       say([{ text: 'Restored from slot ' + slot + '.', cls: 'info' }]);
       return true;
     }
 
-    function portablePayload() {
-      const m = engine.meta();
-      return { state: engine.serialize(), rpg: rpg.serialize(), score: m.score, turns: m.turns, roomName: m.roomName };
-    }
-
     function exportCode() {
-      const code = save.exportCode(portablePayload());
+      const code = save.exportCode(payload());
       global.prompt('Copy this portable save code. It contains no file path or external service reference:', code);
     }
 
@@ -882,9 +838,8 @@
         say([{ text: 'That save code is not valid for The Sunken Crown.', cls: 'bad' }]);
         return;
       }
-      engine.restore(data.state);
-      if (data.rpg) rpg.restore(data.rpg);
-      if (!rpg.isReady()) rpg.begin('delver');
+      if (!usable(data)) return;
+      rt.restore(data.state);
       resumeInto();
       say([{ text: 'Portable save restored.', cls: 'info' }]);
     }
@@ -895,22 +850,20 @@
       $('overlay-death').hidden = true;
       $('overlay-win').hidden = true;
       $('combat-panel').hidden = true;
-      rpg.endFight();
-      undoStack = [];
-      darkTurns = 0;
-      enterRoom(engine.currentRoom(), camefrom || 'start');
-      say(engine.describeRoom(engine.currentRoom(), true));
+      enterRoom(rt.meta().room, camefrom || 'start');
+      say(rt.describeRoom(rt.meta().room, true));
       refresh();
+      /* A save taken mid-fight resumes mid-fight. */
+      if (rt.encounter()) openFight();
     }
 
     /* ---------------- start ---------------- */
 
     function startNew(cls) {
-      engine.newGame();
-      engine.setExternalDarkness(true);
-      rpg.begin(cls);
+      rt.newGame();
+      rt.chooseClass(cls);
       $('msgbox').innerHTML = '';
-      say(engine.intro.map((t) => ({ text: t, cls: 'intro' })));
+      say(rt.intro().map((t) => ({ text: t, cls: 'intro' })));
       resumeInto();
       music.play(scene.music || 'manor');
     }
@@ -918,6 +871,12 @@
     /* ---------------- init ---------------- */
 
     function init() {
+      /* The one gameplay implementation, from the cartridge. Everything
+         above this line is presentation. */
+      rt = ml.runtime.create(Z.cartridges[CARTRIDGE_ID]);
+      rt.on('sound', (p) => { if (audio[p.name]) audio[p.name](); });
+      rt.on('encounter', () => { if (rt.encounter()) openFight(); });
+
       const canvas = $('stage');
       canvas.width = gfx.W; canvas.height = gfx.H;
       g = gfx.create(canvas, { profile: gfx.profileNames[profileIndex] });
@@ -936,7 +895,6 @@
       bg.width = gfx.W; bg.height = gfx.H;
       bgG = gfx.create(bg, { profile: gfx.profileNames[profileIndex] });
 
-      engine.setExternalDarkness(true);
       scene = scenes.get('yard'); sceneId = 'yard';
 
       /* stage input */
@@ -1030,7 +988,8 @@
       $('btn-win-stay').addEventListener('click', () => { $('overlay-win').hidden = true; });
 
       /* class select */
-      for (const cls of Object.keys(rpg.CLASSES)) {
+      for (const klass of rt.classes()) {
+        const cls = klass.id;
         const b = $('cls-' + cls);
         if (!b) continue;
         b.addEventListener('click', () => {
@@ -1040,14 +999,11 @@
       }
       const cont = $('btn-continue');
       const auto = save.readAutosave();
-      if (auto && auto.state) {
+      if (auto && auto.state && auto.machine) {
         cont.hidden = false;
         cont.addEventListener('click', () => {
           music.unlock(); audio.unlock();
-          engine.restore(auto.state);
-          engine.setExternalDarkness(true);
-          if (auto.rpg) rpg.restore(auto.rpg);
-          if (!rpg.isReady()) rpg.begin('delver');
+          rt.restore(auto.state);
           $('msgbox').innerHTML = '';
           say([{ text: 'The mist remembers you.', cls: 'dim' }]);
           resumeInto();
