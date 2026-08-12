@@ -1,0 +1,41 @@
+# Morrowlamp Game Workshop — development noise only.
+#
+# Nothing required to build, test or understand the project belongs here.
+# Source, cartridges, tests, documentation, Workshop code and procedural art
+# code are all tracked. If you find yourself adding a source path below,
+# something has gone wrong.
+
+# --- editor and OS metadata ---
+*~
+*.swp
+*.swo
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- compiled adventures ---
+# BUILD GAME output is a build product, reproducible from the cartridge and
+# the Machine at any time. The tests write theirs to a temp directory; these
+# patterns catch copies left in the tree during manual verification.
+/dist/
+/build/
+_p[0-9]*.html
+_built-*.html
+_node.html
+the-sunken-crown.html
+captains-thistle.html
+sir-crumbly.html
+my-adventure*.html
+*.cartridge.json
+
+# --- temporary test and preview output ---
+/tmp/
+*.tmp
+*.log
+morrowlamp-build-*/
+
+# --- local development scratch ---
+scratch/
+notes.local.md

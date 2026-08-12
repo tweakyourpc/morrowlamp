@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#101018">
+<meta name="description" content="THE SUNKEN CROWN — a point-and-click adventure RPG in 16 colours.">
+<title>THE SUNKEN CROWN</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M2 11 L2 6 L5 8 L8 4 L11 8 L14 6 L14 11 Z' fill='%23ffff55'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="css/publisher.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="crownmark">♛</span>
+    <span class="brand-name">THE SUNKEN CROWN</span>
+  </div>
+  <div class="hud">
+    <span class="hud-item" id="hud-room">Ashcombe Yard</span>
+    <span class="hud-item" id="hud-score">Score 0</span>
+    <span class="hud-item" id="hud-treasure">Regalia 0/6</span>
+  </div>
+  <nav class="topbtns">
+    <button class="btn" id="btn-undo" type="button" title="Undo the last move">Undo</button>
+    <button class="btn" id="btn-save" type="button" title="Save to slot 1">Save</button>
+    <button class="btn" id="btn-load" type="button" title="Load slot 1">Load</button>
+    <button class="btn" id="btn-export" type="button" title="Show a portable save code">Code out</button>
+    <button class="btn" id="btn-import" type="button" title="Load a portable save code">Code in</button>
+    <button class="btn" id="btn-music" type="button">♫ Music</button>
+    <button class="btn" id="btn-sfx" type="button">♪ Sound</button>
+    <button class="btn" id="btn-video" type="button" title="Cycle CGA, EGA, and VGA presentation profiles">EGA</button>
+    <button class="btn" id="btn-speech" type="button" title="Use browser speech when available">Speech off</button>
+    <button class="btn" id="btn-text" type="button" title="The original text version">Text mode</button>
+  </nav>
+</header>
+
+<main class="layout">
+
+  <section class="stage-col">
+    <div class="stage-wrap">
+      <canvas id="stage" width="320" height="200" data-verb="walk"></canvas>
+
+      <!-- combat -->
+      <div class="combat" id="combat-panel" hidden>
+        <div class="cb-head">
+          <span class="cb-name" id="cb-name">The Umbra</span>
+          <span class="cb-round" id="cb-round">Round 1</span>
+        </div>
+        <div class="bar bar-foe"><i id="cb-hp"></i></div>
+        <div class="cb-you">
+          <span>You</span>
+          <div class="bar bar-you"><i id="cb-you"></i></div>
+          <span id="cb-youhp">30 / 30</span>
+        </div>
+        <div class="cb-actions">
+          <button class="btn btn-primary" id="cb-attack" type="button">Attack</button>
+          <button class="btn" id="cb-defend" type="button">Defend</button>
+          <button class="btn" id="cb-light" type="button">Raise light</button>
+          <button class="btn" id="cb-flee" type="button">Flee</button>
+        </div>
+      </div>
+
+      <!-- answering the statue -->
+      <div class="speak" id="speak-panel" hidden>
+        <p class="speak-riddle" id="speak-riddle"></p>
+        <div class="speak-row">
+          <input id="speak-input" type="text" placeholder="Speak your answer…" autocomplete="off" spellcheck="false">
+          <button class="btn btn-primary" id="speak-go" type="button">Say it</button>
+          <button class="btn" id="speak-cancel" type="button">Say nothing</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="verbbar">
+      <div class="verbs">
+        <button class="vb on" id="vb-walk" type="button" title="Walk (1)"><b>▶</b>Walk</button>
+        <button class="vb" id="vb-look" type="button" title="Look (2)"><b>◉</b>Look</button>
+        <button class="vb" id="vb-hand" type="button" title="Hand (3)"><b>✋</b>Hand</button>
+        <button class="vb" id="vb-talk" type="button" title="Talk (4)"><b>☺</b>Talk</button>
+        <button class="vb" id="vb-attack" type="button" title="Attack (5)"><b>†</b>Attack</button>
+      </div>
+      <div class="cursor-state">
+        <span id="cursor-label">Walk</span>
+        <span id="hover-label" class="hover"></span>
+      </div>
+    </div>
+
+    <div class="msgbox" id="msgbox" role="log" aria-live="polite"></div>
+  </section>
+
+  <aside class="side">
+    <section class="panel">
+      <h2 class="panel-title">Character</h2>
+      <p class="st-class" id="st-class">Delver · Level 1</p>
+      <div class="meter">
+        <span class="meter-label">Vigour</span>
+        <div class="bar bar-hp"><i id="st-hp-bar"></i></div>
+        <span class="meter-num" id="st-hp-text">30 / 30</span>
+      </div>
+      <div class="meter">
+        <span class="meter-label">Experience</span>
+        <div class="bar bar-xp"><i id="st-xp-bar"></i></div>
+        <span class="meter-num" id="st-xp-text">0 xp</span>
+      </div>
+      <ul class="stats" id="st-stats"></ul>
+    </section>
+
+    <section class="panel grow">
+      <h2 class="panel-title">Carrying</h2>
+      <div class="inv-strip" id="inv-strip"></div>
+      <p class="hint">Click an item to lift it onto the cursor, then click what to use it on. Right-click or Esc puts it back.</p>
+    </section>
+  </aside>
+</main>
+
+<!-- publisher splash placeholder; the mark is drawn procedurally in js/publisher.js -->
+<div class="overlay splash-overlay" id="overlay-splash">
+  <canvas id="splash-stage" width="320" height="200" aria-label="Morrowlamp Software logo"></canvas>
+  <p class="splash-hint">CLICK OR PRESS A KEY TO CONTINUE</p>
+</div>
+
+<!-- title / character creation -->
+<div class="overlay" id="overlay-title" hidden>
+  <div class="title-card">
+    <h1 class="game-title"><span>THE</span> SUNKEN CROWN</h1>
+    <p class="game-sub">A point-and-click adventure beneath a very old hill</p>
+    <canvas id="title-hero" width="320" height="112" aria-label="The Sunken Crown hero artwork"></canvas>
+    <p class="game-intro">
+      Your grandmother left you Ashcombe, a manor that has been ignoring the weather for three
+      hundred years, and one instruction: <em>go when the mist comes.</em>
+      Six pieces of a drowned king's regalia are somewhere below it.
+    </p>
+    <h2 class="choose">Choose who goes down</h2>
+    <div class="classes">
+      <button class="class-card" id="cls-delver" type="button">
+        <span class="cc-name">Delver</span>
+        <span class="cc-blurb">A digger of other people's history. Strong arms, short patience, excellent shovel.</span>
+        <span class="cc-stats">STR 40 · AGI 25 · VIT 35 · LORE 15 · LUCK 15</span>
+      </button>
+      <button class="class-card" id="cls-scholar" type="button">
+        <span class="cc-name">Scholar</span>
+        <span class="cc-blurb">You read the footnotes. Everyone else died in the first chapter; you annotated it.</span>
+        <span class="cc-stats">STR 18 · AGI 22 · VIT 22 · LORE 45 · LUCK 23</span>
+      </button>
+      <button class="class-card" id="cls-prowler" type="button">
+        <span class="cc-name">Prowler</span>
+        <span class="cc-blurb">You have never once used a door that was offered to you.</span>
+        <span class="cc-stats">STR 24 · AGI 42 · VIT 24 · LORE 22 · LUCK 38</span>
+      </button>
+    </div>
+    <button class="btn btn-ghost" id="btn-continue" type="button" hidden>Continue where you left off</button>
+    <p class="tinyprint">Stats grow by being used. Nothing here can lock you out of the ending.</p>
+  </div>
+</div>
+
+<!-- death -->
+<div class="overlay" id="overlay-death" hidden>
+  <div class="end-card death">
+    <h2>☠ You have died</h2>
+    <p id="death-why"></p>
+    <div class="end-actions">
+      <button class="btn btn-primary" id="btn-death-undo" type="button">Undo last move</button>
+      <button class="btn" id="btn-death-restart" type="button">Start over</button>
+    </div>
+  </div>
+</div>
+
+<!-- victory -->
+<div class="overlay" id="overlay-win" hidden>
+  <div class="end-card win">
+    <h2>♛ The Regalia Is Complete</h2>
+    <p>The cabinet blazes. The Sunken King's story is told at last, and yours has just begun.</p>
+    <p class="win-rank" id="win-rank"></p>
+    <div class="end-actions">
+      <button class="btn btn-primary" id="btn-win-again" type="button">Adventure again</button>
+      <button class="btn" id="btn-win-stay" type="button">Keep exploring</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/world.js"></script>
+<script src="js/engine.js"></script>
+<script src="js/parser.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/music.js"></script>
+<script src="js/save.js"></script>
+<script src="js/gfx.js"></script>
+<script src="js/sprites.js"></script>
+<script src="js/scenes.js"></script>
+<script src="js/rpg.js"></script>
+<script src="js/publisher.js"></script>
+</body>
+</html>
