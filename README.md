@@ -17,32 +17,44 @@ the first game made with it, and the conformance target that keeps the factory h
 ## Architecture
 
 ```
-                 MORROWLAMP GAME WORKSHOP          author.html
-                             |
-                             v
-                      GAME CARTRIDGE               js/cartridges/*.js
-                             |
-                             v
-                    CARTRIDGE VALIDATOR            js/workshop/validator.js
-                             |
-                             v
-                    MORROWLAMP MACHINE             js/morrowlamp/*.js
-               /             |              \
-           WORLD           RULES         PRESENTATION
-          world.js        rules.js     render / sound / shell-*
-                             |
-                             v
-                         COMPILER                  js/workshop/compiler.js
-                             |
-                             v
-                  SINGLE HTML ADVENTURE            sunken-crown.html
+                        GAME CARTRIDGE                 js/cartridges/*.js
+                              |
+                              v
+                     CARTRIDGE VALIDATOR              js/workshop/validator.js
+                              |
+                              v
+                     MORROWLAMP MACHINE               js/morrowlamp/*.js
+                   /          |          \
+               WORLD        RULES     CAPABILITIES     score · treasures
+              world.js     rules.js        |           darkness · light
+                                           v           stats · combat
+                                  OUTCOMES / ENCOUNTERS
+                                           |
+                                           v
+                                        SHELLS
+                        /                  |                \
+                  index.html           text.html          compiler
+                  publisher.js           ui.js       js/workshop/compiler.js
+                  point-and-click       terminal              |
+                                                              v
+                                                    SINGLE HTML ADVENTURE
 ```
+
+**Every one of those shells runs the same gameplay Machine over the same cartridge.** There
+is one world model, one rule executor, one score system, one treasure system, one darkness
+implementation, one character system, one encounter system and one save format. Fixing a
+Sunken Crown bug in the cartridge fixes it in all three; `test/one-machine.js` exists to
+make sure that stays true.
+
+The Workshop (`author.html`) sits above all of this: it inspects cartridges, validates them,
+and drives the compiler.
 
 ### The Machine — `js/morrowlamp/`
 
-The reusable engine. It knows how to run **an** adventure and nothing about **any** adventure.
-There is a test (`test/workshop.js`) that fails the build if a word like "lantern" or "crown"
-appears in Machine code.
+The reusable engine, and since consolidation the *only* gameplay implementation in the
+project. It knows how to run **an** adventure and nothing about **any** adventure:
+`test/workshop.js` fails the build if a word like "lantern" or "crown" appears in Machine
+code, and there is no cartridge-id branching anywhere in it.
 
 | File | What it owns |
 | --- | --- |
@@ -199,11 +211,11 @@ fixing on purpose.
 There is no install step.
 
 - **Serve the folder:** `python3 -m http.server 8000`, then open `http://localhost:8000`.
-- `index.html` — The Sunken Crown, the original point-and-click build with the RPG layer.
+- `index.html` — The Sunken Crown: point-and-click, verb bar, character sheet, combat.
 - `author.html` — the Workshop. **This one must be served**: it reads its own source files to
   put them inside a compiled game, and browsers will not let a `file://` page do that. It
   says so, in period, if you try.
-- `text.html` — the original parser build.
+- `text.html` — The Sunken Crown as a terminal: same game, same runtime, no canvas.
 - A **compiled** adventure has none of these constraints. Open it from `file://` and it runs.
 
 ## The compiled artifact
@@ -234,7 +246,6 @@ plays it to the ending.
 ## Running the tests
 
 ```sh
-node test/playthrough.js               # original engine: full winning run, deaths, riddle, undo, save/load, parser
 node test/scenes.js                    # scene data: hotspots, exits, walkable floors, entry points
 node test/ui-title.probe.js            # text-mode title-screen flow against a stub DOM
 node test/gfx-profiles.js              # CGA/EGA/VGA renderer contracts
@@ -243,34 +254,37 @@ node test/morrowlamp-runtime.js        # the Machine, against a synthetic cartri
 node test/encounters.js                # stats, encounters and outcomes, against another one
 node test/validator.js                 # every validator check, each with a broken cartridge
 node test/workshop.js                  # bundle manifest, blank-cartridge round trip, Machine purity
-node test/conformance-sunken-crown.js  # THE INVARIANT (see below)
+node test/sunken-crown.js              # the flagship cartridge, end to end (19 groups)
 node test/cartridge-thistle.js         # the second cartridge plays through on the same Machine
 node test/cartridge-crumbly.js         # the third one proves the RPG layer is generic
+node test/one-machine.js               # THE INVARIANT (see below)
 node test/compiler.js                  # BUILD GAME: every artifact, self-containment, sandboxed playthroughs
 ```
 
 ### The invariant
 
-`test/conformance-sunken-crown.js` drives the canonical winning route
-(`test/winning-route.js`, shared by every test that needs it) through **both**:
+Before consolidation this repository had two gameplay engines and the invariant was that they
+agreed. There is one engine now, so the invariant changed shape:
 
-- the original engine (`js/engine.js` + `js/world.js`), and
-- the Morrowlamp Machine running the Sunken Crown cartridge,
+> `index.html`, `text.html` and a compiled `the-sunken-crown.html` are three presentations of
+> one game, not three games that happen to agree.
 
-and asserts they agree: six treasures secured, sixty points, `win === true`, the same final
-room, the same rank, and the same six puzzle flags. It also checks that object placement
-matches room by room, and that every gated exit in the original data is still gated after the
-cartridge adapter has read it. Then `test/compiler.js` replays the same route inside the
-compiled artifact.
+`test/one-machine.js` checks it mechanically: the retired engines are gone and unreferenced,
+all three routes load the same runtime module list and the same cartridge, neither shell
+scores or rolls dice or applies damage, one cartridge definition feeds every runtime, and a
+save made under one shell restores under another.
 
-So the chain is: original engine ≡ Machine + cartridge ≡ compiled HTML.
+`test/sunken-crown.js` then plays the canonical winning route
+(`test/winning-route.js`) to six treasures, sixty points and Sunken King's Heir, and
+`test/compiler.js` replays it inside the compiled artifact.
 
 ### `guardReq`
 
 The original engine grew a second spelling of `flagReq` — `guardReq`, used on exactly one
-exit. `js/engine.js` handles it correctly today. The retired `js/framework-runtime.js` did
-not: it ignored every exit requirement it did not recognise and walked the player straight
-past the sentinel.
+exit. Both engines that ever read it are now retired; the surviving path is the cartridge
+adapter. An early generic runtime ignored every exit requirement it did not recognise and
+walked the player straight past the sentinel — which is the failure mode this all guards
+against.
 
 The Machine's `canGo()` now **fails closed** on any unrecognised requirement, and the
 validator reports one as a build error (`exit "s" uses unknown requirement "guardReq"; the
@@ -301,6 +315,34 @@ the thing that came out of the dark.
 ## Files
 
 ```
+index.html                  — The Sunken Crown, point-and-click
+text.html                   — The Sunken Crown, terminal
+author.html                 — the Workshop
+css/publisher.css           — point-and-click interface
+css/style.css               — terminal themes
+
+js/morrowlamp/              — THE MACHINE (see the table above)
+js/cartridges/              — the games
+js/workshop/                — validator, bundle manifest, compiler, Workshop console
+
+js/gfx.js                   — CGA/EGA/VGA profiles, dithering, drawing primitives  (Machine)
+js/audio.js                 — synthesized sound effects                            (Machine)
+js/music.js                 — multi-channel sequencer and score                    (Machine)
+js/save.js                  — browser saves and the save compatibility boundary
+
+js/world.js                 — rooms, objects, prose        (Sunken Crown cartridge content)
+js/scenes.js                — 18 scene painters + click data        (Sunken Crown art)
+js/sprites.js               — actor, monsters, item icons           (Sunken Crown art)
+
+js/publisher.js             — the point-and-click shell   (presentation only)
+js/ui.js                    — the terminal shell          (presentation only)
+
+test/                       — see "Running the tests"
+PROVENANCE.md               — where this repository came from, and what it does not contain
+LESSONS.md                  — engineering notes kept from building it
+HANDOFF.md                  — state of the work, for whoever picks it up
+```
+
 index.html                  — The Sunken Crown, original point-and-click build
 author.html                 — the Workshop
 text.html                   — the original text-adventure shell
@@ -319,10 +361,9 @@ js/world.js                 — rooms, objects, prose        (Sunken Crown cartr
 js/scenes.js                — 18 scene painters + click data        (Sunken Crown art)
 js/sprites.js               — actor, monsters, item icons           (Sunken Crown art)
 
-js/engine.js                — the original Sunken Crown engine      (legacy, still shipping)
-js/parser.js, js/ui.js      — the original text build               (legacy)
-js/publisher.js             — the original point-and-click build    (legacy)
-js/rpg.js, js/save.js       — stats/combat and browser saves        (legacy)
+js/publisher.js             — the point-and-click shell for index.html   (presentation)
+js/ui.js                    — the terminal shell for text.html           (presentation)
+js/save.js                  — browser saves and the compatibility boundary
 
 test/                       — see "Running the tests"
 ```
@@ -333,49 +374,51 @@ cannot drift between them.
 
 ## Remaining legacy coupling
 
-Honestly:
+Honestly, after consolidation:
 
-- **`index.html` still runs on `js/engine.js`, `js/rpg.js` and `js/publisher.js`.** The
-  original build was left working and untouched on purpose. The conformance test is what
-  keeps it and the Machine in agreement; retiring it is the next milestone.
-- **The RPG layer now exists twice.** `js/rpg.js` serves `index.html`; the Machine's
-  `stats.js` + `encounter.js` serve everything else, driven by cartridge data. They agree on
-  behaviour, not on code. This is the duplication the next milestone removes.
-- **Combat detail the compiled game does not reproduce exactly.** The original build animates
-  the fight frame by frame and walks the actor around the scene. The compiled game has the
-  fight, the stats, the growth, the outcomes, the monster sprite and the one-time examine
-  award, but the picture does not move.
+- **There is no second gameplay engine.** `js/engine.js`, `js/rpg.js` and `js/parser.js` are
+  gone. Every gameplay decision in every shell is made by `js/morrowlamp/`.
+- **`js/publisher.js` and `js/ui.js` are Sunken-Crown-specific shells.** They are presentation
+  only — no scoring, no dice, no damage — but they are written against this game's scene
+  layout and hotspot ids, and `publisher.js` contains a handful of per-object gestures
+  (`sarcophagus` and `mirror` respond to Hand as a push). A *generic* pair of shells already
+  exists in `js/morrowlamp/shell-canvas.js` and `shell-parser.js`; those are what compiled
+  adventures use. Merging the two lineages is future work, not a duplicate engine.
 - **`js/sprites.js` mixes generic and specific.** `drawActor` is a generic person; the item
-  icons and monsters are Sunken Crown art. It is bundled as cartridge art in one piece.
-- **Lamp fuel moved.** It used to live in `js/publisher.js`, which meant the text build and
-  any export had an eternal lantern. It is now `profile.light.fuel` in the cartridge, so
-  every Morrowlamp front end burns oil the same way. `js/publisher.js` still runs its own
-  copy for the original build.
-- **The canvas shell does not walk the actor.** It draws the player at the scene's entry
-  point rather than pathfinding across the walkable floor as `js/publisher.js` does.
-- **VGA scenery is still 320×200 geometry.** The VGA profile gives a 640×400 surface, a
-  richer palette and larger depth-aware actors and item icons, but the Sunken Crown painters
-  have not been made profile-aware, so the scenery is enlarged rather than more detailed.
+  icons and monsters are Sunken Crown art. It ships as cartridge art in one piece.
+- **`js/world.js`, `js/scenes.js` and `js/sprites.js` are cartridge content, not engine.**
+  They are shared between the hand-written pages and the compiled artifact rather than
+  duplicated.
+- **The two hand-written pages drive `js/audio.js` and `js/music.js` directly** instead of
+  going through `js/morrowlamp/sound.js`, which is what a compiled shell uses. That is a
+  presentation difference and changes no gameplay.
+- **Animation is only in `index.html`.** The actor walks and the scene animates there; the
+  compiled canvas shell draws the actor at the room's entry point. Same game, less motion.
 
-## Scene coverage audit
+### Known differences between the pages and a compiled adventure
 
-Scene painters can leave regions unpainted, which shows up as black bands. Paste this in the
-console on `index.html`; it repaints every scene over a non-palette sentinel colour and
-reports any pixel the artwork missed:
+| | `index.html` | compiled `the-sunken-crown.html` |
+| --- | --- | --- |
+| Gameplay | identical — same Machine, same cartridge | identical |
+| Interface | verb bar, walking actor, animated scene | verb bar, static actor, plus a command line |
+| Splash / title art | procedural Morrowlamp splash, hero canvas | plain title card |
+| Class selection | three cards with stat lines | three cards |
+| Save slots | 3 slots, portable save codes | 1 slot |
+| Renderer switching | CGA / EGA / VGA button | CGA / EGA / VGA button |
+| Speech | optional browser speech | none |
 
-```js
-const c = Object.assign(document.createElement('canvas'), { width: 320, height: 200 });
-const gg = Z.gfx.create(c), holes = {};
-for (const id in Z.scenes.list) {
-  gg.ctx.fillStyle = '#ff00ff'; gg.ctx.fillRect(0, 0, 320, 200);
-  Z.scenes.list[id].paint(gg, {});
-  const d = gg.ctx.getImageData(0, 0, 320, 200).data;
-  let n = 0;
-  for (let i = 0; i < d.length; i += 4) if (d[i] === 255 && d[i+1] === 0 && d[i+2] === 255) n++;
-  if (n) holes[id] = n;
-}
-console.log(Object.keys(holes).length ? holes : 'all scenes fully painted');
-```
+## Save compatibility
+
+One state representation, one boundary. `js/save.js` owns it:
+
+- Saves written **since consolidation** carry a `machine` stamp and are interchangeable
+  between `index.html` and `text.html` — the same snapshot restores in either.
+- Saves written **before consolidation** held a legacy engine snapshot plus a separate
+  character sheet. That shape is not the Machine's, and restoring one would produce a subtly
+  broken game rather than an obvious error, so both shells refuse them by name and say so.
+  There is no migration: these were browser-local saves of a pre-1.0 project.
+- Compiled adventures keep their own `localStorage` key per cartridge and do not share slots
+  with the pages, because they are separate documents.
 
 ## Recorded direction: `.morrow` source cartridges
 

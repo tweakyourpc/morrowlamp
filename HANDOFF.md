@@ -1,225 +1,177 @@
 # HANDOFF
 
-For whoever picks this up next. `README.md` describes what the system is; this file describes
-where the bodies are buried.
+State of the work, for whoever picks it up — and for the independent audit that comes before
+publication. `README.md` says what the system is; `PROVENANCE.md` says where it came from;
+this file says what was just done to it and what to be suspicious of.
 
 ---
 
-## Iteration two: the RPG layer became a capability
+## 1. Repository
 
-Stats and combat are no longer things The Sunken Crown has and other games do not. They are
-capabilities of the Machine, configured entirely from cartridge data:
 
-- `js/morrowlamp/outcome.js` — a system that fails says WHAT HAPPENS, not which subsystem to
-  run. Darkness produces `{ type: 'encounter' | 'death' | 'move' | … }` and stops.
-- `js/morrowlamp/stats.js` — stat names, classes, health formula, growth curve and level
-  thresholds all come from the cartridge. No stat is named in the Machine.
-- `js/morrowlamp/encounter.js` — a bounded exchange that suspends play. **Combat is one
-  kind.** The abstraction is not called "fight" so that a debate or a chase does not have to
-  pretend to be one later.
-- `js/cartridges/sir-crumbly.js` — two rooms, one rat, two stats called MIGHT and NERVE. Its
-  only job is to fail loudly if any of the above turns out to be Sunken Crown shaped.
-- The Sunken Crown switched both capabilities on and the compiled game got its character
-  sheet, its class choice, the Cave Lurker, the Umbra, and the examine award back.
-- The lurker ambush moved out of `js/publisher.js` — where only the graphical build ever saw
-  it — into cartridge data, so every front end now has it.
+Independent git repository, branch `main`, no remote configured, nothing pushed.
+Node v22 or similar. No package manager, no dependencies, no build step.
 
----
+## 2–6. Commits
 
-## Iteration one: the factory
+| | Commit | What |
+| --- | --- | --- |
+| baseline | `fdae308` | `chore: establish independently audited Morrowlamp baseline` — tagged `audit-rpg-baseline-2026-08-11` |
+| audit fixes | `a6be6cb` | `fix: tighten combat capability contract and verify compiled Crumbly` |
+| consolidation | `84125b3` | `refactor: route Sunken Crown UI through the Morrowlamp Machine` |
+| | `163891e` | `refactor: retire the duplicate legacy gameplay engine` |
+| | `fe44cc1` | `test: converge on one unified runtime regression suite` |
+| | `45d640a` | `fix: repair three defects found by driving the real index.html` |
+| | `74705cc` | `test: prove one gameplay Machine serves every shell` |
+| docs | final commit | this file, README, PROVENANCE, LESSONS |
 
-The repository went from *"a retro adventure game partially generalized into a framework"* to
-*"a small adventure-game factory that compiles cartridges into standalone HTML"*.
+Consolidation range: `a6be6cb..HEAD`. Tags: `audit-rpg-baseline-2026-08-11` only.
 
-Concretely:
+`fdae308` is the exact tree an independent audit reviewed, plus `.gitignore` and
+`PROVENANCE.md`. It has not been amended, rebased or squashed, and is the rollback point.
 
-1. **A real runtime was built** (`js/morrowlamp/`). What existed before was
-   `js/framework-runtime.js` — sixty lines of look / move / take / examine, with no flags,
-   score, darkness, rules, save or endings.
-2. **The rule dialect was built.** The previous docs described one as existing. It did not:
-   `manifest.rules` was literally `{deterministic: true, statChecksAreHelpfulOnly: true}`.
-   The dialect was written to the shape those docs implied, so the description became true
-   rather than the description being changed.
-3. **The Sunken Crown became a cartridge** and is the conformance target.
-4. **A second cartridge was written** so coupling has somewhere to fail loudly.
-5. **BUILD GAME was built.** One cartridge in, one self-contained HTML file out.
-6. **The validator became a compiler front end** with addressed diagnostics.
-7. **The `guardReq` fail-open was closed for good** — see below.
-8. **Documentation was corrected** where it described things that did not exist.
+## 7. Files removed
 
-Retired: `js/schema.js`, `js/validator.js`, `js/framework-runtime.js`, `js/exporter.js`,
-`js/author.js`, `test/framework.js`. Their dead `<script>` tags were removed from
-`index.html`, which is otherwise untouched.
+| File | Why |
+| --- | --- |
+| `js/engine.js` | second implementation of world state, movement, rules, score, treasures, darkness |
+| `js/rpg.js` | second implementation of stats, levelling, combat |
+| `js/parser.js` | second command parser |
+| `test/playthrough.js` | tested the retired engine; its distinctive assertions moved into `test/sunken-crown.js` |
+| `test/conformance-sunken-crown.js` | renamed to `test/sunken-crown.js`; the two-engine comparison it existed for is gone |
+| local development-environment notes | notes about an unrelated internal service, and the local tooling status of the machine this was written on; neither belongs in a public game repository. Removed from the working tree, and later from the history as well, see the repository-hygiene section. |
+| `WRITEBACK_STAGING.md` | rewritten as `LESSONS.md` without the local tooling status |
 
----
+## 8. Files added
 
-## The one invariant that must not break
+`PROVENANCE.md`, `LESSONS.md`, `.gitignore`, `test/one-machine.js`,
+`test/artifact-harness.js` (extracted from `test/compiler.js`), `test/sunken-crown.js`
+(renamed from the conformance suite).
+
+## 9. Architecture before
 
 ```
-ORIGINAL ENGINE            js/engine.js + js/world.js
-        ≡
-MACHINE + CARTRIDGE        js/morrowlamp/* + js/cartridges/sunken-crown.js
-        ≡
-COMPILED ARTIFACT          the-sunken-crown.html
+js/world.js ──► js/engine.js + js/rpg.js ────► js/publisher.js ──► index.html
+            └─► js/engine.js + js/parser.js ─► js/ui.js ────────► text.html
+
+js/cartridges/sunken-crown.js ──► js/morrowlamp/* ──► compiler ──► standalone HTML
 ```
 
-All three play `test/winning-route.js` to six treasures, sixty points and
-"Sunken King's Heir". `test/conformance-sunken-crown.js` proves the first equivalence;
-`test/compiler.js` proves the second.
+Two gameplay implementations of the same game, agreeing only because a conformance test made
+them.
 
-If you change puzzle behaviour, change it in **both** the original engine and the cartridge,
-or the conformance test will stop you. That friction is the point: it is what stopped the two
-implementations drifting apart during this iteration.
+## 10. Architecture after
 
----
-
-## Things that will bite you
-
-**`g.vgrad()` takes palette NAMES, not colour values.** `g.vgrad(0, y, 320, h, ['black',
-'dkgray'])`, not `[C.black, C.dkgray]`. Passing values paints black on black. This was found
-by looking at a screenshot, not by a test, and every other primitive (`g.px`, `g.stipple`,
-`g.poly`) takes the opposite thing — a resolved colour from `g.C`.
-
-**Exit gating fails closed, deliberately.** `ml.world.canGo()` refuses any exit carrying a
-key it does not recognise. Add a new gating keyword and you must add it to
-`KNOWN_EXIT_KEYS` in `js/morrowlamp/world.js` *and* to the validator's copy, or every exit
-using it silently becomes a wall. The validator turns that into a build error, which is why
-the copy exists.
-
-**The presence guard runs before the rule book.** A verb aimed at an object that is not here
-is refused before any rule sees it. A rule that needs to answer for an unreachable target —
-fishing a coin out from under a grating — must say `reach: 'anywhere'`.
-
-**Capabilities are `false` or a configuration object.** `stats: false` and `stats: { … }`
-are both legal; `enabled: true` never has to be written, and an explicit `enabled: false`
-still wins. If you add a capability, add it to `CAPABILITIES` in `profile.js` or it will not
-get that treatment.
-
-**Darkness must never learn what a fight is.** It produces an outcome
-(`js/morrowlamp/outcome.js`) and stops. `outcome.js` holds the only line that connects an
-outcome to the encounter system. If you find yourself adding `if (combat)` to darkness,
-hunger or a timer, add an outcome type instead.
-
-**Encounter action ordering matters for the route driver.** `test/play-route.js` prefers the
-`light` action when it exists, because that is how the Umbra is beaten. A new encounter whose
-strongest option has a different id will need that driver taught about it.
-
-**`target: [null, 'lyre']` means "the verb may stand alone, or take the lyre".** A bare
-`null` in the list is how "play" and "play lyre" match the same rule. Getting this wrong is
-silent: the rule simply never fires and the verb's `fallback` answers instead. That exact bug
-cost an hour during this iteration.
-
-**Verbs must be declared.** The Machine ships a core verb set; anything else — `dig`, `push`,
-`row`, `say` — must appear in the cartridge's `vocabulary.verbs`, or rules matching it never
-run. The validator catches this now (`matches unknown verb "push"`), and caught two live
-instances in Captain Thistle when it was first written.
-
-**The Workshop cannot build from `file://`.** It fetches its own source files to embed them.
-Compiled adventures have no such problem. The error message says so.
-
----
-
-## `guardReq`, for the record
-
-`js/world.js` gates the guardroom→throne exit with `guardReq: 'guardDancing'` — a second
-spelling of `flagReq` that only the original engine ever understood.
-
-- `js/engine.js` handles it correctly in both `vMove()` and `canGo()`. That was already true
-  when this iteration started.
-- `js/framework-runtime.js` ignored **every** exit requirement, including this one. Deleted.
-- `ml.world.canGo()` fails closed on anything unrecognised.
-- `js/workshop/validator.js` reports an unknown requirement as an error, naming the
-  consequence.
-- `js/cartridges/sunken-crown.js` translates `guardReq` → `flagReq` in its world adapter.
-- `test/conformance-sunken-crown.js` asserts that every gate in the original data survives
-  the translation, and `test/validator.js` asserts an unknown requirement is fatal.
-
-Five places, because a fail-open in an adventure game is the kind of bug that quietly deletes
-the middle of the game and nobody notices.
-
----
-
-## Where the seams still are
-
-Listed in README under *Remaining legacy coupling*. The short version: `index.html` still
-runs `js/engine.js`, `js/rpg.js` and `js/publisher.js`, so the game logic and the RPG layer
-each exist twice — once bespoke, once generic. They agree on behaviour because the
-conformance test makes them, not because they share code.
-
-There is no longer a gameplay feature the compiled game lacks for want of the RPG layer. What
-the compiled game still does not do is *animate*: no walking, no frame-by-frame fight. That
-is presentation, and it is the next milestone's problem rather than an architectural gap.
-
----
-
-## Next recommended milestone
-
-**Rebuild `index.html` on the Machine and retire `js/engine.js`.**
-
-The RPG layer is done and generic, so the compiled game no longer lacks a gameplay feature
-the legacy engine has. What remains is that the legacy engine still *exists* and still runs
-the flagship page — which means every puzzle behaviour lives in two places and the
-conformance test is doing the work of holding them together.
-
-Sketch:
-
-1. Point `index.html` at the Machine + the Sunken Crown cartridge, keeping `js/publisher.js`
-   as the shell for now (it is a good shell; it just needs a different engine underneath).
-2. Move the two things `publisher.js` still owns that are really gameplay: actor walking is
-   presentation and stays, but the fight animation timing should be driven off runtime
-   events rather than its own clock.
-3. Delete `js/engine.js` and `js/rpg.js`. At that point `test/playthrough.js` and
-   `test/conformance-sunken-crown.js` are testing the same engine and can merge.
-4. `js/parser.js` and `js/ui.js` go the same way, and `text.html` becomes the parser shell.
-
-The conformance test is the safety line for all of it: it fails the moment the two
-implementations stop agreeing, which is exactly when you want to know.
-
-**Then: round-trip authoring and `.morrow`.** See the README section for the decision that
-has already been taken about semantic scene descriptions. Do not start it before the engine
-merge — a second cartridge format on top of two engines is one thing too many.
-
-Two smaller pieces worth doing at any time:
-
-- **Profile-aware scene painters.** Let a painter receive `g.profileName` and draw more
-  detail at VGA rather than the same geometry twice the size. This is an art pass, not an
-  architecture change; the hook already exists, and the `.morrow` scene vocabulary will want
-  it anyway.
-- **Walking in the canvas shell.** `js/scenes.js` already publishes `walk` polygons and
-  `clampToWalk`, and the art contract already exposes them. The shell just doesn't use them
-  yet.
-
----
-
-## Verification
-
-From this directory:
-
-```sh
-node test/playthrough.js
-node test/scenes.js
-node test/ui-title.probe.js
-node test/gfx-profiles.js
-node test/morrowlamp-runtime.js
-node test/encounters.js
-node test/validator.js
-node test/workshop.js
-node test/conformance-sunken-crown.js
-node test/cartridge-thistle.js
-node test/cartridge-crumbly.js
-node test/compiler.js
+```
+js/cartridges/sunken-crown.js   (+ js/world.js, js/scenes.js, js/sprites.js as its content)
+              |
+              v
+      js/morrowlamp/*    ← the only gameplay implementation
+        /     |      \
+publisher.js ui.js  compiler
+   |          |        |
+index.html  text.html  standalone HTML
 ```
 
-Then by hand, because a screenshot catches things a test does not:
+## 11. Test results
 
-```sh
-python3 -m http.server 8000
+12 suites, all exit 0:
+
+```
+scenes · ui-title.probe · gfx-profiles · morrowlamp-runtime · encounters · validator
+workshop · sunken-crown · cartridge-thistle · cartridge-crumbly · one-machine · compiler
 ```
 
-- `author.html` → insert **THE SUNKEN CROWN** → the panels fill with the real game →
-  **BUILD GAME** → `the-sunken-crown.html` downloads.
-- Open the downloaded file with the network off. Play it. Save, wander, load.
-- Back in the Workshop, insert **CAPTAIN THISTLE**, build, play. It should look and sound
-  like a different machine, because it is.
-- And **SIR CRUMBLY**, which compiles to a parser game with two stats and a rat.
-- `index.html` → the original build, unchanged, CGA/EGA/VGA still cycling.
+Run them from the repository root as `node test/<name>.js`.
+
+## 12. Artifact sizes
+
+Freshly built by `node test/compiler.js`, which writes to a temp directory and prints it:
+
+| Artifact | Size |
+| --- | --- |
+| `the-sunken-crown.html` | ~310 KB |
+| `captains-thistle.html` | ~192 KB |
+| `sir-crumbly.html` | ~147 KB |
+
+All three pass the self-containment scan (15 patterns: external script/style/media, CSS
+`url()` and `@import`, `fetch`, `XHR`, `WebSocket`, `EventSource`, `sendBeacon`, dynamic
+`import()`, `iframe`, `new Image`/`new Audio`, off-host URLs).
+
+## 13. Remaining legacy coupling
+
+Listed in README under *Remaining legacy coupling*. In short: no second gameplay engine
+remains, but `js/publisher.js` and `js/ui.js` are Sunken-Crown-specific *shells* that
+duplicate presentation work the generic `shell-canvas.js` / `shell-parser.js` already do for
+compiled games. That is duplicated UI, not duplicated gameplay, and merging the two lineages
+is the obvious next milestone. `publisher.js` also contains a few per-object gestures
+(`sarcophagus` and `mirror` answer Hand with a push) — game knowledge in a game-specific
+shell, which is where it belongs, but worth knowing about.
+
+## 14. Known differences between the pages and a compiled adventure
+
+Tabulated in README under *Known differences*. All presentation: walking animation, the
+procedural splash, save-slot count, speech. No gameplay differences are known — and if the
+auditor finds one, that is a bug, not a design decision.
+
+## 15. Save compatibility
+
+- Post-consolidation saves carry a `machine` stamp and are interchangeable between
+  `index.html` and `text.html`.
+- Pre-consolidation saves are **refused by name** in both shells, via `save.isCurrent()`, with
+  a message telling the player to start a new game. No migration was written; these were
+  browser-local saves of a pre-1.0 project.
+- Compiled adventures use their own `localStorage` key per cartridge and do not share slots
+  with the pages.
+
+## 16. Deliberate behaviour changes
+
+Two things changed on purpose, because the two implementations disagreed and one had to win:
+
+- **Lamp fuel is 260 turns everywhere.** `index.html` used 260; the text build and compiled
+  artifacts used 120. 260 is the figure the graphical build was actually tuned with.
+- **Experience awards now happen in every shell.** Treasures found (30), treasures secured
+  (25) and the gate riddle (50) were awarded only by `index.html` before; they are cartridge
+  data now, so the terminal and compiled games award them too.
+
+---
+
+## What the auditor should specifically try to disprove
+
+1. **That there is really only one gameplay implementation.** Look for game logic that crept
+   back into `js/publisher.js` or `js/ui.js` — anything that decides an outcome rather than
+   rendering one. `test/one-machine.js` checks four patterns; it is not exhaustive.
+2. **That `index.html` genuinely lost nothing.** Play it. The claimed feature set is class
+   selection, character sheet, score, treasures, inventory, darkness, lamp fuel, Cave Lurker,
+   Umbra, combat panel, monster sprites, the one-time examine award, save/load/undo, the full
+   winning route and the legitimate ending. Three defects were found this way *after* the
+   suites were green — assume there are more.
+3. **That the Machine stayed clean.** Grep is not enough; read the branch logic in
+   `js/morrowlamp/runtime.js` and `encounter.js` for anything that only makes sense for one
+   game.
+4. **That the combat/stats contract is actually enforced.** Put `combat: true, stats: false`
+   in a cartridge and confirm the build stops. Then try to reach a running combat encounter
+   with no character sheet.
+5. **That the compiled artifacts are self-contained.** Do not trust the scanner: open one,
+   disconnect the machine, and play it.
+6. **That the tests are not circular.** `test/one-machine.js` reads the same bundle manifest
+   the compiler uses; if that manifest were wrong, both would be wrong together.
+7. **That the save refusal is correct rather than merely convenient.** A pre-consolidation
+   save is rejected rather than migrated. Decide whether that is acceptable.
+8. **That nothing needed is ignored.** `.gitignore` excludes compiled artifact filenames
+   (`the-sunken-crown.html` and friends) because they are build products — which also means a
+   stray build in the working tree will not appear in `git status`. Check with
+   `git status --ignored`.
+
+---
+
+## Next milestone (not started)
+
+Merge the two shell lineages: `publisher.js` and `shell-canvas.js` do the same job for the
+same game, and `ui.js` and `shell-parser.js` likewise. The generic pair is poorer (no walking,
+no splash); the specific pair is not reusable. One good canvas shell and one good parser
+shell, both cartridge-driven, would remove the last duplication in the project.
+
+After that, and not before: `.morrow` round-trip authoring and the semantic declarative scene
+vocabulary described in README. **Do not start `.morrow` while two shell lineages still
+exist** — a second cartridge format on top of duplicated shells is one thing too many.

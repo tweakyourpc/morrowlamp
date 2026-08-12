@@ -1,6 +1,7 @@
-# Morrowlamp: lessons from turning a game into a game factory
+# Lessons
 
-Status: kept with the project as engineering notes.
+Engineering notes kept from building Morrowlamp, in the hope they are useful to whoever
+works on it next — or to anyone attempting something similar.
 
 ## What changed
 
@@ -64,10 +65,6 @@ exists purely so coupling has somewhere to fail loudly.
 
 ## Verification
 
-`node test/{playthrough,scenes,ui-title.probe,gfx-profiles,morrowlamp-runtime,encounters,validator,workshop,conformance-sunken-crown,cartridge-thistle,cartridge-crumbly,compiler}.js`,
-then build all three cartridges from `author.html` and play the artifacts offline.
+See README for the current test commands, then build all three cartridges from `author.html`
+and play the artifacts offline.
 
-## Known limitation
-
-Git metadata is read-only in the current execution environment, so the local branch could not
-be created and changes remain uncommitted.

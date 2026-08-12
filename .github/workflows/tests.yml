@@ -1,0 +1,30 @@
+# The same commands a developer runs locally, run on push.
+#
+# No dependencies are installed, because there are none: Morrowlamp is plain
+# JavaScript and its tests are plain `node test/<name>.js`. If this workflow
+# ever needs a package manager, something has gone wrong with the project
+# rather than with the workflow.
+name: tests
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Run every suite
+        run: |
+          for suite in scenes ui-title.probe gfx-profiles morrowlamp-runtime \
+                       encounters validator workshop sunken-crown \
+                       cartridge-thistle cartridge-crumbly one-machine compiler; do
+            echo "── $suite"
+            node "test/$suite.js"
+          done
