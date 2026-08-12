@@ -1,19 +1,21 @@
 /* ============================================================
-   MORROWLAMP CONFORMANCE — THE SUNKEN CROWN
-   The invariant that matters most in this repository:
+   THE SUNKEN CROWN — full regression suite
+   The flagship cartridge on the Morrowlamp Machine, which is now
+   the only gameplay implementation: index.html, text.html and
+   every compiled artifact run this same runtime over this same
+   cartridge.
 
-     ORIGINAL ENGINE (js/engine.js + js/world.js)
-   and
-     MORROWLAMP MACHINE + SUNKEN CROWN CARTRIDGE
+   Until consolidation there were two engines and this file's job
+   was to prove they agreed. That comparison is gone because the
+   second engine is gone; every assertion it was making about
+   behaviour has been kept and now runs against the one runtime,
+   together with the assertions that used to live in
+   test/playthrough.js.
 
-   must agree about the important outcome of the same game.
+   The canonical winning route must reach the real ending: six
+   treasures secured, sixty points, Sunken King's Heir.
 
-   The canonical winning route below is the one in
-   test/playthrough.js (testWinRoute), typed into the generic
-   runtime instead of the bespoke one. It must reach the real
-   ending: six treasures secured, sixty points, Sunken King's Heir.
-
-   Run with:  node test/conformance-sunken-crown.js
+   Run with:  node test/sunken-crown.js
    ============================================================ */
 'use strict';
 const assert = require('node:assert');
@@ -33,10 +35,6 @@ require('../js/morrowlamp/runtime.js');
 require('../js/world.js');
 require('../js/cartridges/sunken-crown.js');
 
-/* The original engine, for the cross-check. */
-require('../js/engine.js');
-require('../js/parser.js');
-
 const CART = Z.cartridges['the-sunken-crown'];
 const { play, resolveEncounters, luckyDice, unluckyDice } = require('./play-route.js');
 
@@ -54,22 +52,24 @@ const has = (id) => rt.inventory().includes(id);
    that claims to run this game is driven down the same path. */
 const WINNING_ROUTE = require('./winning-route.js');
 
-/* ---------------- the cartridge describes the same world ---------------- */
+/* ---------------- the cartridge describes the authored world ----------------
+   js/world.js is cartridge content — the prose and geography the game was
+   written in. The cartridge adapts it; nothing may be lost in the adapting. */
 function testWorldParity() {
-  const legacy = Z.world;
+  const source = Z.world;
   const cart = CART.world;
   assert.strictEqual(Object.keys(cart.rooms).length, 18, 'all 18 scenes are present');
-  assert.strictEqual(Object.keys(cart.rooms).length, Object.keys(legacy.rooms).length);
-  assert.strictEqual(Object.keys(cart.objects).length, Object.keys(legacy.objects).length);
-  assert.strictEqual(cart.startRoom, legacy.startRoom);
-  assert.deepStrictEqual(cart.startInventory, legacy.startInventory);
-  assert.deepStrictEqual(CART.profile.treasures.list, legacy.treasures);
+  assert.strictEqual(Object.keys(cart.rooms).length, Object.keys(source.rooms).length);
+  assert.strictEqual(Object.keys(cart.objects).length, Object.keys(source.objects).length);
+  assert.strictEqual(cart.startRoom, source.startRoom);
+  assert.deepStrictEqual(cart.startInventory, source.startInventory);
+  assert.deepStrictEqual(CART.profile.treasures.list, source.treasures);
 
   /* Every gated exit must still be gated. The `guardReq` spelling is
      translated to `flagReq` by the cartridge; nothing may be dropped. */
-  for (const rid in legacy.rooms) {
-    for (const dir in (legacy.rooms[rid].exits || {})) {
-      const before = legacy.rooms[rid].exits[dir];
+  for (const rid in source.rooms) {
+    for (const dir in (source.rooms[rid].exits || {})) {
+      const before = source.rooms[rid].exits[dir];
       const after = cart.rooms[rid].exits[dir];
       assert.ok(after !== undefined, rid + '.' + dir + ' survived the adapter');
       if (typeof before === 'string') { assert.strictEqual(after, before); continue; }
@@ -80,20 +80,23 @@ function testWorldParity() {
     }
   }
 
-  /* Placement parity: at the start of the game, both engines must agree
-     about which objects are visible in which room. */
-  Z.engine.newGame();
-  const machine = Z.ml.runtime.create(CART, { random: luckyDice() });
-  for (const rid in legacy.rooms) {
-    Z.engine.newGame();
-    Z.engine.state.room = rid;
-    const legacyHere = Z.engine.visibleItems().slice().sort();
-    machine.newGame();
-    machine.state().room = rid;
-    const machineHere = machine.visibleObjects().map((o) => o.id).sort();
-    assert.deepStrictEqual(machineHere, legacyHere, 'object placement matches in ' + rid);
+  /* Every object is placed: in a room, in the player's hands, inside a
+     container, or produced by a rule. Nothing is stranded. */
+  const inContainer = new Set();
+  for (const id in cart.objects) for (const c of (cart.objects[id].contents || [])) inContainer.add(c);
+  const producedByRule = new Set();
+  for (const rule of CART.rules) {
+    for (const step of (rule.do || []).concat(rule.otherwise || [])) {
+      for (const key of ['give', 'take', 'drop']) {
+        if (step[key]) for (const t of [].concat(step[key])) producedByRule.add(t);
+      }
+    }
   }
-  console.log('  ok — cartridge world matches the original world data');
+  for (const id in cart.objects) {
+    const placed = cart.objects[id].at !== undefined || inContainer.has(id) || producedByRule.has(id);
+    assert.ok(placed, 'object ' + id + ' is placed somewhere');
+  }
+  console.log('  ok — the cartridge preserves the authored world and places every object');
 }
 
 /* ---------------- the route ---------------- */
@@ -119,32 +122,6 @@ function testWinRoute() {
   assert.strictEqual(meta().rank, 'Sunken King\'s Heir', report('final rank'));
   for (const t of CART.profile.treasures.list) assert.ok(!has(t), 'treasure ' + t + ' is in the case, not the pocket');
   console.log('  ok — canonical route reaches the real ending (60 points, Sunken King\'s Heir)');
-}
-
-/* ---------------- the two engines agree ---------------- */
-function testEngineAgreement() {
-  Z.engine.newGame();
-  for (const step of WINNING_ROUTE) Z.engine.handleAction(Z.parser.parse(step));
-  const legacy = Z.engine.meta();
-
-  fresh();
-  play(rt, WINNING_ROUTE);
-  const machine = meta();
-
-  assert.strictEqual(machine.score, legacy.score, 'scores agree');
-  assert.strictEqual(machine.secured, legacy.treasuresPlaced, 'secured treasure counts agree');
-  assert.strictEqual(machine.win, legacy.win, 'both reach the win state');
-  assert.strictEqual(machine.room, legacy.room, 'both finish in the same room');
-
-  /* The original engine only ever reports its rank inside the score line. */
-  const legacyScoreLine = Z.engine.handleAction(Z.parser.parse('score')).messages.map((m) => m.text).join(' ');
-  assert.ok(legacyScoreLine.includes(machine.rank), 'both award the same rank: ' + machine.rank);
-
-  const legacyFlags = Z.engine.flags;
-  for (const flag of ['melodyKnown', 'tunnelDug', 'gatesOpen', 'mirrorOpened', 'guardDancing', 'boatPatched']) {
-    assert.strictEqual(!!rt.flags()[flag], !!legacyFlags[flag], 'flag ' + flag + ' agrees');
-  }
-  console.log('  ok — original engine and Morrowlamp Machine agree on the outcome');
 }
 
 /* ---------------- the puzzles are real puzzles ---------------- */
@@ -249,19 +226,21 @@ function testLurkerAmbush() {
 /* ---------------- lamp oil is now a game rule ---------------- */
 function testLampFuel() {
   fresh();
-  assert.strictEqual(meta().fuel, 120, 'the lantern starts full');
+  /* 260 is the figure the point-and-click build was tuned with; on
+     consolidation both shells adopted it. */
+  assert.strictEqual(meta().fuel, 260, 'the lantern starts full');
   cmd('n'); cmd('n'); cmd('look'); cmd('look');
-  assert.strictEqual(meta().fuel, 120, 'lit rooms cost no oil');
+  assert.strictEqual(meta().fuel, 260, 'lit rooms cost no oil');
   cmd('open clock'); cmd('take brass key');
   cmd('unlock hatch with brass key'); cmd('open hatch'); cmd('d');
   const afterEntry = meta().fuel;
-  assert.ok(afterEntry < 120, 'the dark cellar burns oil');
+  assert.ok(afterEntry < 260, 'the dark cellar burns oil');
   cmd('look');
   assert.strictEqual(meta().fuel, afterEntry - 1, 'one turn, one measure of oil');
   cmd('take oil');
   cmd('use oil on lantern');
   /* Refilled to full, less the measure this dark turn itself just burned. */
-  assert.strictEqual(meta().fuel, 119, 'the jar refills the lantern');
+  assert.strictEqual(meta().fuel, 259, 'the jar refills the lantern');
   console.log('  ok — lamp oil is a gameplay rule, not a detail of the interface');
 }
 
@@ -375,13 +354,137 @@ function testTrophyCase() {
   console.log('  ok — the trophy case reports the hunt');
 }
 
-const tests = [testWorldParity, testWinRoute, testEngineAgreement, testPuzzlesResist,
+
+/* ============================================================
+   Assertions inherited from test/playthrough.js, which tested the
+   retired engine. The behaviours are unchanged; only the runtime
+   underneath them is.
+   ============================================================ */
+
+/* ---------------- the parser understands this game ---------------- */
+function testParser() {
+  fresh();
+  const parse = (text) => rt.parse(text);
+  const cases = [
+    ['take the brass key', { verb: 'take', target: 'brassKey' }],
+    ['x knife', { verb: 'examine', target: 'knife' }],
+    ['go north', { verb: 'move', text: 'n' }],
+    ['i', { verb: 'inventory' }],
+    ['look at the note', { verb: 'examine', target: 'note' }],
+    ['turn off lantern', { verb: 'turn', target: 'lantern', with: 'off' }],
+    ['use lens on note', { verb: 'use', target: 'lens', with: 'note' }],
+    ['open cellar', { verb: 'open', target: 'hatch' }],
+    ['take brass key from clock', { verb: 'take', target: 'brassKey', with: 'clock' }],
+    ['unlock hatch with brass key', { verb: 'unlock', target: 'hatch', with: 'brassKey' }],
+    ['score', { verb: 'score' }]
+  ];
+  for (const [input, want] of cases) assert.deepStrictEqual(parse(input), want, 'parse: ' + input);
+
+  assert.deepStrictEqual(parse('say echo'), { verb: 'say', text: 'echo' }, 'parse: say echo');
+  assert.strictEqual(parse('climb ladder').verb, 'climb', 'parse: climb ladder');
+
+  /* Genuine ambiguity must stay an error, not crash or silently pick one. */
+  const keyErr = parse('take key');
+  assert.ok(keyErr.error && keyErr.error.includes('brass key') && keyErr.error.includes('vault key'), 'take key is ambiguous');
+  const statueErr = parse('take statue');
+  assert.ok(statueErr.error && statueErr.error.includes('gates') && statueErr.error.includes('idol'), 'take statue is ambiguous');
+
+  /* A name that repeats one of its own aliases must not self-ambiguate. */
+  assert.deepStrictEqual(parse('take brass key'), { verb: 'take', target: 'brassKey' });
+  console.log('  ok — parser units (' + (cases.length + 2) + ' cases + ambiguity checks)');
+}
+
+/* ---------------- the opening state ---------------- */
+function testStart() {
+  fresh();
+  assert.ok(rt.describeObject('lantern').carried, 'the lantern starts in hand');
+  assert.ok(rt.describeObject('lantern').takeable);
+  assert.strictEqual(meta().room, 'yard');
+  const first = cmd('look');
+  assert.ok(Array.isArray(first.changed), 'actions expose structured change categories');
+  assert.ok(first.refresh.includes('hud'), 'turn actions request a HUD refresh');
+  assert.strictEqual(meta().score, 0);
+  assert.deepStrictEqual(rt.inventory(), ['lantern', 'note']);
+  const empty = rt.perform(null);
+  assert.deepStrictEqual(empty.messages, [], 'a null action produces no messages');
+  console.log('  ok — opening state');
+}
+
+/* ---------------- containers ---------------- */
+function testClock() {
+  fresh();
+  cmd('n'); cmd('n');
+  assert.strictEqual(meta().room, 'hall');
+  assert.ok(txt(cmd('open clock')).includes('brass key'), 'opening the clock reveals the key');
+  assert.ok(txt(cmd('take brass key')).includes('Taken.'), 'take the brass key');
+  assert.ok(has('brassKey'));
+  cmd('take music sheet');
+  assert.ok(has('musicSheet'));
+  cmd('read music sheet');
+  assert.ok(flags().melodyKnown, 'the melody is known after reading the sheet');
+  console.log('  ok — open a container and take from it');
+}
+
+function testContainerRecovery() {
+  fresh();
+  cmd('n'); cmd('n'); cmd('open clock');
+  cmd('take brass key'); cmd('take music sheet');
+  cmd('open clock');
+  assert.ok(has('brassKey') && has('musicSheet'), 'the clock\'s contents can be taken');
+
+  fresh();
+  cmd('n'); cmd('n'); cmd('open clock'); cmd('take brass key');
+  cmd('put brass key in clock');
+  cmd('close clock');
+  cmd('open clock');
+  assert.ok(txt(cmd('take brass key')).includes('Taken.'), 'a placed item survives a close/open cycle');
+  assert.ok(has('brassKey'), 'and returns to inventory');
+  console.log('  ok — container contents remain recoverable');
+}
+
+function testUnlockNeedsKey() {
+  fresh();
+  cmd('n'); cmd('n');
+  const denied = cmd('unlock hatch with brass key');
+  assert.ok(txt(denied).includes('don\'t have'), 'the key must be in hand: ' + txt(denied));
+  assert.ok(txt(cmd('open hatch')).includes('locked'), 'and the trapdoor stays locked');
+  console.log('  ok — unlocking requires actually holding the key');
+}
+
+/* ---------------- the echo, and the lens ---------------- */
+function testGateRiddle() {
+  fresh();
+  cmd('n'); cmd('n'); cmd('open clock'); cmd('take brass key');
+  cmd('unlock hatch with brass key'); cmd('open hatch'); cmd('d');
+  cmd('take shovel'); cmd('dig'); cmd('s'); cmd('s');
+  assert.strictEqual(meta().room, 'caveMouth');
+  assert.ok(txt(cmd('examine gates')).includes('borrow every voice'), 'the statue poses its riddle');
+  assert.ok(!flags().gatesOpen);
+  assert.ok(!txt(cmd('say silence')).includes('groan apart'), 'the wrong answer does nothing');
+  assert.ok(txt(cmd('say echo')).includes('groan apart'), 'the right answer opens the gates');
+  assert.ok(flags().gatesOpen);
+  console.log('  ok — the gate riddle answers only to the echo');
+}
+
+function testLensSecret() {
+  fresh();
+  cmd('n'); cmd('n'); cmd('w');
+  cmd('take lens');
+  assert.ok(has('lens'), 'the lens is in the desk drawer');
+  const read = txt(cmd('use lens on note'));
+  assert.ok(read.includes('King\'s last word'), 'the lens reveals the hidden line');
+  assert.ok(flags().lensSecret, 'and records that you found it');
+  console.log('  ok — the lens reveals the note\'s secret');
+}
+
+const tests = [testParser, testStart, testWorldParity, testWinRoute, testPuzzlesResist,
   testDeaths, testDarknessIsNotCombat, testLurkerAmbush, testRpgLayer, testRaisingTheLight, testExamineAward,
-  testLampFuel, testSaveLoadUndo, testTrophyCase];
+  testLampFuel, testSaveLoadUndo, testTrophyCase,
+  testClock, testContainerRecovery, testUnlockNeedsKey, testGateRiddle, testLensSecret];
 let failed = 0;
-console.log('\nMORROWLAMP CONFORMANCE — THE SUNKEN CROWN\n');
+console.log('\nTHE SUNKEN CROWN — full regression suite\n');
 for (const t of tests) {
   try { t(); } catch (err) { failed++; console.error('  FAIL — ' + t.name + ': ' + err.message); }
 }
-console.log(failed ? '\n' + failed + ' group(s) FAILED' : '\nAll ' + tests.length + ' conformance groups passed.');
+console.log(failed ? '\n' + failed + ' group(s) FAILED' : '\nAll ' + tests.length + ' groups passed.');
 process.exit(failed ? 1 : 0);

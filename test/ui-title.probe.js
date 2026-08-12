@@ -1,4 +1,6 @@
-/* DOM-stub probe: verifies ui.js title-screen flow without a browser. */
+/* DOM-stub probe: verifies the terminal shell's title-screen flow without
+   a browser. The shell runs on the Morrowlamp Machine, so this also proves
+   a real shell can boot the runtime from a cartridge and resume a save. */
 'use strict';
 const assert = require('node:assert');
 
@@ -46,11 +48,19 @@ global.AudioContext = undefined;
 global.localStorage.setItem('sunkencrown_v1_settings', JSON.stringify({ typewriter: 'off' }));
 
 /* ---- load game modules in browser order ---- */
-require('../js/world.js');
-require('../js/engine.js');
-require('../js/parser.js');
+require('../js/morrowlamp/core.js');
+require('../js/morrowlamp/world.js');
+require('../js/morrowlamp/profile.js');
+require('../js/morrowlamp/outcome.js');
+require('../js/morrowlamp/rules.js');
+require('../js/morrowlamp/vocabulary.js');
+require('../js/morrowlamp/stats.js');
+require('../js/morrowlamp/encounter.js');
+require('../js/morrowlamp/runtime.js');
 require('../js/audio.js');
 require('../js/save.js');
+require('../js/world.js');
+require('../js/cartridges/sunken-crown.js');
 
 const out = () => doc.getElementById('output').children;
 const key = (k) => { for (const fn of winHandlers.keydown || []) fn({ key: k, preventDefault() {} }); };
@@ -78,13 +88,17 @@ submit('c');
 assert.ok(txt().includes('I don\'t understand'), 'post-title "c" reaches the parser');
 console.log('  ok — scenario 1: fresh load, C starts the game');
 
-/* ---- scenario 2: autosave present -> C resumes ---- */
-require('../js/engine.js'); // ensure engine attached
+/* ---- scenario 2: autosave present -> C resumes ----
+   The save is written by the same Machine the shell will restore it into,
+   which is the point of consolidation: one state representation. */
 const Z = require('../js/world.js');
-Z.engine.newGame();
-Z.engine.handleAction(Z.parser.parse('n'));
-const state = Z.engine.serialize();
-global.localStorage.setItem('sunkencrown_v1_autosave', JSON.stringify({ state, score: 0, turns: 2, roomName: 'Front Porch' }));
+const seed = Z.ml.runtime.create(Z.cartridges['the-sunken-crown']);
+seed.command('n');
+const state = seed.serialize();
+global.localStorage.setItem('sunkencrown_v1_autosave', JSON.stringify({
+  machine: Z.ml.VERSION, cartridge: 'the-sunken-crown',
+  state, score: 0, turns: 2, roomName: 'Front Porch'
+}));
 
 delete require.cache[require.resolve('../js/ui.js')];
 require('../js/ui.js');  // re-init with autosave present
@@ -92,7 +106,8 @@ assert.ok(titleVisible(), 'title shows again');
 key('c');
 assert.ok(!titleVisible(), 'C resumes the game');
 assert.ok(txt().includes('Welcome back to Ashcombe'), 'resume message: ' + txt().slice(0, 60));
-const cur = Z.engine.currentRoom();
+const cur = Z.ui.runtime().meta().room;
+assert.strictEqual(cur, 'porch', 'the shell resumed into the saved room');
 console.log('  ok — scenario 2: autosave present, C resumes (room: ' + cur + ')');
 
 /* ---- scenario 3: Enter on title starts a fresh game ---- */

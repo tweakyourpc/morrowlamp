@@ -210,10 +210,12 @@ function testCompiledGameIsWinnable() {
   assert.strictEqual(meta.rank, 'Sunken King\'s Heir');
   /* And the RPG layer the compiled game used to lack is in there too. */
   assert.ok(meta.sheet, 'the compiled adventure has a character sheet');
-  /* A well-lit run never meets the Umbra, but the lurker ambushes
-     everyone who reaches the lake shore. */
-  assert.strictEqual(meta.sheet.xp, 35, 'having fought the lurker on the way');
-  assert.strictEqual(meta.sheet.wins, 1);
+  /* A well-lit run never meets the Umbra, but the lurker ambushes everyone
+     who reaches the lake shore — and the cartridge awards experience for
+     treasures found, treasures secured and the riddle solved. */
+  assert.strictEqual(meta.sheet.wins, 1, 'the lurker was fought');
+  assert.ok(meta.sheet.xp >= 400, 'and the route was worth real experience: ' + meta.sheet.xp);
+  assert.ok(meta.sheet.level > 1, 'enough to level up');
   console.log('  ok — the compiled Sunken Crown plays through to the real ending, RPG layer and all');
 }
 

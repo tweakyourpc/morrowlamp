@@ -33,11 +33,11 @@ function testIndependence() {
   assert.strictEqual(Z.world, undefined, 'the Sunken Crown world is not loaded');
   assert.strictEqual(Z.scenes, undefined, 'the Sunken Crown scene painters are not loaded');
   assert.strictEqual(Z.sprites, undefined, 'the Sunken Crown sprite library is not loaded');
-  assert.strictEqual(Z.engine, undefined, 'the original engine is not loaded');
+  assert.strictEqual(Z.cartridges['the-sunken-crown'], undefined, 'the Sunken Crown cartridge is not loaded');
   assert.ok(Z.ml.runtime, 'the Machine is loaded, and is all that is needed');
 
   const source = fs.readFileSync(path.join(__dirname, '..', 'js', 'cartridges', 'captains-thistle.js'), 'utf8');
-  for (const forbidden of ['Z.scenes', 'Z.sprites', 'Z.world', 'Z.engine', 'sunken']) {
+  for (const forbidden of ['Z.scenes', 'Z.sprites', 'Z.world', 'sunken']) {
     assert.ok(!source.includes(forbidden), 'the cartridge does not reach for ' + forbidden);
   }
 

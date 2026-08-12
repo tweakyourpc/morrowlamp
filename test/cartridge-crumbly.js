@@ -35,11 +35,11 @@ const txt = (r) => r.messages.map((m) => m.text).join(' | ');
 /* ---------------- nothing of Sunken Crown is here ---------------- */
 function testIndependence() {
   assert.strictEqual(Z.world, undefined, 'the Sunken Crown world is not loaded');
-  assert.strictEqual(Z.rpg, undefined, 'neither is the original RPG layer');
-  assert.strictEqual(Z.engine, undefined, 'nor the original engine');
+  assert.strictEqual(Z.cartridges['the-sunken-crown'], undefined, 'nor is the Sunken Crown cartridge');
+  assert.ok(Z.ml.stats && Z.ml.encounter, 'the RPG capability is the Machine\'s, and it is here');
 
   const source = fs.readFileSync(path.join(__dirname, '..', 'js', 'cartridges', 'sir-crumbly.js'), 'utf8');
-  for (const forbidden of ['Z.rpg', 'Z.world', 'Z.scenes', 'Z.sprites', 'umbra', 'lantern', 'delver']) {
+  for (const forbidden of ['Z.world', 'Z.scenes', 'Z.sprites', 'umbra', 'lantern', 'delver']) {
     assert.ok(!source.toLowerCase().includes(forbidden.toLowerCase()), 'the cartridge does not reach for ' + forbidden);
   }
   assert.ok(Z.ml.validator.validate(CART).ok, 'and it validates cleanly');

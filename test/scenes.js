@@ -9,9 +9,16 @@
 
 const assert = require('node:assert');
 const Z = require('../js/world.js');
-require('../js/engine.js');
+require('../js/morrowlamp/core.js');
+require('../js/morrowlamp/world.js');
+require('../js/morrowlamp/profile.js');
+require('../js/morrowlamp/outcome.js');
+require('../js/morrowlamp/rules.js');
+require('../js/morrowlamp/vocabulary.js');
+require('../js/morrowlamp/stats.js');
+require('../js/morrowlamp/encounter.js');
+require('../js/morrowlamp/runtime.js');
 require('../js/scenes.js');
-require('../js/rpg.js');
 
 const { rooms, objects } = Z.world;
 const scenes = Z.scenes.list;
@@ -150,14 +157,30 @@ for (const rid in rooms) {
   }
 }
 
-/* ---- 10. the RPG layer stays winnable: no stat gates ---- */
-const a = Z.rpg.begin('scholar');
-assert.ok(a.hp > 0 && a.maxHp > 0, 'avatar starts alive');
-assert.ok(Z.rpg.xpFor(2) > 0, 'xp curve is positive');
-const before = a.stats.lore;
-for (let i = 0; i < 60; i++) Z.rpg.use('lore', 1);
-assert.ok(a.stats.lore > before, 'stats rise with use');
-assert.ok(a.stats.lore <= 100, 'stats stay capped at 100');
+/* ---- 10. the RPG layer stays winnable: no stat gates ----
+   Sunken Crown's design rule is that skill checks only ever help. The
+   Machine offers no way to gate an exit or a rule on a stat, and this
+   cartridge writes none — so the rule holds by construction. Check that
+   the character system still behaves, and that nothing has quietly
+   introduced a stat condition. */
+require('../js/cartridges/sunken-crown.js');
+const CART = Z.cartridges['the-sunken-crown'];
+const rt = Z.ml.runtime.create(CART);
+const sheet = rt.chooseClass('scholar');
+assert.ok(sheet.hp > 0 && sheet.maxHp > 0, 'the character starts alive');
+assert.ok(Z.ml.stats.xpFor(rt.statsConfig, 2) > 0, 'xp curve is positive');
+const before = sheet.stats.lore;
+for (let i = 0; i < 60; i++) rt.train('lore', 1);
+assert.ok(sheet.stats.lore > before, 'stats rise with use');
+assert.ok(sheet.stats.lore <= rt.statsConfig.growth.max, 'stats stay capped');
+
+const ruleSource = JSON.stringify(CART.rules) + JSON.stringify(CART.world.rooms);
+for (const stat of Object.keys(CART.profile.stats.list)) {
+  if (new RegExp('"(min|max)?[Ss]tat"\\s*:').test(ruleSource)) {
+    bad('a rule or exit is conditioned on a stat; skill checks must only ever help');
+  }
+  void stat;
+}
 
 console.log(failures
   ? '\n' + failures + ' scene problem(s) found'
