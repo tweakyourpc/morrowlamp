@@ -43,7 +43,6 @@
     let hover = '';
     let darkTurns = 0;
     let danceUntil = 0;
-    let undoStack = [];
 
     const $ = (id) => document.getElementById(id);
 
@@ -384,7 +383,13 @@
     function run(action) {
       if (!action) return;
 
+      const wasIn = rt.meta().room;
       const res = rt.perform(action);
+      /* The Machine can move the player from more places than a compass
+         exit: a rule with `goto`, an encounter's flee outcome, a timer.
+         Detect it here rather than in the one function that happens to
+         handle direction clicks. */
+      if (rt.meta().room !== wasIn) enterRoom(rt.meta().room, directionFrom(wasIn, rt.meta().room));
       const m = res.meta || {};
       const msgs = res.messages || [];
 
@@ -424,7 +429,8 @@
       if (!o) return null;
 
       if (verb === 'look') {
-        if (up) say([{ text: up, cls: 'scored' }]);
+        /* Studying something new may teach you something; that is the
+           cartridge's examine award, granted inside the runtime. */
         return { verb: 'examine', target: id };
       }
       if (verb === 'talk') {
@@ -508,10 +514,19 @@
     }
 
     function go(dir) {
-      const before = rt.meta().room;
       run({ verb: 'move', text: dir });
-      const after = rt.meta().room;
-      if (after !== before) enterRoom(after, dir);
+    }
+
+    /* Which way the player appears to have come, so the actor enters the
+       new scene from the right edge. Falls back to the scene's own start
+       position when the move was not a compass step. */
+    function directionFrom(fromRoom, toRoom) {
+      const exits = (rt.cartridge.world.rooms[fromRoom] || {}).exits || {};
+      for (const dir in exits) {
+        const e = exits[dir];
+        if ((typeof e === 'string' ? e : e && e.room) === toRoom) return dir;
+      }
+      return 'start';
     }
 
     /* ---------------- rooms ---------------- */
@@ -535,18 +550,12 @@
       const track = scene.music || 'manor';
       if (music.current() !== track && music.current() !== 'lullaby') music.play(track);
 
-      // an optional early scrap, to teach the combat panel. The flag lives
-      // on rt.flags() so it survives saves and page reloads — as a plain
-      // controller variable it re-triggered every time the page was loaded.
-      if (rid === 'lakeShore' && !rt.flags().lurkerMet) {
-        rt.flags().lurkerMet = true;
-        global.setTimeout(() => beginFight('lurker'), 700);
-      }
       refresh();
-      checkDark();
+      /* The lurker ambush and the darkness encounter are cartridge rules
+         now — a timer and an outcome. If arriving here started a fight,
+         the runtime has already said so and the panel is up. */
+      if (rt.encounter()) openFight();
     }
-
-    /* ---------------- darkness and the Umbra ---------------- */
 
     /* ---------------- encounters ----------------
        The Machine decides that a fight has started (darkness runs out of
@@ -1037,7 +1046,12 @@
       raf = requestAnimationFrame(loop);
     }
 
-    return { init };
+    /* The runtime this shell is driving. Exposed for the same reason the
+       terminal shell exposes it: so a console, a probe or a curious reader
+       can inspect the game state without the shell keeping a private copy
+       of it. Read-only by convention; it is the same object the Machine
+       hands to a compiled adventure. */
+    return { init, runtime: () => rt };
   })();
 
   Z.game = game;
