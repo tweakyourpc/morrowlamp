@@ -46,8 +46,8 @@ project's history became durable, and the rollback point for everything after it
 
 ## Repository hygiene before publication
 
-This repository was never pushed anywhere. Before it became publishable, its history was
-rewritten to remove material that should not have been committed in the first place: local
+Before its first public release, this repository had never been pushed anywhere. Its history
+was rewritten to remove material that should not have been committed in the first place: local
 development-environment notes about an unrelated internal service, including a private
 network address, and a working directory belonging to a local tool. Those files had already
 been deleted from the working tree, which does not remove them from history, so the history

@@ -261,20 +261,19 @@ encounter actions. `flee` typed outside a fight correctly falls through to the p
 unknown word, which is the generic path behaving properly. Save to a slot, move, load,
 restored to the saved room. No console errors.
 
-**A compiled artifact was served from a directory containing nothing but the three HTML
-files** and played in the browser: it booted, rendered, and issued **zero network requests**.
+The final release audit also opened **each compiled artifact through `file://` from a separate
+directory containing only that HTML file, with browser networking disabled**. All three
+booted and reached their legitimate endings; each requested only its own local document.
 
-**Honestly stated gaps.** The long treasure-collection route in `index.html` was driven by
-issuing commands to the page's own runtime rather than by sixty hand clicks; every step from
-the last five treasure deposits through the win overlay was real clicks. The automation
-window was never OS-focused, so Chrome throttled and eventually suspended `requestAnimationFrame`;
-the walk animation constant was raised to compensate, which changes rendering speed only, and
-the click path through `stageClick -> walkTo -> arrive -> run` was unmodified. Because
-`requestAnimationFrame` was suspended, **the Cave Lurker's artwork was not visually confirmed
-in a browser**, its painter selection is proven by `test/shell-boundary.js` driving the real
-`draw()`, and by inspection, but nobody has looked at the picture. The `file://` scheme could
-not be tested; the standalone check was an HTTP server over a directory with no other files
-in it, which proves no neighbouring-file requirement but is not literally offline.
+**Honestly stated boundary.** The long treasure-collection route in `index.html` was driven by
+issuing commands to the actual page's own runtime rather than by sixty hand clicks. All six
+final inventory-to-cabinet deposits used the real inventory buttons, canvas click path, and
+win overlay. Representative LOOK, movement, container, item-on-object, undo, save/load,
+low-oil, darkness, Defend, and Raise light interactions also used their real controls.
+
+The final release audit visually inspected the Cave Lurker in Chrome. Its pale segmented body,
+turquoise shell and legs are plainly distinct from the Umbra's dark shadow treatment; the
+combat panel also identifies it as Cave Lurker.
 
 ## 10. Artifacts
 
@@ -283,40 +282,37 @@ thing that varies between builds.
 
 | Artifact | Bytes | SHA-256 |
 | --- | --- | --- |
-| `the-sunken-crown.html` | 322,831 | `cd018a3f63ec995a4bf38ed0ca61deaa53c06977e7a5a2602996c8a251c8132e` |
-| `captains-thistle.html` | 201,318 | `faef93790a7405c8ed60e9232f8feaff4bc5f20b50424cdfc729b6ed7129da0b` |
-| `sir-crumbly.html` | 154,750 | `115d4c3ffc6fa858d9bdc99764cf9d365f3d60c72daa0f4066d4955aa17d219d` |
+| `the-sunken-crown.html` | 322,831 | `fb2c8486f5f006840d6d8e8f6ef9bdf3def1d85f7ada1142817ec8f0e8814ae1` |
+| `captains-thistle.html` | 201,318 | `c3a4c49534aa5886c2f11586f1e097fb2f07ba6fe42b7bd37ca910f08ea9bd00` |
+| `sir-crumbly.html` | 154,750 | `7a30ff7322b95a8fde5190b34453d9c99f62067fafab8d9f9723aa02aedae2d4` |
 
 All three: boot in the sandbox, zero NUL bytes, `selfContained: true` with no findings from
 the 15-pattern inspector, no `js/` or `css/` references of any kind. The Sunken Crown
 artifact plays the canonical route to 60 points and Sunken King's Heir inside the sandbox.
 Artifacts are **not committed**; `.gitignore` treats them as build products by policy.
 
-## 11. Current state
+## 11. Final pre-publication state
 
 - HEAD: the documentation commit at the tip of `main` (see `git log -1`).
 - Clean baseline tag: `audit-rpg-baseline-clean-2026-08-12` on `3e29daf`.
 - Working tree: clean.
-- Remotes: none. Nothing has been pushed anywhere, ever.
+- At the final local gate, no remote was configured and nothing had yet been pushed.
 
 ## 12. Remaining known issues
 
-1. **The Cave Lurker's picture has not been looked at by a human.** See §9.
-2. **Two shell lineages still exist.** `publisher.js` and `shell-canvas.js` do the same job
+1. **Two shell lineages still exist.** `publisher.js` and `shell-canvas.js` do the same job
    for the same game, as do `ui.js` and `shell-parser.js`. That is duplicated presentation,
    not duplicated gameplay, and it is the next milestone.
-3. **`publisher.js` still contains a few per-object gestures** (`sarcophagus` and `mirror`
+2. **`publisher.js` still contains a few per-object gestures** (`sarcophagus` and `mirror`
    answer Hand with a push). Game knowledge in a game-specific shell, which is where it
    belongs, but worth knowing about.
-4. **`.gitignore` names artifact filenames per cartridge.** The compiler derives the output
+3. **`.gitignore` names artifact filenames per cartridge.** The compiler derives the output
    filename from the cartridge id, so a fourth cartridge's build would land in the working
    tree untracked *and* unignored, and would show up in `git status` as a candidate to
    commit.
-5. **The marketing PNG carries embedded C2PA metadata** identifying it as AI-generated. It is
+4. **The marketing PNG carries embedded C2PA metadata** identifying it as AI-generated. It is
    disclosed rather than stripped.
-6. **The project is MIT licensed.** Project credit and the human-directed, multi-agent
-   development methodology are recorded in `CREDITS.md`.
-7. **Presentation parity is not tested across shells** and is not claimed to be.
+5. **Presentation parity is not tested across shells** and is not claimed to be.
 
 ---
 

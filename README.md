@@ -236,7 +236,8 @@ There is no install step.
 -->
 ```
 
-Roughly 301 KB for The Sunken Crown, 185 KB for Captain Thistle, 140 KB for Sir Crumbly.
+The final release-gate builds measured 322,831 bytes for The Sunken Crown, 201,318 bytes for
+Captain Thistle, and 154,750 bytes for Sir Crumbly.
 Deliberately **not**
 minified: each embedded module keeps its source path and its comments, so whoever finds the
 file in 2056 can read it. Minification would be a future opt-in build mode, not the default.

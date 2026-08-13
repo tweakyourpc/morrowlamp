@@ -1,15 +1,15 @@
 # Publication checklist
 
-What has to be true before this repository is pushed anywhere for the first time, and what
-is true right now. `HANDOFF.md` has the evidence behind each line.
+The final pre-publication gate recorded before this repository's first push. `HANDOFF.md` has
+the evidence behind each line.
 
-**Nothing here has been published. There is no remote. Nothing has been pushed.**
+**At the time of this gate, there was no remote and nothing had been pushed.**
 
 ## Repository
 
 | | Item | State |
 | --- | --- | --- |
-| ✅ | Git history sanitized: no private or internal material in any reachable commit | done, verified across all 11 commits and all 104 blobs |
+| ✅ | Git history sanitized: no private or internal material in any reachable commit | verified across all reachable commits and blobs |
 | ✅ | No credentials, tokens or keys anywhere in history | none were ever present; nothing to rotate |
 | ✅ | No absolute local filesystem paths in tracked files | guarded by `test/hygiene.js` |
 | ✅ | Pre-rewrite safety bundle created, verified, stored outside the repository | see `HANDOFF.md` §6 |
@@ -40,7 +40,7 @@ is true right now. `HANDOFF.md` has the evidence behind each line.
 | ✅ | Text-shell encounter commands work | Defend, Flee, Raise light, by real typing |
 | ✅ | No shell owns gameplay stat mutation | the API for it was removed |
 | ✅ | Low-oil display reads authoritative state | and fires, which it never did before |
-| ✅ | Encounter art keyed correctly | proven by test; see the caveat below |
+| ✅ | Encounter art keyed correctly | tested and visually inspected in Chrome |
 | ✅ | Combat behaviour differences resolved | all four restored, all four tested |
 
 ## Accuracy of claims
@@ -55,12 +55,12 @@ is true right now. `HANDOFF.md` has the evidence behind each line.
 | ✅ | Shell convergence clearly marked future work | |
 | ✅ | `.morrow` clearly marked future work | |
 
-## Open before publishing
+## Final independent gate
 
-| | Item |
-| --- | --- |
-| ⬜ | **Look at the Cave Lurker.** Its painter selection is proven by test, but the artwork has not been seen by a human in a browser. See `HANDOFF.md` §9. |
-| ⬜ | **Second independent audit** of this milestone before the first push. |
+| | Item | State |
+| --- | --- | --- |
+| ✅ | Cave Lurker visually inspected in the real graphical page | distinct from the Umbra fallback |
+| ✅ | Independent final audit completed before the first push | release gate passed with no blockers |
 
 ## Not started, deliberately
 
