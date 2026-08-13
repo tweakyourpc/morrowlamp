@@ -49,7 +49,7 @@ make sure that stays true.
 The Workshop (`author.html`) sits above all of this: it inspects cartridges, validates them,
 and drives the compiler.
 
-### The Machine — `js/morrowlamp/`
+### The Machine, `js/morrowlamp/`
 
 The reusable engine, and since consolidation the *only* gameplay implementation in the
 project. It knows how to run **an** adventure and nothing about **any** adventure:
@@ -63,7 +63,7 @@ code, and there is no cartridge-id branching anywhere in it.
 | `rules.js` | the declarative puzzle dialect |
 | `vocabulary.js` | verbs, synonyms, noun resolution, ambiguity questions, fuzzy spelling |
 | `profile.js` | optional capabilities: score, treasures, darkness, lamp fuel, turns, hunger, stats, combat, timers |
-| `outcome.js` | what happens when a system fails or fires — death, encounter, move, end |
+| `outcome.js` | what happens when a system fails or fires, death, encounter, move, end |
 | `stats.js` | character stats, classes, growth and levels, all cartridge-defined |
 | `encounter.js` | bounded exchanges that suspend play; combat is one kind |
 | `runtime.js` | the turn loop, flags, scoring, save/load, undo, endings, `changed`/`refresh` reporting |
@@ -72,10 +72,10 @@ code, and there is no cartridge-id branching anywhere in it.
 | `shell-canvas.js` | the hybrid interface: scene, hotspots, inventory, HUD, command line |
 | `shell-parser.js` | the text interface, same cartridge, no canvas |
 
-`js/gfx.js` is Machine too — dithering, palettes and pixel-safe scaling belong to every
+`js/gfx.js` is Machine too, dithering, palettes and pixel-safe scaling belong to every
 Morrowlamp title.
 
-### A cartridge — `js/cartridges/`
+### A cartridge, `js/cartridges/`
 
 Everything specific to one game, declarative wherever practical: metadata, intro, world,
 placement, vocabulary, rules, gameplay profile, endings, and presentation preferences
@@ -83,13 +83,13 @@ including its own procedural drawing routines.
 
 Three ship in the box:
 
-- **`sunken-crown.js`** — the full game. 18 scenes, 48 objects, 47 rules, six treasures,
+- **`sunken-crown.js`**: the full game. 18 scenes, 48 objects, 47 rules, six treasures,
   darkness, lamp oil, the sentinel, the echo, the mirror, the boat, the ending.
-- **`captains-thistle.js`** — *CAPTAIN THISTLE AND THE VENDING MACHINE OF DOOM*, four rooms
+- **`captains-thistle.js`**: *CAPTAIN THISTLE AND THE VENDING MACHINE OF DOOM*, four rooms
   and one puzzle. It exists to prove the factory is a factory: same Machine, completely
   different game, its own scene painters, CGA instead of EGA, PC SPEAKER instead of a sound
   chip, no treasure system, no stats, no combat.
-- **`sir-crumbly.js`** — *SIR CRUMBLY AND THE CELLAR RAT*, two rooms and one rat. It exists
+- **`sir-crumbly.js`**: *SIR CRUMBLY AND THE CELLAR RAT*, two rooms and one rat. It exists
   to prove the RPG layer is a capability and not The Sunken Crown in a false moustache: two
   stats called MIGHT and NERVE, one class, ten health, its own growth curve, one encounter,
   and the parser interface instead of the canvas.
@@ -149,7 +149,7 @@ Nothing is on by default except the turn counter. `stats: false` and
 
 ### Outcomes
 
-When a system fails or fires it produces an **outcome** — it says what happens, not which
+When a system fails or fires it produces an **outcome**, it says what happens, not which
 subsystem should run:
 
 ```js
@@ -160,13 +160,13 @@ darkness: { onFail: { type: 'move',  room: 'prisonCell' } }
 
 Darkness knows none of those words beyond "outcome". `js/morrowlamp/outcome.js` is the only
 place that maps a type to a behaviour, and `encounter` is the only type that reaches the
-encounter system — which is in turn the only thing that knows what combat is. An outcome
+encounter system, which is in turn the only thing that knows what combat is. An outcome
 naming an encounter that cannot run falls back rather than stranding the player.
 
 ### Encounters
 
 An encounter is a bounded exchange that suspends ordinary play. **Combat is one kind**, and
-the only kind implemented — the abstraction is not called "fight" because a debate, a duel or
+the only kind implemented, the abstraction is not called "fight" because a debate, a duel or
 a drinking contest are the same shape and should not have to pretend to be swordplay.
 
 ```js
@@ -188,13 +188,13 @@ encounters: {
 
 Action kinds are `strike`, `guard`, `escape` and `talk`. An action's `when` clause is checked
 by the ordinary rule-book condition checker, so "raise the lantern" is written with the same
-vocabulary a puzzle would use — and an action may carry a `do` list of ordinary rule actions,
+vocabulary a puzzle would use, and an action may carry a `do` list of ordinary rule actions,
 which is how raising the lantern also lights it. The encounter system never learns what a
 lantern is.
 
 ## Making a game without touching the runtime
 
-1. Open `author.html` (serve the folder — see below), press **New blank cartridge**.
+1. Open `author.html` (serve the folder: see below), press **New blank cartridge**.
 2. Fill in the game sheet, add rooms and objects in the **World Editor**, write rules in the
    **Rule Book**, pick a display adapter and sound hardware.
 3. Press **Validate** until the readout says `CARTRIDGE VALIDATED — 0 errors`.
@@ -211,11 +211,11 @@ fixing on purpose.
 There is no install step.
 
 - **Serve the folder:** `python3 -m http.server 8000`, then open `http://localhost:8000`.
-- `index.html` — The Sunken Crown: point-and-click, verb bar, character sheet, combat.
-- `author.html` — the Workshop. **This one must be served**: it reads its own source files to
+- `index.html`: The Sunken Crown: point-and-click, verb bar, character sheet, combat.
+- `author.html`: the Workshop. **This one must be served**: it reads its own source files to
   put them inside a compiled game, and browsers will not let a `file://` page do that. It
   says so, in period, if you try.
-- `text.html` — The Sunken Crown as a terminal: same game, same runtime, no canvas.
+- `text.html`: The Sunken Crown as a terminal: same game, same runtime, no canvas.
 - A **compiled** adventure has none of these constraints. Open it from `file://` and it runs.
 
 ## The compiled artifact
@@ -278,12 +278,31 @@ save made under one shell restores under another.
 (`test/winning-route.js`) to six treasures, sixty points and Sunken King's Heir, and
 `test/compiler.js` replays it inside the compiled artifact.
 
+**What that does and does not establish.** The invariant above is about *gameplay*, and
+gameplay is what those suites prove: one implementation decides what happens, and it is
+reached identically by every route. Presentation is a separate question with a weaker
+answer. Each shell draws, labels and lays out the same game differently, on purpose, and no
+test compares one shell's screen to another's.
+
+The distinction is not academic. An independent audit found three defects in `index.html`
+while every runtime suite was green, because a shell can read the right state and still show
+the wrong thing. `test/shell-boundary.js` exists because of that: it boots the real
+`js/publisher.js` and the real `js/ui.js` against a stubbed page, clicks scene coordinates
+read from the scene data, submits the command form, runs the real animation frames, and
+asserts on what the shell did. It is closer to the page than the runtime suites are, and it
+is still not a browser. A stub cannot prove a canvas painted the right pixels.
+
+So: **routes covered through a real shell** are LOOK, movement, item-on-object, the
+encounter actions, the low-oil display, the combat panel and the encounter art selection, in
+Node. **Routes covered only by a human at a browser** are everything visual, and the results
+of the last such pass are written down in `HANDOFF.md` rather than asserted here.
+
 ### `guardReq`
 
-The original engine grew a second spelling of `flagReq` — `guardReq`, used on exactly one
+The original engine grew a second spelling of `flagReq`, `guardReq`, used on exactly one
 exit. Both engines that ever read it are now retired; the surviving path is the cartridge
 adapter. An early generic runtime ignored every exit requirement it did not recognise and
-walked the player straight past the sentinel — which is the failure mode this all guards
+walked the player straight past the sentinel, which is the failure mode this all guards
 against.
 
 The Machine's `canGo()` now **fails closed** on any unrecognised requirement, and the
@@ -299,17 +318,17 @@ been ignoring the weather for three hundred years, and swore its well led to a k
 sank into a hill. She was not wrong. Six pieces of regalia; secure them all in the glass
 cabinet in the Entrance Hall.
 
-**In `index.html`** (the full original build): a verb-driven icon bar — Walk `1`, Look `2`,
+**In `index.html`** (the full original build): a verb-driven icon bar, Walk `1`, Look `2`,
 Hand `3`, Talk `4`, Attack `5`. `Tab` or right-click cycles. Click an item in *Carrying* to
 lift it onto the cursor, then click what to use it on. Choose a Delver, Scholar or Prowler;
-five stats rise by being used, Quest for Glory style, and **skill checks only ever help** —
+five stats rise by being used, Quest for Glory style, and **skill checks only ever help**, 
 nothing in the RPG layer can gate a puzzle or lock you out of the ending.
 
-**In a compiled adventure**: the same world through the hybrid canvas shell — Walk, Look,
+**In a compiled adventure**: the same world through the hybrid canvas shell, Walk, Look,
 Hand, Talk, clickable hotspots and exits, an inventory strip, the character sheet, the combat
 panel, save/load, and a command line for anyone who would rather type. Choose a Delver,
 Scholar or Prowler at the title card; meet the Cave Lurker at the lake shore; and if the dark
-catches you without a light, meet the Umbra — raising the lantern both lights it and hurts
+catches you without a light, meet the Umbra, raising the lantern both lights it and hurts
 the thing that came out of the dark.
 
 ## Files
@@ -343,29 +362,29 @@ LESSONS.md                  — engineering notes kept from building it
 HANDOFF.md                  — state of the work, for whoever picks it up
 ```
 
-index.html                  — The Sunken Crown, original point-and-click build
-author.html                 — the Workshop
-text.html                   — the original text-adventure shell
-css/publisher.css           — point-and-click interface
-css/style.css               — text-mode terminal themes
+index.html, The Sunken Crown, original point-and-click build
+author.html, the Workshop
+text.html, the original text-adventure shell
+css/publisher.css, point-and-click interface
+css/style.css, text-mode terminal themes
 
-js/morrowlamp/              — THE MACHINE (see the table above)
-js/cartridges/              — the games
-js/workshop/                — validator, bundle manifest, compiler, Workshop console
+js/morrowlamp/, THE MACHINE (see the table above)
+js/cartridges/, the games
+js/workshop/, validator, bundle manifest, compiler, Workshop console
 
-js/gfx.js                   — CGA/EGA/VGA profiles, dithering, drawing primitives  (Machine)
-js/audio.js                 — synthesized sound effects                            (Machine)
-js/music.js                 — multi-channel sequencer and score                    (Machine)
+js/gfx.js, CGA/EGA/VGA profiles, dithering, drawing primitives  (Machine)
+js/audio.js, synthesized sound effects                            (Machine)
+js/music.js, multi-channel sequencer and score                    (Machine)
 
-js/world.js                 — rooms, objects, prose        (Sunken Crown cartridge content)
-js/scenes.js                — 18 scene painters + click data        (Sunken Crown art)
-js/sprites.js               — actor, monsters, item icons           (Sunken Crown art)
+js/world.js, rooms, objects, prose        (Sunken Crown cartridge content)
+js/scenes.js, 18 scene painters + click data        (Sunken Crown art)
+js/sprites.js, actor, monsters, item icons           (Sunken Crown art)
 
-js/publisher.js             — the point-and-click shell for index.html   (presentation)
-js/ui.js                    — the terminal shell for text.html           (presentation)
-js/save.js                  — browser saves and the compatibility boundary
+js/publisher.js, the point-and-click shell for index.html   (presentation)
+js/ui.js, the terminal shell for text.html           (presentation)
+js/save.js, browser saves and the compatibility boundary
 
-test/                       — see "Running the tests"
+test/, see "Running the tests"
 ```
 
 `js/world.js`, `js/scenes.js` and `js/sprites.js` are **cartridge content**, not engine. Both
@@ -397,9 +416,13 @@ Honestly, after consolidation:
 
 ### Known differences between the pages and a compiled adventure
 
+Gameplay is one implementation and is the same everywhere. Everything below it in this table
+is presentation, which is deliberately not the same, and which no automated test compares
+across shells.
+
 | | `index.html` | compiled `the-sunken-crown.html` |
 | --- | --- | --- |
-| Gameplay | identical — same Machine, same cartridge | identical |
+| Gameplay | one Machine, one cartridge | the same Machine and cartridge |
 | Interface | verb bar, walking actor, animated scene | verb bar, static actor, plus a command line |
 | Splash / title art | procedural Morrowlamp splash, hero canvas | plain title card |
 | Class selection | three cards with stat lines | three cards |
