@@ -912,7 +912,14 @@
       rt = ml.runtime.create(Z.cartridges[CARTRIDGE_ID]);
       art = ml.render.artOf(Z.cartridges[CARTRIDGE_ID]);
       rt.on('sound', (p) => { if (audio[p.name]) audio[p.name](); });
-      rt.on('encounter', () => { if (rt.encounter()) openFight(); });
+      /* Whether a fight is happening is the Machine's answer, not a flag
+         this shell keeps. The panel follows that answer in both
+         directions — a fight that ends by any route the combat buttons
+         did not take must still take the panel down with it. */
+      rt.on('encounter', () => {
+        if (rt.encounter()) { openFight(); return; }
+        $('combat-panel').hidden = true;
+      });
 
       const canvas = $('stage');
       canvas.width = gfx.W; canvas.height = gfx.H;

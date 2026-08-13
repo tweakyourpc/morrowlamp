@@ -344,6 +344,22 @@ function graphical() {
     assert.strictEqual(sheet(), before, 'the shell changed the character sheet without a turn');
   });
 
+  /* ---- the combat panel follows the Machine, not its own memory ----
+     Found by driving the real page: a fight ended by anything other than
+     the panel's own buttons left the panel on screen, because "is there a
+     fight" was remembered in the DOM instead of asked of the runtime. */
+  check('the combat panel closes when the fight ends by any route', () => {
+    const cart = Z.cartridges['the-sunken-crown'];
+    rt().state().encounter = Z.ml.encounter.begin(cart.encounters.lurker, 'lurker');
+    rt().emit('encounter', { id: 'lurker' });
+    assert.strictEqual(el('combat-panel').hidden, false, 'the panel did not open for a fight');
+
+    rt().state().encounter = null;
+    rt().emit('encounter', { id: null });
+    assert.strictEqual(el('combat-panel').hidden, true,
+      'the fight is over and the combat panel is still on screen');
+  });
+
   /* ---- an encounter starts once ---- */
   check('an encounter does not start twice from one trigger', () => {
     let starts = 0;

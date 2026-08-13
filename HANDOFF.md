@@ -1,6 +1,6 @@
 # HANDOFF
 
-State of the work, for whoever picks it up — and for the independent audit that comes before
+State of the work, for whoever picks it up, and for the independent audit that comes before
 publication. `README.md` says what the system is; `PROVENANCE.md` says where it came from;
 this file says what was just done to it and what to be suspicious of.
 
@@ -8,15 +8,15 @@ this file says what was just done to it and what to be suspicious of.
 
 ## 1. Repository
 
-
 Independent git repository, branch `main`, no remote configured, nothing pushed.
+All commands in this document are relative to the repository root.
 Node v22 or similar. No package manager, no dependencies, no build step.
 
-## 2–6. Commits
+## 2-6. Commits
 
 | | Commit | What |
 | --- | --- | --- |
-| baseline | `fdae308` | `chore: establish independently audited Morrowlamp baseline` — tagged `audit-rpg-baseline-2026-08-11` |
+| baseline | `fdae308` | `chore: establish independently audited Morrowlamp baseline`, tagged `audit-rpg-baseline-2026-08-11` |
 | audit fixes | `a6be6cb` | `fix: tighten combat capability contract and verify compiled Crumbly` |
 | consolidation | `84125b3` | `refactor: route Sunken Crown UI through the Morrowlamp Machine` |
 | | `163891e` | `refactor: retire the duplicate legacy gameplay engine` |
@@ -39,8 +39,7 @@ Consolidation range: `a6be6cb..HEAD`. Tags: `audit-rpg-baseline-2026-08-11` only
 | `js/parser.js` | second command parser |
 | `test/playthrough.js` | tested the retired engine; its distinctive assertions moved into `test/sunken-crown.js` |
 | `test/conformance-sunken-crown.js` | renamed to `test/sunken-crown.js`; the two-engine comparison it existed for is gone |
-| local development-environment notes | notes about an unrelated internal service, and the local tooling status of the machine this was written on; neither belongs in a public game repository. Removed from the working tree, and later from the history as well, see the repository-hygiene section. |
-| `WRITEBACK_STAGING.md` | rewritten as `LESSONS.md` without the local tooling status |
+| local development-environment notes | notes about an unrelated internal service, and the local tooling status of the machine this was written on; neither belongs in a public game repository. Removed from the working tree, and later from the history as well, see §"Repository hygiene". |
 
 ## 8. Files added
 
@@ -105,13 +104,13 @@ remains, but `js/publisher.js` and `js/ui.js` are Sunken-Crown-specific *shells*
 duplicate presentation work the generic `shell-canvas.js` / `shell-parser.js` already do for
 compiled games. That is duplicated UI, not duplicated gameplay, and merging the two lineages
 is the obvious next milestone. `publisher.js` also contains a few per-object gestures
-(`sarcophagus` and `mirror` answer Hand with a push) — game knowledge in a game-specific
+(`sarcophagus` and `mirror` answer Hand with a push), game knowledge in a game-specific
 shell, which is where it belongs, but worth knowing about.
 
 ## 14. Known differences between the pages and a compiled adventure
 
 Tabulated in README under *Known differences*. All presentation: walking animation, the
-procedural splash, save-slot count, speech. No gameplay differences are known — and if the
+procedural splash, save-slot count, speech. No gameplay differences are known, and if the
 auditor finds one, that is a bug, not a design decision.
 
 ## 15. Save compatibility
@@ -139,13 +138,13 @@ Two things changed on purpose, because the two implementations disagreed and one
 ## What the auditor should specifically try to disprove
 
 1. **That there is really only one gameplay implementation.** Look for game logic that crept
-   back into `js/publisher.js` or `js/ui.js` — anything that decides an outcome rather than
+   back into `js/publisher.js` or `js/ui.js`, anything that decides an outcome rather than
    rendering one. `test/one-machine.js` checks four patterns; it is not exhaustive.
 2. **That `index.html` genuinely lost nothing.** Play it. The claimed feature set is class
    selection, character sheet, score, treasures, inventory, darkness, lamp fuel, Cave Lurker,
    Umbra, combat panel, monster sprites, the one-time examine award, save/load/undo, the full
    winning route and the legitimate ending. Three defects were found this way *after* the
-   suites were green — assume there are more.
+   suites were green, assume there are more.
 3. **That the Machine stayed clean.** Grep is not enough; read the branch logic in
    `js/morrowlamp/runtime.js` and `encounter.js` for anything that only makes sense for one
    game.
@@ -159,7 +158,7 @@ Two things changed on purpose, because the two implementations disagreed and one
 7. **That the save refusal is correct rather than merely convenient.** A pre-consolidation
    save is rejected rather than migrated. Decide whether that is acceptable.
 8. **That nothing needed is ignored.** `.gitignore` excludes compiled artifact filenames
-   (`the-sunken-crown.html` and friends) because they are build products — which also means a
+   (`the-sunken-crown.html` and friends) because they are build products, which also means a
    stray build in the working tree will not appear in `git status`. Check with
    `git status --ignored`.
 
@@ -174,4 +173,4 @@ shell, both cartridge-driven, would remove the last duplication in the project.
 
 After that, and not before: `.morrow` round-trip authoring and the semantic declarative scene
 vocabulary described in README. **Do not start `.morrow` while two shell lineages still
-exist** — a second cartridge format on top of duplicated shells is one thing too many.
+exist**, a second cartridge format on top of duplicated shells is one thing too many.
