@@ -4,6 +4,14 @@
 # JavaScript and its tests are plain `node test/<name>.js`. If this workflow
 # ever needs a package manager, something has gone wrong with the project
 # rather than with the workflow.
+#
+# `shell-boundary` drives the real js/publisher.js and js/ui.js against a
+# stubbed page, which is as close to the browser as plain Node reaches. It
+# is not a substitute for opening index.html: a stub cannot prove that a
+# canvas painted the right pixels or that a real click landed. Those passes
+# are done by hand before a release and written down in HANDOFF.md, and are
+# deliberately not automated here — a headless browser would be a larger
+# dependency than the whole project.
 name: tests
 
 on:
@@ -24,7 +32,8 @@ jobs:
         run: |
           for suite in scenes ui-title.probe gfx-profiles morrowlamp-runtime \
                        encounters validator workshop sunken-crown \
-                       cartridge-thistle cartridge-crumbly one-machine compiler; do
+                       cartridge-thistle cartridge-crumbly one-machine compiler \
+                       shell-boundary hygiene; do
             echo "── $suite"
             node "test/$suite.js"
           done
