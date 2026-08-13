@@ -14,6 +14,9 @@ double-click it, and play.
 **The Sunken Crown is no longer the product.** Morrowlamp is the product. The Sunken Crown is
 the first game made with it, and the conformance target that keeps the factory honest.
 
+**Created and orchestrated by Christopher Davis.** See [CREDITS.md](CREDITS.md) for the
+human-directed, multi-agent development methodology.
+
 ## Architecture
 
 ```
@@ -238,7 +241,7 @@ Deliberately **not**
 minified: each embedded module keeps its source path and its comments, so whoever finds the
 file in 2056 can read it. Minification would be a future opt-in build mode, not the default.
 
-`test/compiler.js` scans both artifacts for any `<script src>`, `<link href>`, non-`data:`
+`test/compiler.js` scans all three artifacts for any `<script src>`, `<link href>`, non-`data:`
 image or audio source, CSS `url()` or `@import`, `fetch`, `XMLHttpRequest`, `WebSocket`,
 `new Image`/`new Audio`, or URL to another host. It also boots each artifact in a sandbox and
 plays it to the ending.
@@ -259,6 +262,8 @@ node test/cartridge-thistle.js         # the second cartridge plays through on t
 node test/cartridge-crumbly.js         # the third one proves the RPG layer is generic
 node test/one-machine.js               # THE INVARIANT (see below)
 node test/compiler.js                  # BUILD GAME: every artifact, self-containment, sandboxed playthroughs
+node test/shell-boundary.js            # real page shells against markup-derived DOM fixtures
+node test/hygiene.js                   # tracked-text and compiled-artifact publication hygiene
 ```
 
 ### The invariant
@@ -360,31 +365,8 @@ test/                       — see "Running the tests"
 PROVENANCE.md               — where this repository came from, and what it does not contain
 LESSONS.md                  — engineering notes kept from building it
 HANDOFF.md                  — state of the work, for whoever picks it up
-```
-
-index.html, The Sunken Crown, original point-and-click build
-author.html, the Workshop
-text.html, the original text-adventure shell
-css/publisher.css, point-and-click interface
-css/style.css, text-mode terminal themes
-
-js/morrowlamp/, THE MACHINE (see the table above)
-js/cartridges/, the games
-js/workshop/, validator, bundle manifest, compiler, Workshop console
-
-js/gfx.js, CGA/EGA/VGA profiles, dithering, drawing primitives  (Machine)
-js/audio.js, synthesized sound effects                            (Machine)
-js/music.js, multi-channel sequencer and score                    (Machine)
-
-js/world.js, rooms, objects, prose        (Sunken Crown cartridge content)
-js/scenes.js, 18 scene painters + click data        (Sunken Crown art)
-js/sprites.js, actor, monsters, item icons           (Sunken Crown art)
-
-js/publisher.js, the point-and-click shell for index.html   (presentation)
-js/ui.js, the terminal shell for text.html           (presentation)
-js/save.js, browser saves and the compatibility boundary
-
-test/, see "Running the tests"
+CREDITS.md                  — project credit and multi-agent development methodology
+LICENSE                     — MIT License
 ```
 
 `js/world.js`, `js/scenes.js` and `js/sprites.js` are **cartridge content**, not engine. Both
@@ -398,7 +380,7 @@ Honestly, after consolidation:
 - **There is no second gameplay engine.** `js/engine.js`, `js/rpg.js` and `js/parser.js` are
   gone. Every gameplay decision in every shell is made by `js/morrowlamp/`.
 - **`js/publisher.js` and `js/ui.js` are Sunken-Crown-specific shells.** They are presentation
-  only — no scoring, no dice, no damage — but they are written against this game's scene
+  only, no scoring, no dice, no damage, but they are written against this game's scene
   layout and hotspot ids, and `publisher.js` contains a handful of per-object gestures
   (`sarcophagus` and `mirror` respond to Hand as a push). A *generic* pair of shells already
   exists in `js/morrowlamp/shell-canvas.js` and `shell-parser.js`; those are what compiled
@@ -435,7 +417,7 @@ across shells.
 One state representation, one boundary. `js/save.js` owns it:
 
 - Saves written **since consolidation** carry a `machine` stamp and are interchangeable
-  between `index.html` and `text.html` — the same snapshot restores in either.
+  between `index.html` and `text.html`, the same snapshot restores in either.
 - Saves written **before consolidation** held a legacy engine snapshot plus a separate
   character sheet. That shape is not the Machine's, and restoring one would produce a subtly
   broken game rather than an obvious error, so both shells refuse them by name and say so.
@@ -452,7 +434,7 @@ survive JSON. Round-trip authoring therefore needs two tiers:
 
 | | Workshop cartridge | Developer cartridge |
 | --- | --- | --- |
-| Format | `.morrow` — JSON, editable, round-trippable | JavaScript |
+| Format | `.morrow`, JSON, editable, round-trippable | JavaScript |
 | Art | declarative scene description | bespoke painter functions |
 | Compiles to | one self-contained HTML adventure | the same |
 
@@ -490,7 +472,8 @@ Lean is not a limitation of Morrowlamp. Lean is the product.
 
 ## Credits
 
-AI orchestration author: [@tweakyourpc](https://github.com/tweakyourpc)
+**Created and orchestrated by Christopher Davis.** Morrowlamp is a human-directed,
+multi-agent software and creative experiment. See [CREDITS.md](CREDITS.md) for details.
 
 The `marketing/` folder holds retro retail concepts for later branding work, not game content.
 The provisional fictional publisher mark is Morrowlamp Software.

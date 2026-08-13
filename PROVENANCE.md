@@ -73,10 +73,12 @@ They are part of the project's aesthetic: an imaginary development system from a
 1987 that had browsers. There is no such company, there never was, and nothing
 here is affiliated with any real historical software publisher.
 
-The code, prose, puzzles, procedural artwork and synthesized music are original
-work created for this project.
+The code, prose, puzzles, procedural artwork and synthesized music were developed for this
+project through the human-directed, multi-agent process described in [CREDITS.md](CREDITS.md).
 
 ## Authorship
 
-Built with AI assistance under human direction, iteratively and with review at
-each step. AI orchestration author: [@tweakyourpc](https://github.com/tweakyourpc).
+**Created and orchestrated by Christopher Davis.** Generative AI systems contributed in
+multiple software and creative roles under human direction. Christopher Davis does not claim
+to have personally written The Sunken Crown's fictional narrative. See
+[CREDITS.md](CREDITS.md) for the concise development-methodology statement.

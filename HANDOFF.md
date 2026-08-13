@@ -314,7 +314,8 @@ Artifacts are **not committed**; `.gitignore` treats them as build products by p
    commit.
 5. **The marketing PNG carries embedded C2PA metadata** identifying it as AI-generated. It is
    disclosed rather than stripped.
-6. **No licence file.** Deliberately left for the owner to choose.
+6. **The project is MIT licensed.** Project credit and the human-directed, multi-agent
+   development methodology are recorded in `CREDITS.md`.
 7. **Presentation parity is not tested across shells** and is not claimed to be.
 
 ---

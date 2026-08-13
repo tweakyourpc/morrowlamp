@@ -18,6 +18,7 @@ is true right now. `HANDOFF.md` has the evidence behind each line.
 | ✅ | Public documentation references only valid history | old hashes appear once, explicitly labelled as dead |
 | ✅ | Working tree clean | |
 | ✅ | No remote configured | |
+| ✅ | MIT license and public project credit are present | see `LICENSE` and `CREDITS.md` |
 
 ## Code and build
 
@@ -58,7 +59,6 @@ is true right now. `HANDOFF.md` has the evidence behind each line.
 
 | | Item |
 | --- | --- |
-| ⬜ | **Licence.** None added. This is the owner's choice and was deliberately not made here. |
 | ⬜ | **Look at the Cave Lurker.** Its painter selection is proven by test, but the artwork has not been seen by a human in a browser. See `HANDOFF.md` §9. |
 | ⬜ | **Second independent audit** of this milestone before the first push. |
 
