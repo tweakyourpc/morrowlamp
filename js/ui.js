@@ -50,6 +50,7 @@
     let hintList = [];       // active tab-completion chips
     let hintIdx = -1;
     let slotMode = null;     // 'save' | 'load' | null
+    let fightShown = null;   // which encounter the player has been shown options for
     let vocab = new Set();   // words for tab completion
 
     /* ---------------- helpers ---------------- */
@@ -389,6 +390,19 @@
       return name;
     }
 
+    /* A graphical shell can put a row of buttons on the screen. This one
+       has a prompt, so when a fight starts it says what may be typed. The
+       labels come from the encounter itself — the shell does not know what
+       an Umbra is, or that raising a light is a thing one can do to it. */
+    function announceFight(fight) {
+      if (!fight) { fightShown = null; return; }
+      if (fightShown === fight.id) return;
+      fightShown = fight.id;
+      const labels = (fight.actions || []).map((a) => a.label);
+      if (!labels.length) return;
+      appendMessage({ text: 'You can: ' + labels.join(', ') + '.', cls: 'dim' });
+    }
+
     /* ---------------- command pipeline ---------------- */
 
     function runCommand(raw) {
@@ -397,8 +411,14 @@
       if (!text) { byId('command').focus(); return; }
       echo(text);
 
-      const action = rt.parse(text);
-      const res = rt.perform(action);
+      /* `command` and not `parse` + `perform`: mid-encounter it offers the
+         typed word to the fight's own actions before the parser sees it,
+         which is how "defend", "flee" and "raise light" reach the same
+         encounter machinery the combat panel uses. Those are action names
+         the cartridge chose, not verbs, so the parser has never heard of
+         them and never should. Typing is the only interface here, so
+         everything goes through this one door. */
+      const res = rt.command(text);
       const m = res.meta || {};
       const messages = res.messages || [];
 
@@ -423,6 +443,7 @@
       lastRoom = m.room;
 
       printMessages(messages);
+      announceFight(m.encounter);
       refresh();
 
       if (m.dead) { showDeathOverlay(); return; }

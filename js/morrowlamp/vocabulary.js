@@ -107,6 +107,10 @@
       const o = objects[id];
       for (const word of [o.name].concat(o.aliases || [])) {
         const p = stripArticles(word);
+        /* Joined by a separator no word can contain, written as an escape
+           rather than as the byte itself: a literal NUL in the source makes
+           git, grep and every code viewer treat this module — and every
+           adventure compiled from it — as a binary file. */
         const key = p + '\u0000' + id;
         /* A name that repeats one of its own aliases must not make an
            object ambiguous with itself. */

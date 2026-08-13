@@ -21,6 +21,9 @@
   /* The one gameplay implementation. Created at boot from the cartridge. */
   const CARTRIDGE_ID = 'the-sunken-crown';
   let rt = null;
+  /* The cartridge's painters, reached through the Machine's art contract
+     rather than by name, so this shell cannot quietly pick the wrong one. */
+  let art = null;
   const ml = Z.ml;
 
   const VERBS = ['walk', 'look', 'hand', 'talk', 'attack'];
@@ -41,7 +44,6 @@
     let held = null;              // inventory item riding the cursor
     let pending = null;           // action to run when the walk finishes
     let hover = '';
-    let darkTurns = 0;
     let danceUntil = 0;
 
     const $ = (id) => document.getElementById(id);
@@ -299,10 +301,20 @@
         })
       });
 
-      // an active monster squares up on the right, in front of everything
+      /* An active monster squares up on the right, in front of everything.
+         Which picture that is belongs to the cartridge, and is keyed by the
+         encounter's id — `kind` is how the Machine classifies a fight
+         ('combat'), not what the thing looks like. Asking the art contract
+         rather than the sprite table directly is what keeps the two from
+         drifting apart again. */
       const fight = rt.encounter();
-      if (fight) {
-        drawables.push({ y: 999, fn: () => sprites.monster(fight.kind)(g, FOE_X, FOE_Y, T, fight.hp < fight.maxHp * 0.4) });
+      if (fight && art.opponent) {
+        drawables.push({
+          y: 999,
+          fn: () => art.opponent(g, fight.id, FOE_X, FOE_Y, {
+            hurt: fight.hp < fight.maxHp * 0.4, round: fight.round, t: T
+          })
+        });
       }
 
       drawables.sort((a, b) => a.y - b.y);
@@ -367,7 +379,10 @@
       const d = Math.hypot(actor.tx - actor.x, actor.ty - actor.y);
       if (d < 2) { actor.moving = false; arrive(); return; }
       actor.moving = true;
-      rt.train('agi', 1);
+      /* Walking the actor across the picture is animation, not a turn.
+         Agility is trained by the `move` verb inside the Machine, so a
+         player cannot grind it by clicking the floor and the text player
+         gains it at the same rate. */
     }
 
     function arrive() {
@@ -417,6 +432,13 @@
       autosave();
     }
 
+    /* The oil level the cartridge itself considers worth a warning. */
+    function lowFuelMark() {
+      const fuel = (rt.profile.light || {}).fuel;
+      const warnings = (fuel && fuel.warnings) || [];
+      return warnings.length ? warnings[0][0] : 0;
+    }
+
     /* Is the lantern specifically the thing that is burning? */
     function lanternLit() {
       const o = rt.describeObject('lantern');
@@ -440,10 +462,7 @@
         }
         return { verb: 'talk', target: id };
       }
-      if (verb === 'attack') {
-        rt.train('str', 1);
-        return { verb: 'attack', target: id };
-      }
+      if (verb === 'attack') return { verb: 'attack', target: id };
       if (verb === 'item' && held) return useOn(held, id);
 
       // Hand: the context-sensitive one
@@ -453,7 +472,8 @@
         : { verb: 'open', target: id };
       if (id === 'door') return { verb: 'open', target: id };
       if (id === 'sarcophagus' || id === 'mirror') return { verb: 'push', target: id };
-      rt.train('str', 1);
+      /* Shoving trains strength; the cartridge says so and the Machine
+         does it when the `push` turn runs. */
       return { verb: 'push', target: id };
     }
 
@@ -688,9 +708,16 @@
         const lab = document.createElement('span');
         lab.textContent = o.name;
         if (id === 'lantern') {
-          const fuel = rt.flags().lampFuel;
+          /* How much oil is left is the Machine's number, reported by
+             meta().fuel. The shell keeps no count of its own, and the
+             point at which "low" is worth saying is the cartridge's
+             first fuel warning rather than a number invented here. */
+          const fuel = rt.meta().fuel;
           if (!lanternLit()) { lab.textContent = o.name + ' (out)'; b.classList.add('spent'); }
-          else if (fuel !== undefined && fuel <= 60) { lab.textContent = o.name + ' (low)'; b.classList.add('low'); }
+          else if (fuel !== null && fuel !== undefined && fuel <= lowFuelMark()) {
+            lab.textContent = o.name + ' (low)';
+            b.classList.add('low');
+          }
         }
         b.appendChild(lab);
         b.addEventListener('click', () => {
@@ -883,6 +910,7 @@
       /* The one gameplay implementation, from the cartridge. Everything
          above this line is presentation. */
       rt = ml.runtime.create(Z.cartridges[CARTRIDGE_ID]);
+      art = ml.render.artOf(Z.cartridges[CARTRIDGE_ID]);
       rt.on('sound', (p) => { if (audio[p.name]) audio[p.name](); });
       rt.on('encounter', () => { if (rt.encounter()) openFight(); });
 

@@ -169,10 +169,17 @@ const rt = Z.ml.runtime.create(CART);
 const sheet = rt.chooseClass('scholar');
 assert.ok(sheet.hp > 0 && sheet.maxHp > 0, 'the character starts alive');
 assert.ok(Z.ml.stats.xpFor(rt.statsConfig, 2) > 0, 'xp curve is positive');
+/* Stats rise with use. There is deliberately no runtime API for a shell
+   to nudge one, so this asks the stats module directly and then proves
+   the gameplay route: ordinary turns train through stats.exertion. */
 const before = sheet.stats.lore;
-for (let i = 0; i < 60; i++) rt.train('lore', 1);
-assert.ok(sheet.stats.lore > before, 'stats rise with use');
-assert.ok(sheet.stats.lore <= rt.statsConfig.growth.max, 'stats stay capped');
+for (let i = 0; i < 60; i++) Z.ml.stats.use(rt.statsConfig, rt.state().sheet, 'lore', 1);
+assert.ok(rt.state().sheet.stats.lore > before, 'stats rise with use');
+assert.ok(rt.state().sheet.stats.lore <= rt.statsConfig.growth.max, 'stats stay capped');
+
+const agiBefore = rt.state().sheet.stats.agi;
+for (let i = 0; i < 30; i++) { rt.command('n'); rt.command('s'); }
+assert.ok(rt.state().sheet.stats.agi > agiBefore, 'walking trains agility, on the turn');
 
 const ruleSource = JSON.stringify(CART.rules) + JSON.stringify(CART.world.rooms);
 for (const stat of Object.keys(CART.profile.stats.list)) {

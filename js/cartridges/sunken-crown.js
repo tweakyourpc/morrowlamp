@@ -510,6 +510,11 @@
       enabled: true,
       warning: 'It is pitch black! You are likely to be eaten by an Umbra.',
       grace: 1,
+      /* Having just survived the thing in the dark, you get a few moves
+         before the dark produces another one. Without this a fight in an
+         unlit room restarts on the very next turn, which is not a puzzle,
+         it is a loop. */
+      respite: 4,
       /* The dark produces an outcome and stops caring. In THIS game the
          outcome is a fight; in another it could be a death, or a move to
          a prison cell. Darkness has no opinion. If the encounter system
@@ -592,6 +597,20 @@
         treasureSecured: { xp: 25 },
         riddleSolved: { stat: 'lore', by: 3, xp: 50 }
       },
+      /* Walking wears in the legs and shoving wears in the arms. The
+         graphical shell used to apply these itself, which meant a text
+         player trained at a different rate than a mouse player and a
+         click on bare floor trained agility without taking a turn.
+         Declared here, the Machine applies them on the turn instead. */
+      exertion: {
+        move:   { stat: 'agi', by: 1 },
+        attack: { stat: 'str', by: 1 },
+        push:   { stat: 'str', by: 1 },
+        pull:   { stat: 'str', by: 1 },
+        climb:  { stat: 'agi', by: 1 },
+        dig:    { stat: 'str', by: 1 },
+        row:    { stat: 'str', by: 1 }
+      },
       health: { from: 'vit', base: 24, perPoint: 0.7, perLevel: 6 },
       growth: { base: 3, per: 8, max: 100 },
       levels: { max: 20, factor: 40, power: 1.6 },
@@ -667,7 +686,10 @@
         dodgeFrom: 'agi',
         hurtTrains: 'vit',
         actions: [
-          { id: 'attack', label: 'Attack', kind: 'strike', uses: 'str', luck: 'luck', trains: 'str',
+          /* Aim is agility and luck; the weight behind it is strength.
+             A rusty knife is worth two points of it over a bare fist. */
+          { id: 'attack', label: 'Attack', kind: 'strike', uses: 'str', hitFrom: 'agi', luck: 'luck', trains: 'str',
+            bonus: [{ when: { carrying: ['knife'] }, damage: 2 }],
             missText: 'You swing wide. The Umbra is not where it was, and possibly never was.' },
           { id: 'defend', label: 'Defend', kind: 'guard', trains: 'vit',
             text: 'You set yourself and wait for it to come.' },
@@ -682,7 +704,7 @@
             hitText: 'You hold the light up and force it forward. The Umbra recoils, shrieking, and comes apart at the edges — {damage} damage.',
             cls: 'good',
             do: [{ light: 'lantern' }] },
-          { id: 'flee', label: 'Flee', kind: 'escape', uses: 'agi', trains: 'agi',
+          { id: 'flee', label: 'Flee', kind: 'escape', uses: 'agi', luck: 'luck', trains: 'agi',
             text: 'You break away and put a great deal of dark between you and it.',
             failText: 'You turn to run. It is already in front of you.' }
         ],
@@ -705,10 +727,11 @@
         dodgeFrom: 'agi',
         hurtTrains: 'vit',
         actions: [
-          { id: 'attack', label: 'Attack', kind: 'strike', uses: 'str', luck: 'luck', trains: 'str' },
+          { id: 'attack', label: 'Attack', kind: 'strike', uses: 'str', hitFrom: 'agi', luck: 'luck', trains: 'str',
+            bonus: [{ when: { carrying: ['knife'] }, damage: 2 }] },
           { id: 'defend', label: 'Defend', kind: 'guard', trains: 'vit',
             text: 'You put the lantern between you and it, and wait.' },
-          { id: 'flee', label: 'Flee', kind: 'escape', uses: 'agi', trains: 'agi',
+          { id: 'flee', label: 'Flee', kind: 'escape', uses: 'agi', luck: 'luck', trains: 'agi',
             text: 'You back away over the stones. It lets you, which is somehow worse.',
             failText: 'It is between you and the water, and it knows it.' }
         ],
@@ -749,7 +772,7 @@
         /* The encounter ids happen to match the monster art keys, which is
            a fact about this cartridge and stated here rather than assumed
            anywhere in the Machine. */
-        opponent: (g, id, x, y, o) => (Z.sprites ? Z.sprites.monster(id)(g, x, y, 0, !!(o && o.hurt)) : undefined),
+        opponent: (g, id, x, y, o) => (Z.sprites ? Z.sprites.monster(id)(g, x, y, (o && o.t) || 0, !!(o && o.hurt)) : undefined),
         itemScale: (scene, y) => (Z.scenes ? Z.scenes.itemScale(scene, y) : 1),
         actorScale: (scene, y) => (Z.scenes ? Z.scenes.actorScale(scene, y) : 1),
         clampToWalk: (scene, x, y) => (Z.scenes ? Z.scenes.clampToWalk(scene, x, y) : [x, y])

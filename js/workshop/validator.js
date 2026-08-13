@@ -416,6 +416,22 @@
       for (const trigger of ruleTriggers) {
         if (!awards[trigger]) err('STATS', 'a rule fires award "' + trigger + '", which is not declared in stats.awards.');
       }
+
+      /* Exertion says which ordinary verbs are physical work. Both halves
+         have to be real: a verb nobody can type trains nothing, and a stat
+         that does not exist is a typo the author wants to hear about. */
+      const exertion = (statsRaw === true ? {} : statsRaw).exertion || {};
+      for (const verb in exertion) {
+        if (!knownVerbs.has(verb)) {
+          err('STATS', 'exertion names unknown verb "' + verb + '"; add it to vocabulary.verbs.');
+        }
+        const spec = exertion[verb];
+        const statId = (spec && typeof spec === 'object') ? spec.stat : spec;
+        if (!statId) { err('STATS', 'the ' + verb + ' exertion names no stat.'); continue; }
+        if (!statIds.includes(statId)) {
+          err('STATS', 'the ' + verb + ' exertion names unknown stat "' + statId + '".');
+        }
+      }
     }
     function checkStat(id, where, what) {
       if (!id) return;

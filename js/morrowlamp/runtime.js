@@ -349,6 +349,14 @@
       if (result.over) {
         const finished = S.encounter;
         S.encounter = null;
+        /* Whatever was in the dark has had its turn. A cartridge may buy
+           the player some turns before the dark takes an interest again,
+           so that surviving a fight in an unlit room is survivable rather
+           than a fight that restarts on the very next move. Counting from
+           a negative number is exactly the head start it sounds like. */
+        if (profile.darkness.enabled && profile.darkness.respite) {
+          S.darkTurns = -Math.abs(profile.darkness.respite);
+        }
         if (result.died) {
           ml.outcome.apply(def.onDefeat || { type: 'death', text: def.defeatedBy || ['It finishes what it started.'] }, ctx());
         } else if (result.won) {
@@ -796,10 +804,27 @@
         }
       }
 
+      /* Some verbs are work. A cartridge that runs a character system may
+         say which ones and what they wear in, and the Machine applies it
+         here — inside the turn, inside the undo frame this turn already
+         pushed, and identically in every shell. A shell that wants a
+         gesture to count as exertion asks for the verb; it does not reach
+         past this and adjust the sheet itself. */
+      exert(verb);
+
       burnFuel();
       runTimers();
       checkEndings();
       return { messages: out.slice(), meta: meta() };
+    }
+
+    /* What a verb costs the body. The Machine knows only that using a
+       stat trains it; which verbs use which stat is the cartridge's. */
+    function exert(verb) {
+      if (!verb || !profile.stats.enabled || !S.sheet) return;
+      const spec = (profile.stats.exertion || {})[verb];
+      if (!spec) return;
+      ops.train(spec.stat || spec, spec.by || 1);
     }
 
     function perform(action) {
@@ -880,11 +905,12 @@
         return S.sheet;
       },
       sheet: () => (S.sheet ? ml.stats.summary(statsConfig, S.sheet) : null),
-      /* A shell may report that the player did something strenuous — a
-         gesture the parser would have expressed as a verb. Whether that
-         is worth anything is the cartridge's business. */
-      train(stat, by) { ops.train(stat, by); },
-      award(trigger, weight) { ops.award(trigger, weight); },
+      /* There is deliberately no `train` or `award` here. A shell that
+         wants a gesture to count as work sends the verb through `perform`
+         and lets `stats.exertion` decide, so the change lands inside a
+         turn, inside an undo frame, and in every shell at the same rate.
+         A shell reaching in to nudge a stat directly is the bug this
+         omission exists to prevent. */
 
       /* Encounters. `encounterAct` is the shell's door in; the parser
          shell reaches the same place by typing an action's name. */

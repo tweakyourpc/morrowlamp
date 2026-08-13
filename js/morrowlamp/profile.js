@@ -34,6 +34,7 @@
       enabled: false,
       warning: 'It is pitch black.',
       grace: 1,              // dark turns survived before the dark takes an interest
+      respite: 0,            // extra dark turns granted after an encounter ends
       /* What happens when the grace runs out. Darkness produces an
          OUTCOME and stops caring — see js/morrowlamp/outcome.js. It does
          not know what an encounter is, let alone what a fight is.
@@ -56,8 +57,14 @@
     hunger: { enabled: false, turns: 0, warning: '', onFail: null },
 
     /* Character stats and encounters. See js/morrowlamp/stats.js and
-       js/morrowlamp/encounter.js for the shape of the configuration. */
-    stats: { enabled: false },
+       js/morrowlamp/encounter.js for the shape of the configuration.
+
+       `exertion` is the one part a shell used to do for itself: which
+       ordinary verbs are physical work, and what they train.
+          exertion: { move: { stat: 'agi' }, attack: { stat: 'str', by: 2 } }
+       The runtime applies it inside the turn, so it is undoable and the
+       same in every shell. */
+    stats: { enabled: false, exertion: {} },
     combat: { enabled: false },
 
     timers: []               // [{ id, after, repeat, when, do }]

@@ -126,7 +126,12 @@
         /* A `damage` range makes the action deterministic in strength;
            without one it is derived from the stat the action uses. */
         const skill = stat(action.uses);
-        const chance = action.always ? 1 : (action.hitChance !== undefined ? action.hitChance : 0.55 + skill / 260 + stat(action.luck) / 500);
+        /* Landing a blow and landing it hard are not the same talent.
+           `uses` is the strength behind the swing; `hitFrom` is the aim,
+           and defaults to the same stat for a cartridge that draws no
+           distinction. */
+        const aim = action.hitFrom ? stat(action.hitFrom) : skill;
+        const chance = action.always ? 1 : (action.hitChance !== undefined ? action.hitChance : 0.55 + aim / 260 + stat(action.luck) / 500);
         if (random() < chance) {
           let damage;
           if (action.damage) {
@@ -134,6 +139,15 @@
           } else {
             damage = roll(random, 2 + Math.floor(skill / 12), 5 + Math.floor(skill / 6)) + (sheet ? sheet.level : 1);
             damage = Math.max(1, damage - Math.floor((opponent.defence || 0) / 3));
+          }
+          /* Circumstances the cartridge says are worth extra damage —
+             carrying a knife rather than swinging a fist, most obviously.
+             Written as ordinary rule conditions, so the encounter system
+             learns nothing about knives. */
+          for (const extra of (action.bonus || [])) {
+            if (!extra || !extra.damage) continue;
+            if (extra.when && !ml.rules.conditionsHold(extra.when, {}, ctx)) continue;
+            damage += extra.damage;
           }
           state.hp -= damage;
           lines.push({ text: (action.hitText || 'You strike for {damage}.').replace('{damage}', damage), cls: action.cls || '' });
@@ -156,7 +170,12 @@
         break;
 
       case 'escape': {
-        const chance = action.chance !== undefined ? action.chance : 0.32 + stat(action.uses) / 180;
+        /* Getting away is mostly quickness and partly luck, the same two
+           terms a strike uses and in the same order. An action that names
+           no luck stat simply has no luck term. */
+        const chance = action.chance !== undefined
+          ? action.chance
+          : 0.32 + stat(action.uses) / 180 + stat(action.luck) / 400;
         if (random() < chance) {
           lines.push({ text: action.text || 'You break away and put a great deal of distance between you and it.', cls: 'good' });
           train(action.trains, action.weight || 2);
