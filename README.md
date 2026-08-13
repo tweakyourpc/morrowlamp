@@ -50,7 +50,8 @@ Sunken Crown bug in the cartridge fixes it in all three; `test/one-machine.js` e
 make sure that stays true.
 
 The Workshop (`author.html`) sits above all of this: it inspects cartridges, validates them,
-and drives the compiler.
+plays them on the bench, proves they can be finished, and drives the compiler. Everything it
+does, `tools/morrow.js` also does from a terminal.
 
 ### The Machine, `js/morrowlamp/`
 
@@ -195,19 +196,104 @@ vocabulary a puzzle would use, and an action may carry a `do` list of ordinary r
 which is how raising the lantern also lights it. The encounter system never learns what a
 lantern is.
 
+### The strings table
+
+A cartridge may keep every line it says in one table and point at it with `@s:`:
+
+```js
+world: { rooms: { cellar: { name: 'The Cellar', desc: '@s:cellar.desc' } } },
+rules: [{ id: 'take-cheese', verb: 'take', target: 'cheese', do: [{ say: '@s:cheese.guarded' }] }],
+
+strings: {
+  'cellar.desc':    'A low cellar. On a barrel at the far end sits a cheese of obvious quality.',
+  'cheese.guarded': 'You reach for the cheese. The rat makes a noise you did not know rats could make.'
+}
+```
+
+Every prose slot understands it: room descriptions, object descriptions and examine text,
+exit `deny` messages, verb prompts and fallbacks, encounter lines, endings, `say` and `die`.
+A key holding an array prints as several lines. The same table also overrides the Machine's
+own system messages, so *all* the writing in a game is in one place.
+
+**This is the seam to hand somebody else.** Nothing in the table can change what the game
+does: there are no room ids in there, no flags, no conditions, no actions. A collaborator, 
+or a model, can rewrite the whole script, or translate it, and the worst they can produce is
+a key that does not resolve, which is a build error with an address. A reference to a missing
+key is refused; a key nothing refers to is a warning.
+
+`js/cartridges/sir-crumbly.js` is written entirely this way and is the reference for it.
+Adoption is optional: the other two cartridges keep their prose inline and are just as valid.
+
+### The walkthrough
+
+A cartridge may also carry the route through itself:
+
+```js
+walkthrough: { route: ['d', 'attack rat', 'take cheese'], ending: 'cheese-recovered', score: 20 }
+```
+
+`js/workshop/prove.js` plays it on the real Machine with the dice held steady and fails if it
+does not reach the declared ending on the declared score, naming the step it fell over on.
+That is a different claim from validation, and the more important one: **a cartridge can
+validate perfectly and still be impossible to finish.** `test/prove.js` contains a game that
+does exactly that.
+
+The prover also reads the cartridge statically for content that can never happen, a rule an
+earlier rule always claims first, an object nothing can produce, a flag written but never
+read, an ending nothing can fire, an encounter nothing starts. Those are warnings; work in
+progress is allowed loose ends. (This is not decoration: it found a write-only flag in The
+Sunken Crown the first time it ran.)
+
 ## Making a game without touching the runtime
 
 1. Open `author.html` (serve the folder: see below), press **New blank cartridge**.
 2. Fill in the game sheet, add rooms and objects in the **World Editor**, write rules in the
-   **Rule Book**, pick a display adapter and sound hardware.
+   **Rule Book**, write prose in **Text**, pick a display adapter and sound hardware.
 3. Press **Validate** until the readout says `CARTRIDGE VALIDATED — 0 errors`.
-4. Press **BUILD GAME**. You get one HTML file.
+4. Open **Test** and press **Play it**. The cartridge runs right there, on the same Machine a
+   compiled adventure uses, through the shell it declared.
+5. Press **Prove** if it carries a walkthrough.
+6. Press **BUILD GAME**. You get one HTML file.
+
+**Save cartridge (JSON)** writes the cartridge out; **Load cartridge…** reads one back, from
+the button or by dropping the file on the slot. A loaded cartridge is validated before it
+reaches the bench, so a broken file explains itself in the diagnostics panel instead of
+throwing. That round trip is what makes the Workshop somewhere you can leave work and come
+back to it, and what lets a cartridge written anywhere else, by anyone else, come in.
 
 Or write a cartridge by hand: copy `js/cartridges/captains-thistle.js`, change everything,
 register it under a new id in `Z.cartridges`, and add it to `CARTRIDGE_FILES` in
 `js/workshop/bundle.js` so the compiler knows which files it needs. Nothing under
 `js/morrowlamp/` should have to change. If it does, that is a gap in the Machine worth
 fixing on purpose.
+
+## From a terminal
+
+`tools/morrow.js` is the Workshop without the browser. `compile()` was already a pure
+function of `{ cartridge, sources }` and the prover already plays on the real Machine, so
+this is assembly rather than new machinery, but it is what turns authoring into a loop
+something other than a person can run.
+
+```sh
+node tools/morrow.js validate js/cartridges/sunken-crown.js       # 0 or 1, --json for findings
+node tools/morrow.js prove    js/cartridges/sir-crumbly.js        # plays the declared route
+node tools/morrow.js build    js/cartridges/captains-thistle.js -o thistle.html
+node tools/morrow.js play     my-adventure.json --command "n" --command "take lamp"
+```
+
+Every command exits 0 when it is happy and 1 when it is not. A cartridge is either a `.js`
+source file or a `.json` / `.morrow` data file; neither is a special case.
+
+With `--json`, `validate` and `prove` return their findings structured:
+
+```json
+{ "code": "unknown-action", "where": "RULE 3 (dig)", "path": "rules[2].do[0].frobnicate",
+  "message": "unknown action \"frobnicate\" (known: say, set, clear, …)." }
+```
+
+The sentence is for a person reading the diagnostics panel. The `code` and `path` are for
+anything that wants to jump to the fault or repair it, which is the difference between a
+diagnostic and something a tool can act on.
 
 ## Running it
 
@@ -236,8 +322,8 @@ There is no install step.
 -->
 ```
 
-The final release-gate builds measured 322,831 bytes for The Sunken Crown, 201,318 bytes for
-Captain Thistle, and 154,750 bytes for Sir Crumbly.
+Builds at the close of this milestone measured 339,281 bytes for The Sunken Crown, 216,224
+bytes for Captain Thistle, and 172,337 bytes for Sir Crumbly.
 Deliberately **not**
 minified: each embedded module keeps its source path and its comments, so whoever finds the
 file in 2056 can read it. Minification would be a future opt-in build mode, not the default.
@@ -257,6 +343,7 @@ node test/gfx-profiles.js              # CGA/EGA/VGA renderer contracts
 node test/morrowlamp-runtime.js        # the Machine, against a synthetic cartridge
 node test/encounters.js                # stats, encounters and outcomes, against another one
 node test/validator.js                 # every validator check, each with a broken cartridge
+node test/prove.js                     # winnability: a game that validates and cannot be won
 node test/workshop.js                  # bundle manifest, blank-cartridge round trip, Machine purity
 node test/sunken-crown.js              # the flagship cartridge, end to end (19 groups)
 node test/cartridge-thistle.js         # the second cartridge plays through on the same Machine
@@ -280,9 +367,11 @@ all three routes load the same runtime module list and the same cartridge, neith
 scores or rolls dice or applies damage, one cartridge definition feeds every runtime, and a
 save made under one shell restores under another.
 
-`test/sunken-crown.js` then plays the canonical winning route
-(`test/winning-route.js`) to six treasures, sixty points and Sunken King's Heir, and
-`test/compiler.js` replays it inside the compiled artifact.
+`test/sunken-crown.js` then plays the canonical winning route to six treasures, sixty points
+and Sunken King's Heir, and `test/compiler.js` replays it inside the compiled artifact. That
+route now lives in the cartridge as its `walkthrough`, because it is a claim the game makes
+about itself; `test/winning-route.js` keeps the same list for the suites that drive the
+compiled artifact, and `test/prove.js` asserts the two are identical so they cannot drift.
 
 **What that does and does not establish.** The invariant above is about *gameplay*, and
 gameplay is what those suites prove: one implementation decides what happens, and it is
@@ -348,7 +437,8 @@ css/style.css               — terminal themes
 
 js/morrowlamp/              — THE MACHINE (see the table above)
 js/cartridges/              — the games
-js/workshop/                — validator, bundle manifest, compiler, Workshop console
+js/workshop/                — validator, prover, bundle manifest, compiler, Workshop console
+tools/morrow.js             — the same four operations from a terminal
 
 js/gfx.js                   — CGA/EGA/VGA profiles, dithering, drawing primitives  (Machine)
 js/audio.js                 — synthesized sound effects                            (Machine)
@@ -428,10 +518,16 @@ One state representation, one boundary. `js/save.js` owns it:
 
 ## Recorded direction: `.morrow` source cartridges
 
-Not built yet, written down so we do not architect ourselves away from it.
+**Half of this is now built.** A cartridge saves as JSON, loads back into the Workshop,
+validates, proves, plays and compiles, and `test/workshop.js` checks that every declarative
+section survives the trip. The `.morrow` extension is accepted everywhere `.json` is.
 
-Cartridges today are JavaScript, and two of them carry painter *functions*, which do not
-survive JSON. Round-trip authoring therefore needs two tiers:
+What is still missing is the interesting half: two of the shipped cartridges carry painter
+*functions*, which do not survive JSON, so **a cartridge assembled in the Workshop can only
+ever be a parser game**. Until a room can be described rather than drawn, the JSON tier is
+capped. That is the next milestone.
+
+Round-trip authoring therefore still needs two tiers:
 
 | | Workshop cartridge | Developer cartridge |
 | --- | --- | --- |

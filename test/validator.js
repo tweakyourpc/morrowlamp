@@ -165,9 +165,114 @@ function testReportFormatting() {
   console.log('  ok — the report reads like a compiler');
 }
 
+/* ---------------- the structured view ----------------
+   The sentence is for a person; the code and the path are for anything
+   that wants to jump to the fault or repair it. Both views describe the
+   same set, which is the property worth pinning down: a finding that
+   appears in one and not the other would make the pair a liability. */
+function testFindingsAreStructured() {
+  const result = broken((c) => { c.rules[0].do = [{ frobnicate: 'lever' }]; });
+  assert.ok(Array.isArray(result.findings), 'a structured view is offered');
+  assert.strictEqual(result.findings.filter((f) => f.severity === 'error').length, result.errors.length,
+    'the two views count the same errors');
+  assert.strictEqual(result.findings.filter((f) => f.severity === 'warning').length, result.warnings.length,
+    'and the same warnings');
+  for (const finding of result.findings) {
+    assert.ok(finding.code && /^[a-z0-9-]+$/.test(finding.code), 'every finding carries a slug code: ' + finding.text);
+    assert.strictEqual(typeof finding.path, 'string', 'and a path into the cartridge');
+    assert.strictEqual(finding.text, finding.where + ': ' + finding.message, 'and its text is built from its parts');
+  }
+  const fault = result.findings.find((f) => f.code === 'unknown-action');
+  assert.ok(fault, 'the unknown action is reported under a stable code');
+  assert.strictEqual(fault.path, 'rules[0].do[0].frobnicate', 'and addressed precisely enough to jump to');
+  console.log('  ok — findings carry a stable code and a path, and agree with the text view');
+}
+
+function testPathsAddressTheRealFault() {
+  const cases = [
+    [(c) => { c.world.rooms.a.exits.n = 'tunel'; }, 'exit-missing-room', 'world.rooms.a.exits.n'],
+    [(c) => { c.world.objects.gem.at = 'attic'; }, 'object-missing-room', 'world.objects.gem.at'],
+    [(c) => { c.rules[0].target = 'silver_key'; }, 'missing-object', 'rules[0].target'],
+    [(c) => { c.rules[0].when = { standingOn: 'lever' }; }, 'unknown-condition', 'rules[0].when.standingOn'],
+    [(c) => { c.presentation.renderer = 'svga'; }, 'unknown-renderer', 'presentation.renderer'],
+    [(c) => { c.world.rooms.a.exits.e.guardReq = 'opened'; }, 'exit-unknown-requirement', 'world.rooms.a.exits.e.guardReq']
+  ];
+  for (const [mutate, code, path] of cases) {
+    const finding = broken(mutate).findings.find((f) => f.code === code);
+    assert.ok(finding, 'code "' + code + '" is reported');
+    assert.strictEqual(finding.path, path, code + ' points at ' + path);
+  }
+  console.log('  ok — each finding\'s path addresses the field that is actually wrong');
+}
+
+/* ---------------- the strings table ----------------
+   The seam is only safe because it is checked. A key that does not
+   resolve has to be a build error, or moving prose into the table would
+   trade a typo you can see for a blank line you cannot. */
+function testStringReferences() {
+  const missing = broken((c) => {
+    c.strings = { 'lever.pulled': 'Click.' };
+    c.rules[0].do = [{ set: 'opened' }, { say: '@s:lever.pushed' }];
+  });
+  assert.ok(saysError(missing, 'refers to string "lever.pushed", which is not in the strings table'),
+    'a reference with no key is a build error');
+  assert.ok(missing.findings.some((f) => f.code === 'string-missing'), 'reported under a stable code');
+
+  const unused = broken((c) => {
+    c.strings = { 'lever.pulled': 'Click.', 'never.used': 'Nobody says this.' };
+    c.rules[0].do = [{ set: 'opened' }, { say: '@s:lever.pulled' }];
+  });
+  assert.ok(unused.ok, 'an unused key does not stop the build');
+  assert.ok(saysWarning(unused, 'string "never.used" is declared but nothing refers to it'),
+    'but it is worth mentioning');
+
+  /* The Machine's own system messages are read by the runtime directly,
+     so overriding one is a use, not an orphan. */
+  const override = broken((c) => {
+    c.strings = { dontSeeThat: 'There is no such thing aboard.' };
+  });
+  assert.ok(!override.warnings.some((w) => w.includes('dontSeeThat')),
+    'overriding a system message is not reported as unused');
+
+  const everywhere = broken((c) => {
+    c.strings = { 'a.desc': 'A room.' };
+    c.world.rooms.a.desc = '@s:a.desc';
+    c.world.rooms.b.desc = '@s:b.desc';
+  });
+  assert.ok(saysError(everywhere, 'refers to string "b.desc"'), 'room descriptions are checked too');
+  console.log('  ok — the strings table is checked in both directions');
+}
+
+function testCrumblyIsWrittenEntirelyInStrings() {
+  /* The reference cartridge for the seam. If somebody writes a line of
+     prose back into its structure, this is where it shows up. */
+  require('../js/cartridges/sir-crumbly.js');
+  const cart = Z.cartridges['sir-crumbly'];
+  const result = V.validate(cart);
+  assert.ok(result.ok, 'it validates: ' + result.errors.join('; '));
+  assert.ok(Object.keys(cart.strings).length > 20, 'and keeps its writing in the table');
+  for (const id in cart.world.rooms) {
+    const room = cart.world.rooms[id];
+    for (const slot of ['desc', 'short']) {
+      if (room[slot] === undefined) continue;
+      assert.ok(/^@s:/.test(room[slot]), 'ROOM ' + id + '.' + slot + ' is a reference, not prose');
+    }
+  }
+  for (const id in cart.world.objects) {
+    for (const slot of ['desc', 'examine']) {
+      const value = cart.world.objects[id][slot];
+      if (value === undefined) continue;
+      assert.ok(/^@s:/.test(value), 'OBJECT ' + id + '.' + slot + ' is a reference, not prose');
+    }
+  }
+  console.log('  ok — Sir Crumbly keeps every line of prose in its strings table');
+}
+
 const tests = [testCleanCartridge, testShippedCartridges, testWorldErrors, testExitRequirementsFailLoud,
   testContainerCycles, testRuleErrors, testFlagReconciliation, testProfileErrors,
-  testUnreachableTreasure, testPresentationErrors, testReportFormatting];
+  testUnreachableTreasure, testPresentationErrors, testReportFormatting,
+  testFindingsAreStructured, testPathsAddressTheRealFault,
+  testStringReferences, testCrumblyIsWrittenEntirelyInStrings];
 let failed = 0;
 console.log('\nMORROWLAMP — cartridge validator\n');
 for (const t of tests) {

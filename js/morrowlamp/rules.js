@@ -55,8 +55,16 @@
   }
 
   /* Text may carry {the target} style substitutions so one rule can
-     answer for a whole family of objects without repeating itself. */
+     answer for a whole family of objects without repeating itself.
+
+     A '@s:' reference is resolved through the cartridge's strings table
+     first, so a line kept in that table gets the same substitutions a
+     line written inline would — otherwise moving prose into the table
+     would quietly change what it says. */
   function expand(text, action, ctx) {
+    const table = ctx && ctx.cart && ctx.cart.strings;
+    text = ml.strings.resolve(text, table);
+    if (Array.isArray(text)) return text.map((one) => expand(one, action, ctx));
     if (typeof text !== 'string') return text;
     return text.replace(/\{(the |a )?(target|with|room)\}/g, (whole, article, which) => {
       const id = which === 'room' ? ctx.state.room : (which === 'target' ? action.target : action.with);

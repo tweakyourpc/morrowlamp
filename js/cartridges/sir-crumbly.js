@@ -18,6 +18,16 @@
 
    If any of that had been baked into the runtime, this file
    could not exist.
+
+   It has a second job now: it is the reference cartridge for the
+   STRINGS TABLE. Not one line of prose is written where it is
+   used. Every slot that would hold text holds '@s:some.key'
+   instead, and all the writing lives in one block at the bottom
+   of the file. Rewrite that block and you have rewritten the
+   game; you cannot break a puzzle from inside it, because there
+   is no structure in there to break. The validator refuses a key
+   that does not resolve, so a typo is a build error rather than a
+   blank line in somebody's transcript.
    ============================================================ */
 (function (global) {
   'use strict';
@@ -34,16 +44,9 @@
       version: '1.0.0',
       blurb: 'Two rooms, one rat, and a spoon you should not have brought.'
     },
-    intro: [
-      'You are Sir Crumbly, a knight of modest reputation and no remaining budget.',
-      'Your armour is in the shop. Your sword is in the other shop. What you have is a spoon.',
-      'There is a rat in the cellar and a cheese behind it. This is the entire situation.'
-    ],
-    help: [
-      'Move with compass directions. Take things. ATTACK the rat.',
-      'In a fight, type the name of an action: attack, guard, or flee.'
-    ],
-    quitText: 'You go home. The rat keeps the cheese. It was always going to end this way.',
+    intro: '@s:intro',
+    help: '@s:help',
+    quitText: '@s:quit',
     startFlags: { ratBeaten: false },
 
     world: {
@@ -52,45 +55,45 @@
       rooms: {
         pantry: {
           name: 'The Pantry',
-          desc: 'A pantry with empty shelves and one set of stairs going down into a cellar that smells of rat.',
-          short: 'The pantry. Down is where the trouble is.',
+          desc: '@s:pantry.desc',
+          short: '@s:pantry.short',
           exits: { d: 'cellar' }
         },
         cellar: {
           name: 'The Cellar',
-          desc: 'A low cellar. On a barrel at the far end sits a cheese of obvious quality. Between you and it is a rat with opinions.',
-          short: 'The cellar. Cheese at the far end.',
+          desc: '@s:cellar.desc',
+          short: '@s:cellar.short',
           exits: { u: 'pantry' },
-          notes: [{ when: { flags: { ratBeaten: true } }, text: 'The rat is gone. The cheese is unguarded and slightly embarrassed about it.' }]
+          notes: [{ when: { flags: { ratBeaten: true } }, text: '@s:cellar.ratGone' }]
         }
       },
       objects: {
         spoon: {
           name: 'rusty spoon', aliases: ['spoon', 'rusty spoon', 'weapon'], at: 'inv', takeable: true,
-          examine: 'A spoon. Rusty. It has never been sharpened, because it is a spoon.'
+          examine: '@s:spoon.examine'
         },
         rat: {
           name: 'cellar rat', aliases: ['rat', 'cellar rat', 'vermin'], at: 'cellar',
-          desc: 'A rat the size of a small argument watches you from between you and the cheese.',
-          examine: 'It is a rat. It is larger than a rat should be, and it has clearly won before.',
-          cannotTake: 'You reach for the rat. The rat notes this, and files it.'
+          desc: '@s:rat.desc',
+          examine: '@s:rat.examine',
+          cannotTake: '@s:rat.cannotTake'
         },
         cheese: {
           name: 'excellent cheese', aliases: ['cheese', 'wheel'], at: 'cellar', takeable: true,
-          desc: 'An excellent cheese sits on a barrel.',
-          examine: 'A whole wheel of it, rinded and serious. Worth the spoon. Worth the rat, probably.',
-          takeText: 'You take the cheese. It is heavier than your armour and considerably more useful.'
+          desc: '@s:cheese.desc',
+          examine: '@s:cheese.examine',
+          takeText: '@s:cheese.take'
         },
         barrel: {
           name: 'barrel', aliases: ['barrel', 'cask'], at: 'cellar',
-          examine: 'An empty barrel doing duty as a cheese plinth.'
+          examine: '@s:barrel.examine'
         }
       }
     },
 
     vocabulary: {
       verbs: {
-        attack: { words: ['attack', 'fight', 'hit', 'stab', 'poke', 'kill'], form: 'target', prompt: 'Attack what?', fallback: 'It does not deserve that.' }
+        attack: { words: ['attack', 'fight', 'hit', 'stab', 'poke', 'kill'], form: 'target', prompt: '@s:attack.prompt', fallback: '@s:attack.fallback' }
       }
     },
 
@@ -103,12 +106,12 @@
       {
         id: 'the-rat-is-gone', verb: 'attack', target: 'rat',
         when: { flags: { ratBeaten: true } },
-        do: [{ say: 'The rat has left. Attacking the space where it was seems unsporting.' }]
+        do: [{ say: '@s:rat.alreadyGone' }]
       },
       {
         id: 'cheese-is-guarded', verb: 'take', target: 'cheese',
         when: { room: 'cellar', flags: { ratBeaten: false } },
-        do: [{ say: 'You reach for the cheese. The rat makes a noise you did not know rats could make. You reconsider.' }]
+        do: [{ say: '@s:cheese.guarded' }]
       }
     ],
 
@@ -118,28 +121,28 @@
       cellarRat: {
         kind: 'combat',
         opponent: { name: 'Cellar Rat', hp: 6, attack: [1, 3], defence: 1, xp: 12 },
-        intro: 'The rat squares up. It is 6 points of rat and it knows exactly what a spoon can do, which is not much.',
-        hit: 'The rat darts in and bites your ankle.',
-        miss: 'The rat feints, thinks better of it, and resets.',
-        defeated: 'The rat sits down heavily, reconsiders its career, and leaves through a hole you had not noticed.',
+        intro: '@s:fight.intro',
+        hit: '@s:fight.hit',
+        miss: '@s:fight.miss',
+        defeated: '@s:fight.defeated',
         dodgeFrom: 'nerve',
         hurtTrains: 'nerve',
         actions: [
           { id: 'attack', label: 'Attack', kind: 'strike', uses: 'might', trains: 'might',
-            hitText: 'You poke the rat with the spoon for {damage}.',
-            missText: 'You poke the air beside the rat. The rat is unimpressed.' },
+            hitText: '@s:fight.attack.hit',
+            missText: '@s:fight.attack.miss' },
           { id: 'guard', label: 'Guard', kind: 'guard', trains: 'nerve',
-            text: 'You hold the spoon out in front of you like a very small shield.' },
+            text: '@s:fight.guard' },
           { id: 'flee', label: 'Flee', kind: 'escape', uses: 'nerve', trains: 'nerve', chance: 0.4,
-            text: 'You retreat up the stairs with what dignity remains.',
-            failText: 'You turn to go. The rat is already between you and the stairs.',
+            text: '@s:fight.flee',
+            failText: '@s:fight.flee.failed',
             /* Fleeing puts you back in the pantry — an outcome, decided
                here, not by the encounter system. */
             }
         ],
-        onWin: { type: 'rules', do: [{ set: 'ratBeaten' }, { say: 'The cellar is yours. So, shortly, is the cheese.' }] },
-        onFlee: { type: 'move', room: 'pantry', text: 'You arrive in the pantry, breathing hard, still holding a spoon.' },
-        onDefeat: { type: 'death', text: ['The rat stands over you, victorious, and eats the cheese itself.', 'This is a low moment for knighthood.'] }
+        onWin: { type: 'rules', do: [{ set: 'ratBeaten' }, { say: '@s:fight.won' }] },
+        onFlee: { type: 'move', room: 'pantry', text: '@s:fight.fled' },
+        onDefeat: { type: 'death', text: '@s:fight.lost' }
       }
     },
 
@@ -171,13 +174,89 @@
         id: 'cheese-recovered', kind: 'win',
         when: { carrying: ['cheese'], flags: { ratBeaten: true } },
         score: 20,
-        text: [
-          'You climb out of the cellar holding an excellent cheese, having defeated a rat with cutlery.',
-          'It is not the deed the songs will pick, but it is the deed you did.',
-          'SIR CRUMBLY WILL RETURN, probably, in "SIR CRUMBLY AND THE SLIGHTLY LARGER RAT".'
-        ]
+        text: '@s:ending.win'
       }
     ],
+
+    /* ------------------------------------------------------------
+       THE WRITING
+       Everything the game says, in one table, in reading order.
+
+       Nothing in this block can change what the game *does*. There
+       are no room ids here, no flags, no conditions and no actions
+       — only keys and prose. Rewrite it in another voice, or
+       another language, and the puzzle, the rat and the arithmetic
+       of the fight are all exactly as they were.
+
+       A key holding an array prints as several lines. A key
+       nothing refers to is a warning; a reference to a key that is
+       not here is a build error.
+       ------------------------------------------------------------ */
+    strings: {
+      'intro': [
+        'You are Sir Crumbly, a knight of modest reputation and no remaining budget.',
+        'Your armour is in the shop. Your sword is in the other shop. What you have is a spoon.',
+        'There is a rat in the cellar and a cheese behind it. This is the entire situation.'
+      ],
+      'help': [
+        'Move with compass directions. Take things. ATTACK the rat.',
+        'In a fight, type the name of an action: attack, guard, or flee.'
+      ],
+      'quit': 'You go home. The rat keeps the cheese. It was always going to end this way.',
+
+      'pantry.desc': 'A pantry with empty shelves and one set of stairs going down into a cellar that smells of rat.',
+      'pantry.short': 'The pantry. Down is where the trouble is.',
+      'cellar.desc': 'A low cellar. On a barrel at the far end sits a cheese of obvious quality. Between you and it is a rat with opinions.',
+      'cellar.short': 'The cellar. Cheese at the far end.',
+      'cellar.ratGone': 'The rat is gone. The cheese is unguarded and slightly embarrassed about it.',
+
+      'spoon.examine': 'A spoon. Rusty. It has never been sharpened, because it is a spoon.',
+      'rat.desc': 'A rat the size of a small argument watches you from between you and the cheese.',
+      'rat.examine': 'It is a rat. It is larger than a rat should be, and it has clearly won before.',
+      'rat.cannotTake': 'You reach for the rat. The rat notes this, and files it.',
+      'rat.alreadyGone': 'The rat has left. Attacking the space where it was seems unsporting.',
+      'cheese.desc': 'An excellent cheese sits on a barrel.',
+      'cheese.examine': 'A whole wheel of it, rinded and serious. Worth the spoon. Worth the rat, probably.',
+      'cheese.take': 'You take the cheese. It is heavier than your armour and considerably more useful.',
+      'cheese.guarded': 'You reach for the cheese. The rat makes a noise you did not know rats could make. You reconsider.',
+      'barrel.examine': 'An empty barrel doing duty as a cheese plinth.',
+
+      'attack.prompt': 'Attack what?',
+      'attack.fallback': 'It does not deserve that.',
+
+      'fight.intro': 'The rat squares up. It is 6 points of rat and it knows exactly what a spoon can do, which is not much.',
+      'fight.hit': 'The rat darts in and bites your ankle.',
+      'fight.miss': 'The rat feints, thinks better of it, and resets.',
+      'fight.defeated': 'The rat sits down heavily, reconsiders its career, and leaves through a hole you had not noticed.',
+      'fight.attack.hit': 'You poke the rat with the spoon for {damage}.',
+      'fight.attack.miss': 'You poke the air beside the rat. The rat is unimpressed.',
+      'fight.guard': 'You hold the spoon out in front of you like a very small shield.',
+      'fight.flee': 'You retreat up the stairs with what dignity remains.',
+      'fight.flee.failed': 'You turn to go. The rat is already between you and the stairs.',
+      'fight.won': 'The cellar is yours. So, shortly, is the cheese.',
+      'fight.fled': 'You arrive in the pantry, breathing hard, still holding a spoon.',
+      'fight.lost': [
+        'The rat stands over you, victorious, and eats the cheese itself.',
+        'This is a low moment for knighthood.'
+      ],
+
+      'ending.win': [
+        'You climb out of the cellar holding an excellent cheese, having defeated a rat with cutlery.',
+        'It is not the deed the songs will pick, but it is the deed you did.',
+        'SIR CRUMBLY WILL RETURN, probably, in "SIR CRUMBLY AND THE SLIGHTLY LARGER RAT".'
+      ]
+    },
+
+    /* The route through this game, kept by the game rather than by a
+       test, so `morrow prove` can play it and fail the build if the
+       cartridge ever stops being finishable. Combat is resolved with
+       the dice held steady: this proves the puzzle chain, not that a
+       spoon is a reliable weapon. */
+    walkthrough: {
+      route: ['d', 'attack rat', 'take cheese'],
+      ending: 'cheese-recovered',
+      score: 20
+    },
 
     presentation: {
       renderer: 'ega',

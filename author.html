@@ -128,10 +128,13 @@ legend{font-size:10px; letter-spacing:.14em; color:var(--dim); text-transform:up
       <h2>Cartridge Slot</h2>
       <div class="body">
         <div class="cartlist" id="cart-list"></div>
-        <p class="hint">Insert a cartridge to inspect it. The two shipped titles are read-only reference material; a new cartridge is yours to edit.</p>
+        <p class="hint">Insert a cartridge to inspect it. The shipped titles are read-only reference material; a new or loaded cartridge is yours to edit.</p>
         <div class="row" style="margin-top:10px">
           <button id="btn-new">New blank cartridge</button>
+          <button id="btn-load">Load cartridge…</button>
         </div>
+        <input type="file" id="file-cart" accept=".json,.morrow,application/json" hidden>
+        <p class="hint">A saved cartridge is ordinary JSON. Load one here, or drop the file onto this panel.</p>
       </div>
     </section>
 
@@ -157,8 +160,10 @@ legend{font-size:10px; letter-spacing:.14em; color:var(--dim); text-transform:up
           <button id="btn-build" class="primary">BUILD GAME</button>
         </div>
         <div class="row tight" style="margin-top:8px">
+          <button id="btn-prove">Prove</button>
           <button id="btn-json">Save cartridge (JSON)</button>
         </div>
+        <p class="hint">PROVE plays the cartridge's own declared walkthrough on the real Machine and reports the step it fails on. Validating says the game is well formed; proving says it can be finished.</p>
         <p class="hint">BUILD GAME writes one HTML file containing the runtime, this cartridge, the rules, the interface, the renderer and the synthesized audio. No sibling files, no server, no network.</p>
       </div>
     </section>
@@ -172,7 +177,9 @@ legend{font-size:10px; letter-spacing:.14em; color:var(--dim); text-transform:up
         <button class="tab on" data-sheet="game">Game</button>
         <button class="tab" data-sheet="world">World Editor</button>
         <button class="tab" data-sheet="rules">Rule Book</button>
+        <button class="tab" data-sheet="text">Text</button>
         <button class="tab" data-sheet="presentation">Display &amp; Sound</button>
+        <button class="tab" data-sheet="test">Test</button>
       </div>
 
       <!-- GAME -->
@@ -247,6 +254,25 @@ legend{font-size:10px; letter-spacing:.14em; color:var(--dim); text-transform:up
         <p class="hint">A rule matches on <code>verb</code>, <code>target</code>, <code>with</code> and <code>phrase</code>, checks the world with <code>when</code>, and performs <code>do</code>. If the head matches but <code>when</code> does not, <code>otherwise</code> explains why. First match wins; anything unclaimed falls through to the Machine's own verbs.</p>
       </div>
 
+      <!-- TEXT -->
+      <div class="sheet" id="sheet-text">
+        <p class="hint" id="text-intro"></p>
+        <div class="row" style="margin-top:10px">
+          <button id="btn-add-string">Add string</button>
+        </div>
+        <div id="string-editor"></div>
+      </div>
+
+      <!-- TEST -->
+      <div class="sheet" id="sheet-test">
+        <div class="row">
+          <button id="btn-test-start" class="primary">Play it</button>
+          <button id="btn-test-stop">Stop</button>
+        </div>
+        <p class="hint">The cartridge runs here on the same Machine a compiled adventure uses, through the same generic shell. It is the game, not a preview of it — saves, combat and endings all work. Nothing is written to disk.</p>
+        <div id="test-stage" style="margin-top:12px"></div>
+      </div>
+
       <!-- PRESENTATION -->
       <div class="sheet" id="sheet-presentation">
         <div class="row">
@@ -309,8 +335,17 @@ legend{font-size:10px; letter-spacing:.14em; color:var(--dim); text-transform:up
 <script src="js/cartridges/captains-thistle.js"></script>
 <script src="js/cartridges/sir-crumbly.js"></script>
 
+<!-- Synthesized sound and the two generic shells, so the Workshop can
+     play a cartridge on the bench instead of making the operator build
+     an image and open it just to find out whether a puzzle fires. -->
+<script src="js/audio.js"></script>
+<script src="js/music.js"></script>
+<script src="js/morrowlamp/shell-parser.js"></script>
+<script src="js/morrowlamp/shell-canvas.js"></script>
+
 <!-- The Workshop. -->
 <script src="js/workshop/validator.js"></script>
+<script src="js/workshop/prove.js"></script>
 <script src="js/workshop/bundle.js"></script>
 <script src="js/workshop/compiler.js"></script>
 <script src="js/workshop/workshop.js"></script>

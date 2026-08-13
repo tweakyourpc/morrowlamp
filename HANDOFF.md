@@ -298,8 +298,74 @@ Artifacts are **not committed**; `.gitignore` treats them as build products by p
 - Working tree: clean.
 - At the final local gate, no remote was configured and nothing had yet been pushed.
 
+## 11a. The authoring-loop milestone
+
+Everything above describes the state at publication. This section describes the milestone
+after it, which closed the authoring loop and added a winnability proof. No gameplay was
+redesigned; one piece of dead state was removed (see below).
+
+**What was built.**
+
+1. **Cartridge import.** `js/workshop/workshop.js` could write a cartridge out as JSON and had
+   no way to read one back. The Workshop could therefore never resume its own work, and a
+   cartridge written anywhere else could never get in. **Load cartridge…** and a drop target
+   on the slot now do the other half. A loaded file is parsed, format-checked and *validated*
+   before it reaches the bench; a broken one prints the compiler's own report in the
+   diagnostics panel and is not added to the shelf.
+2. **Structured validator findings.** `validate()` now returns `findings`, each with a stable
+   `code` slug and a `path` into the cartridge (`rules[16].do[2].goto`). `errors` and
+   `warnings` are still plain strings and `report()` is unchanged, so nothing that read the
+   old shape moved. *(The plan called for finding objects with a `toString()`; the tests match
+   on `.includes`, which is a String method, so keeping the string arrays and adding a third
+   structured view was the safer and simpler shape.)*
+3. **`tools/morrow.js`.** validate / prove / build / play from a terminal, exit 0 or 1,
+   `--json` where it makes sense. Reuses `ml.bundle.filesFor`, `ml.compiler.compile` and the
+   prover; no new machinery, no dependencies.
+4. **`js/workshop/prove.js`.** A cartridge may declare its own `walkthrough`; the prover plays
+   it on the real Machine with steady dice and fails at the step it falls over on, checking the
+   declared ending and score. Plus a static dead-content read: shadowed rules, unproducible
+   objects, write-only flags, unfirable endings, unstarted encounters. *(The plan had the
+   validator run this. It does not: `validate()` promises to be pure and instant and the
+   Workshop calls it on every keystroke. Proving is a separate button and a separate command.)*
+5. **The strings table.** Any prose slot may hold `'@s:some.key'`, resolved from
+   `cartridge.strings`, the same table that already overrode the Machine's system messages.
+   `js/cartridges/sir-crumbly.js` is converted entirely and is the reference for it.
+6. **Test and Text tabs** in `author.html`. Test mounts the cartridge on the real generic
+   shell inside a panel; Text lists every string key with an editable field.
+
+**What it found.**
+
+- **The shells printed `@s:` references verbatim.** `describeRoom`, `describeObject` and
+  `intro()` bypassed `say()`, so a strings-table cartridge showed `@s:pantry.desc` on screen
+  while every Node suite was green. Found by opening the Test tab and looking. All three now
+  go through one resolver in `runtime.js`; nothing leaves that file as text without passing
+  through it. **This is the third time a defect has lived in the gap between "the runtime is
+  right" and "the screen is right", and the second time only a real page found it.**
+- **`lensSecret` was a write-only flag** in The Sunken Crown: set by `lens-on-note`, read by
+  nothing. `say echo` and `push mirror` never asked whether the player had been told. The
+  prover reported it on its first run against the flagship; the flag is gone and
+  `test/sunken-crown.js` now asserts the rule's actual effect instead of the dead state.
+
+**New suites.** `test/prove.js` (13 groups, including a cartridge that validates perfectly and
+cannot be won), plus new groups in `test/validator.js` (structured findings, paths, the
+strings table in both directions) and `test/workshop.js` (JSON round trip). All 15 suites
+green. CI runs `test/prove.js` and additionally proves all three cartridges through the CLI.
+
+**Verified by hand in a browser** at `author.html`: load/save round trip, three kinds of
+refusal (bad JSON, wrong format, invalid cartridge), Prove on The Sunken Crown, the Text tab
+against Sir Crumbly's 33 keys, and the Test tab mounting both the parser shell (Sir Crumbly,
+played through the rat) and the canvas shell (Captain Thistle, CGA, hotspots, verb bar).
+
+**Known rough edge:** the canvas shell's title card is positioned for a full page, so on the
+Test tab it dims the whole Workshop until BEGIN is pressed. It works; it looks odd. Fixing it
+belongs with shell convergence.
+
 ## 12. Remaining known issues
 
+0. **A Workshop-made cartridge can only ever be a parser game.** Painters are functions and do
+   not survive JSON, so `presentation.art.scene` is unreachable from the JSON tier. This is the
+   cap on the whole authoring loop and the reason the semantic `.morrow` scene description is
+   the next milestone.
 1. **Two shell lineages still exist.** `publisher.js` and `shell-canvas.js` do the same job
    for the same game, as do `ui.js` and `shell-parser.js`. That is duplicated presentation,
    not duplicated gameplay, and it is the next milestone.

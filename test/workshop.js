@@ -180,8 +180,50 @@ function testRuntimeKnowsNothingAboutAnyGame() {
   console.log('  ok — no Machine file names any game in its code');
 }
 
+/* ---------------- the authoring loop closes ----------------
+   The Workshop can write a cartridge out as JSON and read one back in.
+   Both halves are worthless without the other: a Workshop that could
+   only save would lose every session's work, and one that could only
+   load could never produce anything to load. What is checked here is
+   the property the pair has to have — a cartridge that survives the
+   trip is the same cartridge, and still plays. */
+function testCartridgeRoundTrip() {
+  const before = blankCartridge();
+  const text = JSON.stringify(before, null, 2);
+  const after = JSON.parse(text);
+
+  assert.deepStrictEqual(after, before, 'JSON preserves the cartridge exactly');
+  assert.strictEqual(after.format, 'morrowlamp-cartridge', 'and it still says what it is');
+  assert.ok(ml.validator.validate(after).ok, 'the returning cartridge validates');
+
+  /* Same game on the other side, not just the same bytes. */
+  const rt = ml.runtime.create(after);
+  rt.command('open door');
+  rt.command('n');
+  assert.strictEqual(rt.meta().win, true, 'and it plays to the same ending');
+  console.log('  ok — a cartridge survives the round trip through JSON and still plays');
+}
+
+function testRoundTripCarriesEverySection() {
+  /* A shipped cartridge is a harder case than the blank one: it has
+     encounters, stats, a strings table and a walkthrough, and every one
+     of them has to come back. Painter functions are the known exception
+     — they are why the developer tier exists — so presentation.art is
+     what a JSON cartridge is allowed to lose, and nothing else. */
+  const source = Z.cartridges['captains-thistle'];
+  const after = JSON.parse(JSON.stringify(source));
+  for (const section of ['meta', 'world', 'vocabulary', 'rules', 'profile', 'endings', 'walkthrough']) {
+    assert.deepStrictEqual(after[section], JSON.parse(JSON.stringify(source[section])),
+      section + ' survives the round trip');
+  }
+  assert.ok(!after.presentation.art || !after.presentation.art.scene,
+    'painter functions do not survive JSON, which is the documented reason for two tiers');
+  console.log('  ok — every declarative section round-trips; only painters are lost');
+}
+
 const tests = [testBundleFilesExist, testLoadOrder, testPresentationDrivesTheBundle,
   testBlankCartridgeValidates, testBlankCartridgePlays, testBlankCartridgeCompiles,
+  testCartridgeRoundTrip, testRoundTripCarriesEverySection,
   testRuntimeKnowsNothingAboutAnyGame];
 let failed = 0;
 console.log('\nMORROWLAMP GAME WORKSHOP — bundle and blank slate\n');

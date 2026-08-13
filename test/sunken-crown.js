@@ -473,7 +473,13 @@ function testLensSecret() {
   assert.ok(has('lens'), 'the lens is in the desk drawer');
   const read = txt(cmd('use lens on note'));
   assert.ok(read.includes('King\'s last word'), 'the lens reveals the hidden line');
-  assert.ok(flags().lensSecret, 'and records that you found it');
+  assert.ok(read.includes('mirror that shows no reflection'), 'including both halves of the hint');
+  /* This used to assert a `lensSecret` flag as well. Nothing ever read
+     it: neither `say echo` nor `push mirror` asks whether the player was
+     told, and both work either way. The prover reported the write-only
+     flag, the cartridge dropped it, and what is left here is the effect
+     the rule actually has. */
+  assert.strictEqual(flags().lensSecret, undefined, 'and keeps no state nothing reads');
   console.log('  ok — the lens reveals the note\'s secret');
 }
 

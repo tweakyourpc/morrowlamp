@@ -17,6 +17,47 @@
 
   const UNDO_DEPTH = 20;
 
+  /* The Machine's own prose: everything it has to be able to say about a
+     game it knows nothing about. A cartridge overrides any of these by
+     naming the same key in its `strings` table, which is the same table
+     the '@s:' prose references read from — one place for all the writing
+     in a game, the Machine's lines included. Held out here so the
+     validator can tell an override apart from a prose key nothing uses. */
+  const SYSTEM_STRINGS = {
+    cannotGoThatWay: 'You can\'t go that way.',
+    dontSeeThat: 'You don\'t see that here.',
+    taken: 'Taken.',
+    dropped: 'Dropped.',
+    carryingNothing: 'You are carrying nothing.',
+    carryingPrefix: 'You are carrying:',
+    alreadyHave: 'You already have it.',
+    cannotTake: 'You can\'t take that.',
+    cannotOpen: 'You can\'t open that.',
+    cannotClose: 'You can\'t close that.',
+    alreadyOpen: 'It is already open.',
+    alreadyClosed: 'It is already closed.',
+    itIsLocked: 'It is locked.',
+    itIsClosed: 'It is closed.',
+    cannotUnlock: 'You can\'t unlock that.',
+    alreadyUnlocked: 'It is already unlocked.',
+    unlockWithWhat: 'Unlock it with what?',
+    wrongKey: 'That does not fit.',
+    lockTurns: 'The lock turns.',
+    nothingSpecial: 'You see nothing special about {the target}.',
+    cannotRead: 'You can\'t read that.',
+    cannotLight: 'You cannot light that.',
+    alreadyLit: 'It is already lit.',
+    notLit: 'It is not lit.',
+    cannotPut: 'You can\'t put things in that.',
+    thingInItself: 'You cannot put a thing inside itself.',
+    dontHaveThat: 'You don\'t have that.',
+    timePasses: 'Time passes.',
+    dead: 'You are dead. (Use "undo" to try again, or "restart" to begin over.)',
+    unknownVerb: 'I don\'t know how to do that.',
+    nothingToUndo: 'Nothing to undo.',
+    undone: 'Time folds backward.'
+  };
+
   function create(cartridge, options) {
     options = options || {};
     const cart = cartridge;
@@ -26,40 +67,7 @@
     /* Injectable so a test can make the dice behave. */
     const random = options.random || Math.random;
     const rules = cart.rules || [];
-    const strings = Object.assign({
-      cannotGoThatWay: 'You can\'t go that way.',
-      dontSeeThat: 'You don\'t see that here.',
-      taken: 'Taken.',
-      dropped: 'Dropped.',
-      carryingNothing: 'You are carrying nothing.',
-      carryingPrefix: 'You are carrying:',
-      alreadyHave: 'You already have it.',
-      cannotTake: 'You can\'t take that.',
-      cannotOpen: 'You can\'t open that.',
-      cannotClose: 'You can\'t close that.',
-      alreadyOpen: 'It is already open.',
-      alreadyClosed: 'It is already closed.',
-      itIsLocked: 'It is locked.',
-      itIsClosed: 'It is closed.',
-      cannotUnlock: 'You can\'t unlock that.',
-      alreadyUnlocked: 'It is already unlocked.',
-      unlockWithWhat: 'Unlock it with what?',
-      wrongKey: 'That does not fit.',
-      lockTurns: 'The lock turns.',
-      nothingSpecial: 'You see nothing special about {the target}.',
-      cannotRead: 'You can\'t read that.',
-      cannotLight: 'You cannot light that.',
-      alreadyLit: 'It is already lit.',
-      notLit: 'It is not lit.',
-      cannotPut: 'You can\'t put things in that.',
-      thingInItself: 'You cannot put a thing inside itself.',
-      dontHaveThat: 'You don\'t have that.',
-      timePasses: 'Time passes.',
-      dead: 'You are dead. (Use "undo" to try again, or "restart" to begin over.)',
-      unknownVerb: 'I don\'t know how to do that.',
-      nothingToUndo: 'Nothing to undo.',
-      undone: 'Time folds backward.'
-    }, cart.strings || {});
+    const strings = Object.assign({}, SYSTEM_STRINGS, cart.strings || {});
 
     /* ---------------- state ---------------- */
     function fresh() {
@@ -110,12 +118,28 @@
     }
 
     /* ---------------- output ---------------- */
-    function say(text, cls) {
-      for (const line of list(text)) {
-        if (line === null || line === undefined) continue;
-        if (typeof line === 'object' && line.text !== undefined) out.push({ text: String(line.text), cls: line.cls || '' });
-        else out.push({ text: String(line), cls: cls || '' });
+    /* A cartridge may keep its prose in a strings table and point at it
+       with '@s:some.key'. Resolving that is the runtime's job and not
+       any shell's: a shell that read the raw cartridge would print the
+       reference instead of the writing, which is exactly the class of
+       bug a shell can have while every gameplay test stays green.
+       So nothing leaves this file as text without passing through here. */
+    const text = (value) => ml.strings.resolve(value, cart.strings);
+
+    /* A key may hold several lines. `pushText` flattens one resolved
+       value into however many display lines it turns out to be. */
+    function pushText(lines, value, cls) {
+      for (const one of list(text(value))) {
+        if (one === null || one === undefined) continue;
+        if (typeof one === 'object' && one.text !== undefined) {
+          for (const inner of list(text(one.text))) lines.push({ text: String(inner), cls: one.cls || cls || '' });
+        } else lines.push({ text: String(one), cls: cls || '' });
       }
+    }
+
+    /* Every message the Machine emits passes through here. */
+    function say(value, cls) {
+      for (const raw of list(value)) pushText(out, raw, cls);
     }
 
     /* ---------------- helpers ---------------- */
@@ -136,7 +160,7 @@
       const r = world.roomDef(rid);
       const lines = [];
       for (const note of list(r && r.notes)) {
-        if (ml.rules.conditionsHold(note.when, {}, ctx())) lines.push({ text: note.text, cls: note.cls || 'dim' });
+        if (ml.rules.conditionsHold(note.when, {}, ctx())) pushText(lines, note.text, note.cls || 'dim');
       }
       return lines;
     }
@@ -151,12 +175,13 @@
         lines.push({ text: profile.darkness.warning, cls: 'bad' });
         return lines;
       }
-      lines.push({ text: (full || !S.visited[id]) ? (r.desc || '') : (r.short || r.desc || ''), cls: full || !S.visited[id] ? '' : 'dim' });
+      const long = full || !S.visited[id];
+      pushText(lines, long ? (r.desc || '') : (r.short || r.desc || ''), long ? '' : 'dim');
       lines.push.apply(lines, roomNotes(id));
 
       for (const oid of world.itemsHere().slice().sort()) {
         const o = world.object(oid);
-        if (o.desc) lines.push({ text: o.desc, cls: 'dim' });
+        if (o.desc) pushText(lines, o.desc, 'dim');
         if (o.container && world.isOpen(oid) && world.contentsOf(oid).length) {
           lines.push({ text: 'It contains: ' + world.contentsOf(oid).map(objectName).join(', ') + '.', cls: 'dim' });
         }
@@ -871,7 +896,7 @@
       parse: (t) => vocabulary.parse(t),
       meta,
       describeRoom,
-      intro: () => list(cart.intro),
+      intro: () => list(text(cart.intro)),
 
       /* Read-only views a shell needs. */
       state: () => S,
@@ -942,8 +967,15 @@
     function describeObject(id) {
       const o = world.object(id);
       if (!o) return null;
+      /* A shell may put any of these straight on the screen, so they
+         leave here as writing, never as a strings-table reference. */
+      const flat = (value, fallback) => {
+        const lines = [];
+        pushText(lines, value, '');
+        return lines.length ? lines.map((l) => l.text).join('\n') : fallback;
+      };
       return {
-        id, name: o.name || id, desc: o.desc || '', examine: o.examine || '',
+        id, name: flat(o.name, id), desc: flat(o.desc, ''), examine: flat(o.examine, ''),
         takeable: !!o.takeable, container: !!o.container,
         open: world.isOpen(id), locked: world.isLocked(id), lit: world.isLit(id),
         carried: world.carrying(id), here: world.looseHere(id),
@@ -953,6 +985,6 @@
     }
   }
 
-  ml.runtime = { create, UNDO_DEPTH };
+  ml.runtime = { create, UNDO_DEPTH, SYSTEM_STRINGS };
   if (typeof module !== 'undefined') module.exports = Z;
 })(typeof window !== 'undefined' ? window : globalThis);

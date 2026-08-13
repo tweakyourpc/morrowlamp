@@ -31,9 +31,16 @@ jobs:
       - name: Run every suite
         run: |
           for suite in scenes ui-title.probe gfx-profiles morrowlamp-runtime \
-                       encounters validator workshop sunken-crown \
+                       encounters validator prove workshop sunken-crown \
                        cartridge-thistle cartridge-crumbly one-machine compiler \
                        shell-boundary hygiene; do
             echo "── $suite"
             node "test/$suite.js"
+          done
+
+      - name: Prove every shipped cartridge from the command line
+        run: |
+          for cartridge in sunken-crown captains-thistle sir-crumbly; do
+            echo "── $cartridge"
+            node tools/morrow.js prove "js/cartridges/$cartridge.js"
           done

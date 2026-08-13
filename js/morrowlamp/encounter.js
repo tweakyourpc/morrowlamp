@@ -111,6 +111,14 @@
       return { lines: [{ text: action.deny || 'You cannot do that here.', cls: 'bad' }], over: false };
     }
 
+    /* Most lines below are handed to the runtime whole and get their
+       '@s:' reference resolved when they become messages. The two that
+       are built up by hand — a hit line carries {damage}, the opponent's
+       hit line carries the damage it dealt — have to resolve first, or
+       the substitution would be performed on the reference instead of on
+       the prose it names. */
+    const text = (value) => ml.strings.resolve(value, (ctx.cart || {}).strings);
+
     const stat = (id) => (sheet && id && sheet.stats[id] !== undefined ? sheet.stats[id] : 0);
     const train = (id, weight) => {
       if (!sheet || !id) return;
@@ -150,7 +158,7 @@
             damage += extra.damage;
           }
           state.hp -= damage;
-          lines.push({ text: (action.hitText || 'You strike for {damage}.').replace('{damage}', damage), cls: action.cls || '' });
+          lines.push({ text: String(text(action.hitText) || 'You strike for {damage}.').replace('{damage}', damage), cls: action.cls || '' });
         } else {
           lines.push({ text: action.missText || ('You swing wide. ' + state.name + ' is not where it was.'), cls: 'dim' });
         }
@@ -216,7 +224,7 @@
       let damage = roll(random, range[0], range[1]);
       if (state.guarding) damage = Math.max(1, Math.floor(damage / 2));
       died = sheet ? ml.stats.damage(sheet, damage) : false;
-      lines.push({ text: (def.hit || (state.name + ' hits you.')) + ' You take ' + damage + '.', cls: 'bad' });
+      lines.push({ text: (text(def.hit) || (state.name + ' hits you.')) + ' You take ' + damage + '.', cls: 'bad' });
       train(def.hurtTrains, 1);
     }
 
