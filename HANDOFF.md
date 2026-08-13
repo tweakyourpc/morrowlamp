@@ -178,9 +178,11 @@ Old tag `audit-rpg-baseline-2026-08-11` deleted. New tag
 
 **Verification after the rewrite.** Every reachable commit was scanned for `192.168.`,
 `10.0.0.`, the internal service names, the agent directory, `/home/…`, and credential
-patterns (`ghp_`, `AKIA`, `sk-`, `Bearer `, `PRIVATE KEY`). The only surviving matches are
-inside `test/hygiene.js`, which is the suite that searches for them and excludes itself. All
-104 blobs in history were read: exactly one contains a NUL byte, and it is the marketing PNG.
+patterns (`ghp_`, `AKIA`, `sk-`, `Bearer `, `PRIVATE KEY`). Note that the paragraph you are
+reading will itself match several of those, because it lists them; so will `test/hygiene.js`,
+which searches for them. Those two files aside, **there are no surviving matches anywhere in
+reachable history**. All 104 blobs in history were read: exactly one contains a NUL byte, and
+it is the marketing PNG.
 
 **No credentials or secrets were found at any point**, before or after. Nothing had to be
 rotated.
