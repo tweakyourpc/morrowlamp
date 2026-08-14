@@ -169,8 +169,11 @@
     {
       id: 'lens-on-note', verb: ['use', 'examine'], target: ['lens', 'note'], with: ['lens', 'note'],
       when: { carrying: ['lens'], present: ['note'] },
+      /* This rule used to set a `lensSecret` flag that nothing ever read.
+         The hint it prints is the whole effect: what the player does with
+         it is `say echo` and `push mirror`, neither of which asks whether
+         they were told. The prover found the dead flag; it is gone. */
       do: [
-        { set: 'lensSecret' },
         { say: { text: 'You hold the lens over the note. Between the lines, in a hand you know: "the King\'s last word is the name of his cavern. Say it, and mind the mirror that shows no reflection."', cls: 'info' } }
       ]
     },
@@ -662,7 +665,7 @@
     startFlags: {
       melodyKnown: false, gatesOpen: false, guardDancing: false, tunnelDug: false,
       mirrorOpened: false, flourRevealed: false, boatPatched: false,
-      loafEaten: false, lensSecret: false, lurkerMet: false
+      loafEaten: false, lurkerMet: false
     },
     world: buildWorld(),
     vocabulary,
@@ -750,6 +753,47 @@
         ]
       }
     ],
+
+    /* ------------------------------------------------------------
+       THE CANONICAL ROUTE
+       Every treasure, in an order that works, ending at sixty points
+       and Sunken King's Heir. It lives in the cartridge because it is
+       a claim this game makes about itself: `morrow prove` plays it on
+       the real Machine and fails if any of it stops being true.
+
+       `test/winning-route.js` holds the same route for the suites that
+       drive the compiled artifact, and `test/prove.js` asserts the two
+       are identical so they cannot drift apart.
+       ------------------------------------------------------------ */
+    walkthrough: {
+      route: [
+        'read note',
+        'n', 'n',
+        'open clock', 'take brass key', 'take music sheet', 'read music sheet',
+        'w', 'take lyre', 'read book',
+        'e', 'e', 'take curtain',
+        'w', 'unlock hatch with brass key', 'open hatch', 'd',
+        'take shovel', 'take pitch pot', 'dig',
+        's', 's',
+        'say echo',
+        's', 'w', 'push mirror', 'w', 'take idol',
+        'e', 'e', 's',
+        'play lyre', 'take vault key',
+        'unlock vault door with vault key', 'open vault door', 'w', 'take scepter',
+        'e', 's', 'take crown',
+        'd', 'open sarcophagus', 'take ring',
+        'u', 'n', 'n', 'n',
+        'w', 'fix boat', 'w', 'take chalice',
+        'e', 'e', 'n', 'u', 'u',
+        's', 's', 'climb well', 'take sunstone',
+        'u', 'n', 'n',
+        'put crown in cabinet', 'put scepter in cabinet', 'put chalice in cabinet',
+        'put idol in cabinet', 'put ring in cabinet', 'put sunstone in cabinet'
+      ],
+      ending: 'regalia-complete',
+      score: 60
+    },
+
     presentation: {
       renderer: 'ega',
       interface: 'canvas',

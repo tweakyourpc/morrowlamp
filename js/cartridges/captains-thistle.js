@@ -418,6 +418,19 @@
       }
     ],
 
+    /* The route through the ship, kept by the cartridge so the prover
+       can confirm the THISTLE can still be repaired. */
+    walkthrough: {
+      route: [
+        'e', 'open toolbox', 'take magnet',
+        'w', 'use magnet on grating',
+        'e', 'e', 'put coin in vendor', 'take fuse',
+        's', 'use fuse on breaker', 'n'
+      ],
+      ending: 'power-restored',
+      score: 25
+    },
+
     presentation: {
       renderer: 'cga',
       interface: 'canvas',

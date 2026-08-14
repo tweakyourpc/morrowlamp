@@ -83,6 +83,9 @@
   }
 
   function insert(id) {
+    /* A game left running on the bench belongs to the cartridge that
+       was in the slot, not to this one. */
+    stopTest();
     current = Z.cartridges[id];
     editable = !READ_ONLY.has(id);
     selection = { room: null, object: null, rule: null };
@@ -495,6 +498,54 @@
     }
   }
 
+  /* ---------------- the writing ----------------
+     Every line of prose a cartridge holds in its strings table, in one
+     list. This is the panel somebody who is not going to touch a rule
+     works in: the keys are fixed, the text is not, and nothing typed
+     here can change what the game does. */
+  function renderStrings() {
+    const host = $('string-editor');
+    host.textContent = '';
+    const table = current.strings;
+    const intro = $('text-intro');
+
+    if (!table || !Object.keys(table).length) {
+      intro.textContent = 'This cartridge keeps its prose inline, where it is used. A cartridge may ' +
+        'instead put every line in a strings table and refer to it as "@s:some.key" — see ' +
+        'js/cartridges/sir-crumbly.js, which is written entirely that way. Then all the writing ' +
+        'in the game is here, and none of the machinery is.';
+      $('btn-add-string').disabled = !editable;
+      return;
+    }
+    const keys = Object.keys(table);
+    intro.textContent = keys.length + ' string' + (keys.length === 1 ? '' : 's') +
+      '. Rewriting any of them rewrites the game; none of them can break it. ' +
+      'A key holding several lines prints as several lines.';
+    $('btn-add-string').disabled = !editable;
+
+    for (const key of keys) {
+      const box = document.createElement('fieldset');
+      const legend = document.createElement('legend');
+      legend.textContent = key;
+      box.appendChild(legend);
+      const value = table[key];
+      const field = document.createElement('textarea');
+      /* An array is several lines of prose; a blank line between them
+         would be indistinguishable from one long line, so join on a
+         single newline and split the same way. */
+      field.value = Array.isArray(value) ? value.join('\n') : String(value === undefined ? '' : value);
+      field.readOnly = !editable;
+      field.addEventListener('input', () => {
+        if (!editable) return;
+        const lines = field.value.split('\n');
+        table[key] = lines.length > 1 ? lines : field.value;
+        validate();
+      });
+      box.appendChild(field);
+      host.appendChild(box);
+    }
+  }
+
   function renderAll() {
     if (!current) return;
     renderGameSheet();
@@ -502,6 +553,7 @@
     renderRooms();
     renderObjects();
     renderRules();
+    renderStrings();
     renderPresentation();
   }
 
@@ -591,6 +643,109 @@
     };
   }
 
+  /* ---------------- loading a cartridge ----------------
+     The other half of "Save cartridge (JSON)". Without it the Workshop
+     could write work it could never read back, which made it a machine
+     for producing games and not one for making them. A file arriving
+     from a text editor, or from somebody else's, comes in the same way:
+     it is checked before it reaches the bench, so a broken file explains
+     itself in the diagnostics panel instead of throwing to the console. */
+  function acceptCartridge(text, name) {
+    /* The decision belongs to `ml.import.read`, which parses, checks the
+       format and the version, validates, and mutates nothing. This
+       function does the two things that are actually the Workshop's
+       business: printing the verdict, and — only when the verdict is
+       yes — putting the cartridge on the shelf.
+
+       Nothing above this line can touch Z.cartridges or the bench, which
+       is why a refused file cannot leave the Workshop half-changed. */
+    const result = ml.import.read(text, { name, taken: Object.keys(Z.cartridges) });
+    if (!result.ok) {
+      readout(result.report, 'bad');
+      return result;
+    }
+
+    const cartridge = result.cartridge;
+    cartridge.meta = cartridge.meta || {};
+    cartridge.meta.id = result.id;
+    Z.cartridges[result.id] = cartridge;
+    renderShelf();
+    insert(result.id);
+    readout(result.report +
+      '\n\nLOADED ' + (name || result.id) +
+      '\nInserted as "' + result.id + '" and ready to edit.',
+    result.findings.some((f) => f.severity === 'warning') ? '' : 'ok');
+    return result;
+  }
+
+  function readFile(file) {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => acceptCartridge(String(reader.result), file.name);
+    reader.onerror = () => readout('DISK ERROR — could not read ' + file.name, 'bad');
+    reader.readAsText(file);
+  }
+
+  /* ---------------- proving it can be finished ----------------
+     Kept out of validate(), which runs on every keystroke and promises
+     to be instant. Playing a whole adventure is neither. */
+  function prove() {
+    if (!current) return;
+    const check = validate();
+    if (!check.ok) return;
+    if (!ml.prove) { readout('The prover is not loaded.', 'bad'); return; }
+    lamp('lamp-image', 'PROVING', 'busy');
+    let result;
+    try {
+      result = ml.prove.run(current);
+    } catch (err) {
+      lamp('lamp-image', 'FAULT', 'out');
+      readout('THE MACHINE FAULTED WHILE PLAYING\n  ' + (err.message || err), 'bad');
+      return;
+    }
+    lamp('lamp-image', result.walkthrough.declared ? (result.ok ? 'PROVED' : 'FAILED') : '—',
+      result.walkthrough.declared ? (result.ok ? 'lit' : 'out') : '');
+    readout(ml.prove.report(result), result.ok ? (result.findings.length ? '' : 'ok') : 'bad');
+  }
+
+  /* ---------------- playing it on the bench ----------------
+     The same mount a compiled adventure uses, pointed at a panel
+     instead of at the whole document. Nothing here is a preview: it is
+     the cartridge, on the Machine, through the shell it declared. */
+  function stopTest() {
+    const stage = $('test-stage');
+    stage.textContent = '';
+    /* Each shell dresses its own root. Take the costume off, or the
+       empty panel keeps the last game's styling and the next mount
+       inherits it. */
+    stage.className = '';
+    $('btn-test-stop').disabled = true;
+  }
+
+  function startTest() {
+    if (!current) return;
+    const check = validate();
+    if (!check.ok) {
+      readout(ml.validator.report(check) + '\n\nNothing will be played until that is fixed.', 'bad');
+      return;
+    }
+    stopTest();
+    const plan = ml.bundle.filesFor(current);
+    const mount = plan.shell === 'canvas' ? ml.shellCanvas : ml.shellParser;
+    if (!mount) { readout('The ' + plan.shell + ' shell is not loaded.', 'bad'); return; }
+    const stage = $('test-stage');
+    try {
+      mount.mount({ cartridge: current, root: stage });
+    } catch (err) {
+      stopTest();
+      readout('THE SHELL FAULTED\n  ' + (err.message || err), 'bad');
+      return;
+    }
+    $('btn-test-stop').disabled = false;
+    readout('PLAYING ' + current.meta.title + ' on the ' + plan.shell.toUpperCase() + ' shell.\n' +
+      'This is the cartridge as the Machine runs it. Stop when you have seen enough.', 'ok');
+  }
+
   /* ---------------- add buttons ---------------- */
   function uniqueId(bag, stem) {
     let n = 1;
@@ -641,6 +796,40 @@
     renderRules();
     validate();
   });
+
+  $('btn-add-string').addEventListener('click', () => {
+    if (!current || !editable) return;
+    current.strings = current.strings || {};
+    const key = uniqueId(current.strings, 'line');
+    current.strings[key] = 'Nothing has been written here yet.';
+    renderStrings();
+    validate();
+  });
+
+  $('btn-load').addEventListener('click', () => $('file-cart').click());
+  $('file-cart').addEventListener('change', (event) => {
+    readFile(event.target.files && event.target.files[0]);
+    /* Cleared so loading the same file twice in a row still fires. */
+    event.target.value = '';
+  });
+
+  /* Dropping the file on the slot is the same path as choosing it. */
+  const slot = $('cart-list').parentNode;
+  for (const name of ['dragenter', 'dragover']) {
+    slot.addEventListener(name, (event) => { event.preventDefault(); slot.style.outline = '1px dashed currentColor'; });
+  }
+  for (const name of ['dragleave', 'drop']) {
+    slot.addEventListener(name, () => { slot.style.outline = ''; });
+  }
+  slot.addEventListener('drop', (event) => {
+    event.preventDefault();
+    readFile(event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files[0]);
+  });
+
+  $('btn-prove').addEventListener('click', prove);
+  $('btn-test-start').addEventListener('click', startTest);
+  $('btn-test-stop').addEventListener('click', stopTest);
+  $('btn-test-stop').disabled = true;
 
   $('btn-validate').addEventListener('click', validate);
   $('btn-build').addEventListener('click', build);
