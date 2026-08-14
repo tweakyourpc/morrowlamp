@@ -140,6 +140,12 @@ function testMalformedIsRefusedWithoutThrowing() {
     'null verb spec': asJson((c) => { c.vocabulary.verbs.pull = null; }),
     'world as string': asJson((c) => { c.world = 'nope'; })
   };
+  shapes['rules null'] = asJson((c) => { c.rules = null; });
+  shapes['rooms null'] = asJson((c) => { c.world.rooms = null; });
+  shapes['excessive depth'] = asJson((c) => {
+    let node = c.extra = {};
+    for (let i = 0; i < 300; i++) node.next = {}, node = node.next;
+  });
   for (const [name, text] of Object.entries(shapes)) {
     let result;
     assert.doesNotThrow(() => { result = refusal(text, name + '.json'); }, name + ' must not throw');

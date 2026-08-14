@@ -439,6 +439,40 @@ function testRecursionIsBounded() {
   console.log('  ok — recursive outcome nesting is bounded and reported');
 }
 
+function testStructureBoundsAndExactProseShapes() {
+  for (const mutate of [
+    (c) => { c.rules = null; },
+    (c) => { c.world.rooms = null; },
+    (c) => { c.profile.timers = null; },
+    (c) => { c.world.rooms.a.desc = { other: '@s:missing' }; },
+    (c) => { c.world.rooms.a.desc = { other: 'literal' }; }
+  ]) {
+    let result;
+    assert.doesNotThrow(() => { result = broken(mutate); });
+    assert.strictEqual(result.ok, false);
+  }
+  const valid = broken((c) => { c.strings = { known: 'Known.' }; c.world.rooms.a.desc = ['literal', { text: '@s:known', cls: 'dim' }]; });
+  assert.ok(valid.ok, 'supported one-level prose forms remain valid');
+  const missing = broken((c) => { c.world.rooms.a.desc = '@s:missing'; });
+  assert.strictEqual(missing.findings.find((f) => f.code === 'string-missing').path, 'world.rooms.a.desc');
+
+  const deep = broken((c) => {
+    let node = c.extra = {};
+    for (let i = 0; i < 15000; i++) node.next = {} , node = node.next;
+  });
+  assert.ok(deep.findings.some((f) => f.code === 'structure-too-deep'));
+  assert.ok(V.MAX_STRUCTURE_DEPTH === 256 && V.MAX_STRUCTURE_NODES === 50000);
+  const many = broken((c) => { c.extra = Array.from({ length: V.MAX_STRUCTURE_NODES + 1 }, () => ({})); });
+  assert.ok(many.findings.some((f) => f.code === 'structure-too-large'));
+
+  let nested = { type: 'say', text: 'done' };
+  for (let i = 0; i < 1000; i++) nested = { type: 'rules', do: [{ outcome: nested }] };
+  const nestedResult = broken((c) => { c.profile.darkness = { onFail: nested }; });
+  assert.strictEqual(nestedResult.ok, false);
+  assert.ok(nestedResult.findings.some((f) => f.code === 'structure-too-deep'));
+  console.log('  ok — null collections, exact prose leaves, hostile depth/size, and alternating nesting are total');
+}
+
 /* ============================================================
    B-003 — PROSE COVERAGE MATCHES RUNTIME RESOLUTION
    Every slot the runtime resolves is checked, and a reference in a
@@ -605,6 +639,7 @@ const tests = [testCleanCartridge, testShippedCartridges, testWorldErrors, testE
   testStringReferences, testCrumblyIsWrittenEntirelyInStrings,
   testFormatMustBeDeclared, testVersionMustBeSupported, testFormatCheckIsShared,
   testValidationIsTotal, testMalformedMessagesNameTheShape, testRecursionIsBounded,
+  testStructureBoundsAndExactProseShapes,
   testEverySupportedSlotIsChecked, testUnsupportedSlotsRefuseReferences,
   testLiteralContract, testOneFindingPerMissingReference];
 let failed = 0;

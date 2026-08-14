@@ -77,6 +77,10 @@
      three deep; a file that nests thousands deep is either a mistake or
      an attempt to end the conversation with a stack overflow. */
   const OUTCOME_DEPTH = 32;
+  /* These are deliberately independent of OUTCOME_DEPTH: the first bounds
+     semantic fallback nesting, while these bound hostile container graphs. */
+  const MAX_STRUCTURE_DEPTH = 256;
+  const MAX_STRUCTURE_NODES = 50000;
 
   function listOf(value) {
     if (value === undefined || value === null) return [];
@@ -174,7 +178,11 @@
        Nothing below iterates a collection or dereferences an entry
        without coming through one of these three first. */
     function keysOf(value, code, where, path, what) {
-      if (value === undefined || value === null) return [];
+      if (value === undefined) return [];
+      if (value === null) {
+        err(code, where, path, what + ' must be an object of entries, got null.');
+        return [];
+      }
       if (!plainObject(value)) {
         err(code, where, path, what + ' must be an object of entries, got ' + describeType(value) + '.');
         return [];
@@ -182,7 +190,11 @@
       return Object.keys(value);
     }
     function arrayOf(value, code, where, path, what) {
-      if (value === undefined || value === null) return [];
+      if (value === undefined) return [];
+      if (value === null) {
+        err(code, where, path, what + ' must be an array, got null.');
+        return [];
+      }
       if (!Array.isArray(value)) {
         err(code, where, path, what + ' must be an array, got ' + describeType(value) + '.');
         return [];
@@ -212,27 +224,58 @@
        does not silently print a raw token — it fails the build. */
     const strings = objectAt(cartridge.strings);
     const usedStrings = new Set();
-    const proseSlots = [];
+    const proseSlots = new Set();
+    function legalProseValue(value) {
+      if (typeof value === 'string') return true;
+      if (plainObject(value)) return Object.keys(value).every((key) => key === 'text' || key === 'cls') &&
+        typeof value.text === 'string' && (value.cls === undefined || typeof value.cls === 'string');
+      if (!Array.isArray(value)) return false;
+      return value.every((line) => typeof line === 'string' ||
+        (plainObject(line) && legalProseValue(line)));
+    }
 
     function prose(value, where, path, what) {
-      proseSlots.push(path);
-      for (const line of listOf(value)) {
-        const text = (line && typeof line === 'object') ? line.text : line;
-        for (const one of listOf(text)) {
-          if (typeof one !== 'string') continue;
-          const match = STRING_REF.exec(one);
-          if (!match) continue;
-          usedStrings.add(match[1]);
-          if (!Object.prototype.hasOwnProperty.call(strings, match[1])) {
-            err('string-missing', where, path, (what ? what + ' ' : '') +
-              'refers to string "' + match[1] + '", which is not in the strings table.');
+      const leaves = [];
+      if (typeof value === 'string') leaves.push([path, value]);
+      else if (plainObject(value) && legalProseValue(value)) leaves.push([path + '.text', value.text]);
+      else if (Array.isArray(value)) {
+        value.forEach((line, i) => {
+          const at = path + '[' + i + ']';
+          if (typeof line === 'string') leaves.push([at, line]);
+          else if (plainObject(line) && Object.keys(line).every((key) => key === 'text' || key === 'cls') &&
+            typeof line.text === 'string' && (line.cls === undefined || typeof line.cls === 'string')) {
+            leaves.push([at + '.text', line.text]);
+          } else {
+            err('prose-malformed', where, at, (what ? what + ' ' : '') +
+              'must contain only strings or {text, cls?} entries.');
           }
+        });
+      } else if (value !== undefined) {
+        err('prose-malformed', where, path, (what ? what + ' ' : '') +
+          'must be a string or a one-level array of strings or {text, cls?} entries, got ' + describeType(value) + '.');
+      }
+      for (const [leafPath, text] of leaves) {
+        proseSlots.add(leafPath);
+        const match = STRING_REF.exec(text);
+        if (!match) continue;
+        usedStrings.add(match[1]);
+        if (!Object.prototype.hasOwnProperty.call(strings, match[1])) {
+          err('string-missing', where, leafPath, (what ? what + ' ' : '') +
+            'refers to string "' + match[1] + '", which is not in the strings table.');
         }
       }
     }
 
     if (cartridge.strings !== undefined && !plainObject(cartridge.strings)) {
       err('strings-not-a-table', 'STRINGS', 'strings', 'strings must be an object of key: text, got ' + describeType(cartridge.strings) + '.');
+    }
+    if (plainObject(cartridge.strings)) {
+      for (const key of Object.keys(cartridge.strings)) {
+        if (!legalProseValue(cartridge.strings[key])) {
+          err('string-value-malformed', 'STRINGS', 'strings.' + key,
+            'string table values must be text or supported line collections, got ' + describeType(cartridge.strings[key]) + '.');
+        }
+      }
     }
     prose(cartridge.intro, 'CARTRIDGE', 'intro', 'the intro');
     prose(cartridge.help, 'CARTRIDGE', 'help', 'the help text');
@@ -403,17 +446,36 @@
 
     /* container cycles */
     const visiting = new Set(), done = new Set();
-    function walkContainer(id, trail) {
-      if (visiting.has(id)) { err('container-cycle', 'OBJECT ' + id, 'world.objects.' + id + '.contents', 'is inside itself (' + trail.concat(id).join(' → ') + ').'); return; }
-      if (done.has(id)) return;
-      visiting.add(id);
-      for (const child of listOf(objectAtId(id).contents)) {
-        if (objectAtId(child).container) walkContainer(child, trail.concat(id));
+    for (const start of objectIds) {
+      if (!objectAtId(start).container || done.has(start)) continue;
+      const stack = [{ id: start, trail: [], entered: false }];
+      while (stack.length) {
+        const frame = stack[stack.length - 1];
+        const id = frame.id;
+        if (!frame.entered) {
+          if (visiting.has(id)) {
+            err('container-cycle', 'OBJECT ' + id, 'world.objects.' + id + '.contents',
+              'is inside itself (' + frame.trail.concat(id).join(' → ') + ').');
+            stack.pop();
+            continue;
+          }
+          if (done.has(id)) { stack.pop(); continue; }
+          visiting.add(id);
+          frame.entered = true;
+          frame.children = arrayOf(objectAtId(id).contents, 'contents-not-an-array', 'OBJECT ' + id,
+            'world.objects.' + id + '.contents', 'contents');
+          frame.index = 0;
+        }
+        if (frame.index >= frame.children.length) {
+          visiting.delete(id);
+          done.add(id);
+          stack.pop();
+          continue;
+        }
+        const child = frame.children[frame.index++];
+        if (objectAtId(child).container) stack.push({ id: child, trail: frame.trail.concat(id), entered: false });
       }
-      visiting.delete(id);
-      done.add(id);
     }
-    for (const id of objectIds) if (objectAtId(id).container) walkContainer(id, []);
 
     /* ---------------- vocabulary ---------------- */
     const coreVerbs = ml.vocabulary ? Object.keys(ml.vocabulary.CORE_VERBS) : [];
@@ -490,8 +552,19 @@
       }
     }
 
-    function checkActions(steps, where, path) {
-      listOf(steps).forEach((step, i) => {
+    const nestedWork = [];
+    let drainingNested = false;
+    function scheduleActions(steps, where, path) {
+      nestedWork.push({ kind: 'actions', steps, where, path });
+      drainNested();
+    }
+    function scheduleOutcome(outcome, where, path, depth) {
+      nestedWork.push({ kind: 'outcome', outcome, where, path, depth });
+      drainNested();
+    }
+    function checkActionsNow(steps, where, path) {
+      const list = arrayOf(steps, 'actions-not-an-array', where, path, 'action steps');
+      list.forEach((step, i) => {
         const stepPath = path + '[' + i + ']';
         if (!plainObject(step)) { err('action-not-object', where, stepPath, 'action steps must be objects, got ' + describeType(step) + '.'); return; }
         for (const key in step) {
@@ -534,13 +607,24 @@
               prose(value, where, at, 'the ' + key);
               break;
             case 'outcome':
-              checkOutcome(value, where + ' outcome', at, 0);
+              nestedWork.push({ kind: 'outcome', outcome: value, where: where + ' outcome', path: at, depth: 0 });
               break;
             default: break;
           }
         }
       });
     }
+    function drainNested() {
+      if (drainingNested) return;
+      drainingNested = true;
+      while (nestedWork.length) {
+        const work = nestedWork.pop();
+        if (work.kind === 'actions') checkActionsNow(work.steps, work.where, work.path);
+        else checkOutcomeNow(work.outcome, work.where, work.path, work.depth);
+      }
+      drainingNested = false;
+    }
+    function checkActions(steps, where, path) { scheduleActions(steps, where, path); }
 
     /* ---------------- rules ---------------- */
     const ruleIds = new Set();
@@ -571,7 +655,7 @@
       }
       checkConditions(rule.when, where, base + '.when');
       checkActions(rule.do, where, base + '.do');
-      if (rule.otherwise) checkActions(rule.otherwise, where + ' otherwise', base + '.otherwise');
+      if (rule.otherwise !== undefined) checkActions(rule.otherwise, where + ' otherwise', base + '.otherwise');
       if (!listOf(rule.do).length && !rule.otherwise) err('rule-does-nothing', where, base, 'does nothing.');
     });
 
@@ -627,8 +711,8 @@
        type set is closed for the same reason the action set is, and its
        nesting is bounded for the same reason a parser has a stack limit. */
     const outcomeTypes = (ml.outcome && ml.outcome.TYPES) || [];
-    function checkOutcome(outcome, where, path, depth) {
-      if (!outcome) return;
+    function checkOutcomeNow(outcome, where, path, depth) {
+      if (outcome === undefined) return;
       if (depth > OUTCOME_DEPTH) {
         err('outcome-too-deep', where, path, 'outcomes nest more than ' + OUTCOME_DEPTH + ' fallbacks deep; this is not a game, it is a loop.');
         return;
@@ -655,7 +739,10 @@
           } else if (!combatOn) {
             err('encounter-combat-off', where, path + '.encounter', 'starts encounter "' + outcome.encounter + '" but profile.combat is off, so it can never run.');
           }
-          if (outcome.fallback) checkOutcome(outcome.fallback, where + ' fallback', path + '.fallback', depth + 1);
+          if (outcome.fallback !== undefined) {
+            nestedWork.push({ kind: 'outcome', outcome: outcome.fallback, where: where + ' fallback',
+              path: path + '.fallback', depth: depth + 1 });
+          }
           break;
         case 'move':
           if (!rooms[outcome.room]) err('missing-room', where, path + '.room', 'moves the player to missing room "' + outcome.room + '".');
@@ -666,7 +753,7 @@
           }
           break;
         case 'rules':
-          checkActions(outcome.do, where, path + '.do');
+          nestedWork.push({ kind: 'actions', steps: outcome.do, where, path: path + '.do' });
           break;
         case 'death': case 'say':
           if (!listOf(outcome.text).length) err('outcome-no-text', where, path + '.text', 'has no text.');
@@ -674,6 +761,7 @@
         default: break;
       }
     }
+    function checkOutcome(outcome, where, path, depth) { scheduleOutcome(outcome, where, path, depth); }
 
     /* ---------------- stats ---------------- */
     const statsRaw = profile.stats;
@@ -810,18 +898,18 @@
           err('action-bad-damage', label, at + '.damage', 'damage must be a [low, high] pair.');
         }
         if (action.when) checkConditions(action.when, label, at + '.when');
-        if (action.do) checkActions(action.do, label, at + '.do');
+        if (action.do !== undefined) checkActions(action.do, label, at + '.do');
         for (const slot of ['deny', 'hitText', 'missText', 'text', 'failText']) {
           prose(action[slot], label, at + '.' + slot, 'the ' + slot);
         }
         if (action.when && !action.deny) warn('action-silent-condition', label, at + '.deny', 'has a condition but no `deny` message to explain itself.');
       });
       for (const hook of ['onWin', 'onFlee', 'onDefeat']) {
-        if (enc[hook]) checkOutcome(enc[hook], where + ' ' + hook, base + '.' + hook, 0);
+        if (enc[hook] !== undefined) checkOutcome(enc[hook], where + ' ' + hook, base + '.' + hook, 0);
       }
     }
 
-    checkOutcome(darkness.onFail, 'DARKNESS onFail', 'profile.darkness.onFail', 0);
+    if (darkness.onFail !== undefined) checkOutcome(darkness.onFail, 'DARKNESS onFail', 'profile.darkness.onFail', 0);
 
     /* A rule that starts an encounter, or trains a stat, in a cartridge
        that has not switched the capability on. */
@@ -894,13 +982,32 @@
        wrote, and a deeply nested one must produce a finding rather than a
        stack overflow. */
     function sweepForReferences() {
-      const covered = (path) => proseSlots.some((slot) =>
-        path === slot || path.indexOf(slot + '.') === 0 || path.indexOf(slot + '[') === 0);
+      const covered = (path) => proseSlots.has(path);
 
       const seen = new Set();
-      const stack = [{ node: cartridge, path: '' }];
+      const stack = [{ node: cartridge, path: '', depth: 0 }];
+      let nodes = 0;
+      let tooDeep = false;
+      let tooLarge = false;
       while (stack.length) {
-        const { node, path } = stack.pop();
+        const { node, path, depth } = stack.pop();
+        if (depth > MAX_STRUCTURE_DEPTH) {
+          if (!tooDeep) {
+            tooDeep = true;
+            err('structure-too-deep', whereFor(path), path,
+              'cartridge nesting exceeds the maximum traversal depth of ' + MAX_STRUCTURE_DEPTH + '.');
+          }
+          continue;
+        }
+        nodes++;
+        if (nodes > MAX_STRUCTURE_NODES) {
+          if (!tooLarge) {
+            tooLarge = true;
+            err('structure-too-large', whereFor(path), path,
+              'cartridge traversal exceeds the maximum of ' + MAX_STRUCTURE_NODES + ' nodes.');
+          }
+          break;
+        }
         if (typeof node === 'string') {
           const match = STRING_REF.exec(node);
           if (match && !covered(path)) {
@@ -917,11 +1024,11 @@
         if (seen.has(node)) continue;
         seen.add(node);
         if (Array.isArray(node)) {
-          for (let i = node.length - 1; i >= 0; i--) stack.push({ node: node[i], path: path + '[' + i + ']' });
+          for (let i = node.length - 1; i >= 0; i--) stack.push({ node: node[i], path: path + '[' + i + ']', depth: depth + 1 });
           continue;
         }
         for (const key of Object.keys(node)) {
-          stack.push({ node: node[key], path: path ? path + '.' + key : key });
+          stack.push({ node: node[key], path: path ? path + '.' + key : key, depth: depth + 1 });
         }
       }
     }
@@ -1024,7 +1131,7 @@
   ml.validator = {
     validate, report, checkFormat,
     RENDERERS, AUDIO, INTERFACES, STRING_REF,
-    FORMAT, SUPPORTED_VERSIONS, OUTCOME_DEPTH
+    FORMAT, SUPPORTED_VERSIONS, OUTCOME_DEPTH, MAX_STRUCTURE_DEPTH, MAX_STRUCTURE_NODES
   };
   if (typeof module !== 'undefined') module.exports = Z;
 })(typeof window !== 'undefined' ? window : globalThis);
