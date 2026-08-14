@@ -651,50 +651,31 @@
      it is checked before it reaches the bench, so a broken file explains
      itself in the diagnostics panel instead of throwing to the console. */
   function acceptCartridge(text, name) {
-    let data;
-    try {
-      data = JSON.parse(text);
-    } catch (err) {
-      readout('CANNOT READ ' + (name || 'that file') + '\n  It is not valid JSON.\n  ' + err.message, 'bad');
-      return;
-    }
-    if (!data || typeof data !== 'object' || Array.isArray(data)) {
-      readout('CANNOT READ ' + (name || 'that file') + '\n  A cartridge is a JSON object.', 'bad');
-      return;
-    }
-    if (data.format && data.format !== 'morrowlamp-cartridge') {
-      readout('WRONG FORMAT — ' + (name || 'that file') + '\n' +
-        '  It declares format "' + data.format + '".\n' +
-        '  This slot takes Morrowlamp cartridges.', 'bad');
-      return;
-    }
-    const check = ml.validator.validate(data);
-    if (!check.ok) {
-      /* Refused, and told why with an address — the same report the
-         compiler would have given. The file is not put on the bench,
-         because a cartridge that cannot be built cannot be edited into
-         one either without the operator seeing this first. */
-      readout('CARTRIDGE REFUSED — ' + (name || 'loaded file') + '\n\n' + ml.validator.report(check), 'bad');
-      return;
+    /* The decision belongs to `ml.import.read`, which parses, checks the
+       format and the version, validates, and mutates nothing. This
+       function does the two things that are actually the Workshop's
+       business: printing the verdict, and — only when the verdict is
+       yes — putting the cartridge on the shelf.
+
+       Nothing above this line can touch Z.cartridges or the bench, which
+       is why a refused file cannot leave the Workshop half-changed. */
+    const result = ml.import.read(text, { name, taken: Object.keys(Z.cartridges) });
+    if (!result.ok) {
+      readout(result.report, 'bad');
+      return result;
     }
 
-    data.meta = data.meta || {};
-    let id = data.meta.id || 'loaded-cartridge';
-    if (Z.cartridges[id]) {
-      /* Never overwrite what is already in the slot, and never shadow a
-         reference title: a loaded copy of The Sunken Crown is a fourth
-         cartridge, not a replacement for the one the compiler embeds. */
-      let n = 1;
-      while (Z.cartridges[id + '-' + (++n)]) { /* find a free one */ }
-      id = id + '-' + n;
-      data.meta.id = id;
-    }
-    Z.cartridges[id] = data;
+    const cartridge = result.cartridge;
+    cartridge.meta = cartridge.meta || {};
+    cartridge.meta.id = result.id;
+    Z.cartridges[result.id] = cartridge;
     renderShelf();
-    insert(id);
-    readout(ml.validator.report(ml.validator.validate(data)) +
-      '\n\nLOADED ' + (name || id) +
-      '\nInserted as "' + id + '" and ready to edit.', check.warnings.length ? '' : 'ok');
+    insert(result.id);
+    readout(result.report +
+      '\n\nLOADED ' + (name || result.id) +
+      '\nInserted as "' + result.id + '" and ready to edit.',
+    result.findings.some((f) => f.severity === 'warning') ? '' : 'ok');
+    return result;
   }
 
   function readFile(file) {

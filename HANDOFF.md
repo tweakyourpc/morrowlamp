@@ -360,6 +360,67 @@ played through the rat) and the canvas shell (Captain Thistle, CGA, hotspots, ve
 Test tab it dims the whole Workshop until BEGIN is pressed. It works; it looks odd. Fixing it
 belongs with shell convergence.
 
+## 11b. Blocker remediation after the round-trip audit
+
+An independent Codex audit of `main..workshop-roundtrip` at `c9711f8` returned **DO NOT MERGE**
+with three blockers. This is the single correction commit answering them. No feature work; the
+IMPORTANT/MINOR/OBSERVATION findings stay open for the re-audit except one that turned out to
+be the same defect as a blocker.
+
+**B-001, format and version were never checked.** `validate()` read neither field, and both
+gatekeepers guarded on truthiness, `js/workshop/workshop.js` and `tools/morrow.js` both said
+`if (data.format && data.format !== 'morrowlamp-cartridge')`, so a file declaring *no* format
+skipped the check entirely. Missing format, `formatVersion: 999`, `'two'` and `null` all
+returned `ok=true, 0 errors`. Now `ml.validator.checkFormat()` is one shared function with four
+distinguished codes (`format-missing`, `format-unknown`, `version-missing`,
+`version-unsupported`), `SUPPORTED_VERSIONS = [2]`, and it is called by `validate()`, so the
+compiler and a compiled adventure booting its own embedded cartridge fail closed by the same
+rule. No migration layer.
+
+**B-002, the validator threw on untrusted structure.** The audit named six shapes; a sweep of
+21 found **twelve** that threw. One cause throughout: collections were iterated and entries
+dereferenced with no shape check. Fixed with three guards used at every collection site
+(`keysOf`, `arrayOf`, `entryOf`), a `plainObject` test at every entry, and `OUTCOME_DEPTH = 32`
+bounding outcome `fallback` recursion. `test/validator.js` now drives 31 malformed shapes and
+asserts none throws *and* none passes silently. A last-resort `try/catch` exists in
+`ml.import.read` and is documented there as a net, not the fix; `test/import.js` asserts no
+malformed file reaches it (`reason !== 'validator-faulted'`).
+
+**B-003, prose coverage did not match runtime resolution, in both directions.** Missing from
+validation: object `dropText` `cannotOpen` `lockedText` `unlockText` `lightText` `douseText`
+`acceptText` `rejectText`, `profile.darkness.warning`, `profile.light.fuel.warnings[*][1]` and
+`.outText`. Accepted but never resolved: every visible name and label. Replaced ~20 scattered
+`checkText()` calls with one `prose()` helper that *declares* each slot as it checks it, plus
+an iterative whole-tree sweep that refuses a reference-shaped value at any undeclared path.
+The contract is now total in both directions and cannot drift: adding a prose field without
+declaring it fails the build rather than printing a raw token.
+
+- **One Machine line changed.** `runtime.js` describeRoom raw-pushed `profile.darkness.warning`
+  while the other call site said it through the resolver; it now goes through `pushText` like
+  everything else.
+- **`prompt2` was removed from the supported set.** It is only read where a separator splits a
+  command and the second half is empty, and `splitOn` requires content on both sides, so that
+  branch is unreachable. Declaring it supported would have been a coverage claim for a line
+  nothing can print.
+- **I-007 fixed as inseparable.** The duplicate `string-missing` finding on `death`/`say`
+  outcomes was a second `checkText()` inside `checkOutcome`; the single `prose()` call replaces
+  both. A cardinality assertion pins it.
+
+**One shared boundary.** `js/workshop/import.js` is new: `ml.import.read(text, opts)` does
+parse → format → version → validate, in that order, each step fatal, and **mutates nothing**, 
+the caller inserts. That makes "a refused import leaves the Workshop unchanged" structural
+rather than a promise, and makes the acceptance path testable under Node, which it was not.
+
+**Proof the tests catch the bugs.** A detached worktree at `c9711f8` was given the three
+new/updated suites. There: `test/validator.js` fails 10 of its 25 groups, `test/import.js`
+cannot load at all (no boundary exists), `test/strings-contract.js` fails 2 of 6. On this
+commit all three pass. The 15 pre-existing validator groups pass on both, so nothing was
+weakened to make room.
+
+**Suites: 17, all green** (14 before the feature branch, 15 after it, 17 now). All three
+cartridge proofs still pass, and shipped-cartridge validator output is byte-identical to
+`c9711f8`, the new strictness cost no existing content.
+
 ## 12. Remaining known issues
 
 0. **A Workshop-made cartridge can only ever be a parser game.** Painters are functions and do

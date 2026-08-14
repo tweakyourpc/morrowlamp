@@ -33,6 +33,7 @@ for (const m of ['world', 'profile', 'outcome', 'rules', 'vocabulary', 'stats', 
   require(path.join(ROOT, 'js/morrowlamp', m + '.js'));
 }
 require(path.join(ROOT, 'js/workshop/validator.js'));
+require(path.join(ROOT, 'js/workshop/import.js'));
 require(path.join(ROOT, 'js/workshop/bundle.js'));
 require(path.join(ROOT, 'js/workshop/compiler.js'));
 require(path.join(ROOT, 'js/workshop/prove.js'));
@@ -41,21 +42,26 @@ const ml = Z.ml;
 /* ---------------- reading a cartridge ----------------
    Two tiers, exactly as the format intends. A developer cartridge is
    JavaScript and may carry painter functions; a Workshop cartridge is
-   JSON and cannot. Both are cartridges and neither is a special case. */
+   JSON and cannot. Both are cartridges and neither is a special case.
+
+   The JSON tier comes in through `ml.import.read`, which is the same
+   boundary the Workshop uses: same parse, same format identity, same
+   supported-version rule, same structural validation, in the same order.
+   The CLI used to hand-roll a weaker version of that check and disagreed
+   with the Workshop about what a cartridge even is. */
 function loadCartridge(file) {
   const full = path.resolve(process.cwd(), file);
   if (!fs.existsSync(full)) die('no such cartridge: ' + file);
 
   if (/\.json$|\.morrow$/i.test(full)) {
-    let data;
-    try { data = JSON.parse(fs.readFileSync(full, 'utf8')); }
-    catch (err) { die(file + ' is not readable JSON: ' + err.message); }
-    if (data.format && data.format !== 'morrowlamp-cartridge') {
-      die(file + ' declares format "' + data.format + '"; this is not a Morrowlamp cartridge.');
-    }
-    const id = (data.meta || {}).id;
-    if (id) { Z.cartridges = Z.cartridges || {}; Z.cartridges[id] = data; }
-    return data;
+    let text;
+    try { text = fs.readFileSync(full, 'utf8'); }
+    catch (err) { die('could not read ' + file + ': ' + err.message); }
+    const result = ml.import.read(text, { name: file, taken: Object.keys(Z.cartridges || {}) });
+    if (!result.ok) die(result.report);
+    Z.cartridges = Z.cartridges || {};
+    Z.cartridges[result.cartridge.meta.id] = result.cartridge;
+    return result.cartridge;
   }
 
   /* A source cartridge registers itself into Z.cartridges when it runs.

@@ -31,7 +31,8 @@ jobs:
       - name: Run every suite
         run: |
           for suite in scenes ui-title.probe gfx-profiles morrowlamp-runtime \
-                       encounters validator prove workshop sunken-crown \
+                       encounters validator import strings-contract prove \
+                       workshop sunken-crown \
                        cartridge-thistle cartridge-crumbly one-machine compiler \
                        shell-boundary hygiene; do
             echo "── $suite"

@@ -172,7 +172,11 @@
       const lines = [{ text: r.name, cls: 'room-name' }];
 
       if (r.dark && !world.hasLight(id)) {
-        lines.push({ text: profile.darkness.warning, cls: 'bad' });
+        /* Through the resolver, like every other line: the same field is
+           printed via say() when the player walks into the dark, and a
+           declared prose slot that resolved on one path and not the other
+           would show a raw '@s:' token on exactly one of them. */
+        pushText(lines, profile.darkness.warning, 'bad');
         return lines;
       }
       const long = full || !S.visited[id];

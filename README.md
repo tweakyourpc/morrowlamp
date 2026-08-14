@@ -210,19 +210,52 @@ strings: {
 }
 ```
 
-Every prose slot understands it: room descriptions, object descriptions and examine text,
-exit `deny` messages, verb prompts and fallbacks, encounter lines, endings, `say` and `die`.
-A key holding an array prints as several lines. The same table also overrides the Machine's
-own system messages, so *all* the writing in a game is in one place.
+**Which slots understand it, exactly.** Every line the Machine speaks from a cartridge, and
+nothing else:
+
+| | Reference-capable |
+| --- | --- |
+| Cartridge | `intro`, `help`, `quitText` |
+| Room | `desc`, `short`, `notes[].text` |
+| Exit | `deny` |
+| Object | `desc`, `examine`, `read`, `takeText`, `cannotTake`, `dropText`, `cannotOpen`, `lockedText`, `openText`, `unlockText`, `lightText`, `douseText`, `acceptText`, `rejectText` |
+| Verb | `prompt`, `fallback` |
+| Rule / timer | `say`, `die`, and an `outcome`'s `text` |
+| Ending | `text` |
+| Encounter | `intro`, `hit`, `miss`, `defeated`; each action's `hitText`, `missText`, `text`, `failText`, `deny`; `onWin` / `onFlee` / `onDefeat` text |
+| Darkness / light | `darkness.warning`, `fuel.warnings[*][1]`, `fuel.outText` |
+| System | the Machine's own message keys, listed in `runtime.js` as `SYSTEM_STRINGS` |
+
+A key holding an array prints as several lines.
+
+**Everything else is not**, and the validator refuses a reference there rather than letting it
+reach the player as text. That includes every visible *name* and *label*, room and object
+names, an opponent's name, encounter action labels, score ranks, stat and class names, because
+those are concatenated into generated sentences (`'You open the ' + name`) or handed straight
+to a shell's DOM, where a reference cannot resolve. So it is not true that *all* the writing in
+a game can live in the table; the narrative can, the labels cannot, and a build will tell you
+which is which instead of shipping a raw token.
+
+**The `@s:` sigil is reserved.** Exactly `@s:` followed by letters, digits, dots, hyphens or
+underscores, and nothing else, is a reference, anywhere in a cartridge. Text that merely
+contains the sigil (`see @s:foo below`, `@s:key with spaces`) is ordinary prose. There is **no
+escape**: a cartridge cannot print the literal text `@s:door.locked`, and the validator says so
+rather than leaving it to chance. Resolution is single-pass, a table value that is itself a
+reference is not looked up again, so that is refused too.
 
 **This is the seam to hand somebody else.** Nothing in the table can change what the game
-does: there are no room ids in there, no flags, no conditions, no actions. A collaborator, 
+does: there are no room ids in there, no flags, no conditions, no actions. A collaborator,
 or a model, can rewrite the whole script, or translate it, and the worst they can produce is
 a key that does not resolve, which is a build error with an address. A reference to a missing
 key is refused; a key nothing refers to is a warning.
 
-`js/cartridges/sir-crumbly.js` is written entirely this way and is the reference for it.
-Adoption is optional: the other two cartridges keep their prose inline and are just as valid.
+`test/strings-contract.js` is what keeps that table honest: it puts a reference in every slot
+listed above, plays a cartridge through the paths that print each one, and fails if any of
+them does not resolve or if a `@s:` ever reaches the transcript.
+
+`js/cartridges/sir-crumbly.js` keeps every *narrative line* in the table and is the reference
+for it; its names and labels are inline, because they have to be. Adoption is optional: the
+other two cartridges keep their prose inline and are just as valid.
 
 ### The walkthrough
 
@@ -256,10 +289,25 @@ Sunken Crown the first time it ran.)
 6. Press **BUILD GAME**. You get one HTML file.
 
 **Save cartridge (JSON)** writes the cartridge out; **Load cartridge…** reads one back, from
-the button or by dropping the file on the slot. A loaded cartridge is validated before it
-reaches the bench, so a broken file explains itself in the diagnostics panel instead of
-throwing. That round trip is what makes the Workshop somewhere you can leave work and come
-back to it, and what lets a cartridge written anywhere else, by anyone else, come in.
+the button or by dropping the file on the slot. That round trip is what makes the Workshop
+somewhere you can leave work and come back to it, and what lets a cartridge written anywhere
+else, by anyone else, come in.
+
+Coming in is the one place a file nobody here wrote gets a say, so it is the one place with a
+stated order. `js/workshop/import.js` is that boundary, and the Workshop, the CLI and the
+compiler all go through it:
+
+```
+parse JSON  →  format is "morrowlamp-cartridge"  →  formatVersion is supported  →  validate
+```
+
+Every step is fatal and says why. **A version fails closed**: this build implements
+`formatVersion: 2`, and a cartridge that declares no version, or one this build does not
+implement, is refused rather than guessed at, there is no migration layer, and a dialect is
+supported when it is listed and not before. Structural validation is total, so a file that is
+malformed rather than merely wrong produces a diagnostic with an address instead of an
+exception. And the boundary mutates nothing: it reads text and returns a verdict, so a refused
+file cannot leave the shelf, the bench or the current cartridge half-changed.
 
 Or write a cartridge by hand: copy `js/cartridges/captains-thistle.js`, change everything,
 register it under a new id in `Z.cartridges`, and add it to `CARTRIDGE_FILES` in
@@ -343,6 +391,8 @@ node test/gfx-profiles.js              # CGA/EGA/VGA renderer contracts
 node test/morrowlamp-runtime.js        # the Machine, against a synthetic cartridge
 node test/encounters.js                # stats, encounters and outcomes, against another one
 node test/validator.js                 # every validator check, each with a broken cartridge
+node test/import.js                    # the import boundary: order, refusal, and mutating nothing
+node test/strings-contract.js          # every @s: slot resolves, and nothing else may hold one
 node test/prove.js                     # winnability: a game that validates and cannot be won
 node test/workshop.js                  # bundle manifest, blank-cartridge round trip, Machine purity
 node test/sunken-crown.js              # the flagship cartridge, end to end (19 groups)
@@ -437,7 +487,7 @@ css/style.css               — terminal themes
 
 js/morrowlamp/              — THE MACHINE (see the table above)
 js/cartridges/              — the games
-js/workshop/                — validator, prover, bundle manifest, compiler, Workshop console
+js/workshop/                — import boundary, validator, prover, bundle manifest, compiler, console
 tools/morrow.js             — the same four operations from a terminal
 
 js/gfx.js                   — CGA/EGA/VGA profiles, dithering, drawing primitives  (Machine)

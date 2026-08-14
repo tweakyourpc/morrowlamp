@@ -25,6 +25,11 @@ const V = Z.ml.validator;
 
 function base() {
   return {
+    /* A cartridge has to say what it is and which dialect it speaks. This
+       fixture used to omit both, which is how a validator that never
+       looked at either passed its own suite. */
+    format: 'morrowlamp-cartridge',
+    formatVersion: 2,
     meta: { id: 'test-game', title: 'Test Game', version: '1.0.0' },
     startFlags: { opened: false },
     world: {
@@ -268,11 +273,340 @@ function testCrumblyIsWrittenEntirelyInStrings() {
   console.log('  ok — Sir Crumbly keeps every line of prose in its strings table');
 }
 
+/* ============================================================
+   B-001 — FORMAT AND VERSION FAIL CLOSED
+   The validator used to read neither field. A cartridge that said
+   nothing about what it was, or claimed a dialect from the future,
+   validated and compiled as though it were compatible.
+   ============================================================ */
+function testFormatMustBeDeclared() {
+  const missing = broken((c) => { delete c.format; });
+  assert.strictEqual(missing.ok, false, 'a cartridge with no format is refused');
+  assert.ok(missing.findings.some((f) => f.code === 'format-missing'), 'under a stable code');
+  assert.ok(saysError(missing, 'does not say what it is'), 'and says what is wrong');
+
+  const wrong = broken((c) => { c.format = 'twine-story'; });
+  assert.ok(wrong.findings.some((f) => f.code === 'format-unknown'), 'a foreign format is refused separately');
+  assert.ok(saysError(wrong, 'this Workshop reads "morrowlamp-cartridge"'), 'and names what it does read');
+  console.log('  ok — a cartridge that does not declare the Morrowlamp format is refused');
+}
+
+function testVersionMustBeSupported() {
+  const cases = [
+    [(c) => { delete c.formatVersion; }, 'version-missing'],
+    [(c) => { c.formatVersion = null; }, 'version-missing'],
+    [(c) => { c.formatVersion = 999; }, 'version-unsupported'],
+    [(c) => { c.formatVersion = 1; }, 'version-unsupported'],
+    [(c) => { c.formatVersion = '2'; }, 'version-unsupported'],
+    [(c) => { c.formatVersion = 'two'; }, 'version-unsupported'],
+    [(c) => { c.formatVersion = 2.5; }, 'version-unsupported']
+  ];
+  for (const [mutate, code] of cases) {
+    const result = broken(mutate);
+    assert.strictEqual(result.ok, false, 'refused: ' + code);
+    assert.ok(result.findings.some((f) => f.code === code), 'reported as ' + code);
+  }
+  /* Fail closed: supported means listed, not "looks close enough". A
+     string "2" is not version 2, and there is no coercion that would make
+     it one. */
+  assert.deepStrictEqual(V.SUPPORTED_VERSIONS, [2], 'exactly one dialect is supported today');
+  assert.ok(V.validate(base()).ok, 'and the supported one still passes');
+  console.log('  ok — a missing, older, newer or malformed version all fail closed');
+}
+
+function testFormatCheckIsShared() {
+  /* One function, so the Workshop, the CLI, the compiler and a compiled
+     adventure booting its own cartridge cannot disagree about this. */
+  assert.strictEqual(typeof V.checkFormat, 'function', 'the boundary is exported');
+  assert.deepStrictEqual(V.checkFormat(base()), [], 'a good cartridge yields no findings');
+  const findings = V.checkFormat({ format: 'morrowlamp-cartridge' });
+  assert.strictEqual(findings.length, 1);
+  assert.strictEqual(findings[0].code, 'version-missing');
+  assert.strictEqual(findings[0].severity, 'error');
+  /* And validate() applies the same rule, so nothing can route around it. */
+  assert.ok(V.validate({ format: 'morrowlamp-cartridge' }).findings.some((f) => f.code === 'version-missing'),
+    'validate() enforces the same check');
+  console.log('  ok — one shared format/version check, used by validate() too');
+}
+
+/* ============================================================
+   B-002 — VALIDATION IS TOTAL
+   Every one of these threw an exception out of the validator on
+   the audited commit. A file a stranger wrote must produce a
+   diagnostic, never a stack trace: an exception escapes the import
+   callback, leaves the previous cartridge's "0 errors" on screen,
+   and tells the operator nothing.
+   ============================================================ */
+function malformedShapes() {
+  return {
+    'null cartridge': () => null,
+    'array cartridge': () => [],
+    'string cartridge': () => 'hello',
+    'number cartridge': () => 42,
+    'null room entry': () => broken0((c) => { c.world.rooms.ghost = null; }),
+    'string room entry': () => broken0((c) => { c.world.rooms.ghost = 'nope'; }),
+    'null object entry': () => broken0((c) => { c.world.objects.ghost = null; }),
+    'null encounter entry': () => broken0((c) => { c.encounters = { e: null }; }),
+    'rules as object': () => broken0((c) => { c.rules = { a: 1 }; }),
+    'rules as string': () => broken0((c) => { c.rules = 'nope'; }),
+    'endings as object': () => broken0((c) => { c.endings = { a: 1 }; }),
+    'world as string': () => broken0((c) => { c.world = 'nope'; }),
+    'rooms as array': () => broken0((c) => { c.world.rooms = []; }),
+    'objects as array': () => broken0((c) => { c.world.objects = []; }),
+    'exits as string': () => broken0((c) => { c.world.rooms.a.exits = 'n'; }),
+    'notes as string': () => broken0((c) => { c.world.rooms.a.notes = 'nope'; }),
+    'null rule element': () => broken0((c) => { c.rules = [null]; }),
+    'null ending element': () => broken0((c) => { c.endings = [null]; }),
+    'null timer element': () => broken0((c) => { c.profile.timers = [null]; }),
+    'null verb spec': () => broken0((c) => { c.vocabulary.verbs.push = null; }),
+    'when as string': () => broken0((c) => { c.rules[0].when = 'nope'; }),
+    'flags condition as string': () => broken0((c) => { c.rules[0].when = { flags: 'nope' }; }),
+    'null action step': () => broken0((c) => { c.rules[0].do = [null]; }),
+    'profile as string': () => broken0((c) => { c.profile = 'nope'; }),
+    'stats list as null': () => broken0((c) => { c.profile.stats = { list: null, classes: null }; }),
+    'null class entry': () => broken0((c) => { c.profile.stats = { list: { m: 'M' }, classes: { k: null } }; }),
+    'encounter actions as object': () => broken0((c) => {
+      c.profile.combat = true;
+      c.profile.stats = { list: { m: 'M' }, classes: { k: { stats: { m: 1 } } } };
+      c.encounters = { e: { kind: 'combat', opponent: { name: 'x', hp: 2 }, actions: { a: 1 } } };
+    }),
+    'null encounter action': () => broken0((c) => {
+      c.profile.combat = true;
+      c.profile.stats = { list: { m: 'M' }, classes: { k: { stats: { m: 1 } } } };
+      c.encounters = { e: { kind: 'combat', opponent: { name: 'x', hp: 2 }, actions: [null] } };
+    }),
+    'fuel as string': () => broken0((c) => { c.profile.light = { fuel: 'nope' }; }),
+    'fuel warnings as string': () => broken0((c) => { c.profile.light = { fuel: { object: 'gem', turns: 5, warnings: 'nope' } }; }),
+    'deep outcome chain': () => broken0((c) => {
+      let outcome = { type: 'say', text: ['x'] };
+      for (let i = 0; i < 10000; i++) outcome = { type: 'encounter', encounter: 'nope', fallback: outcome };
+      c.profile.darkness = { onFail: outcome };
+    })
+  };
+}
+/* A cartridge mutated but NOT validated, so the sweep above can drive
+   `validate()` itself and observe what it does with the result. */
+function broken0(mutate) {
+  const cart = base();
+  cart.profile = cart.profile || {};
+  cart.vocabulary = cart.vocabulary || { verbs: {} };
+  mutate(cart);
+  return cart;
+}
+
+function testValidationIsTotal() {
+  const shapes = malformedShapes();
+  const threw = [];
+  const silent = [];
+  for (const [name, make] of Object.entries(shapes)) {
+    let result;
+    try {
+      result = V.validate(make());
+    } catch (err) {
+      threw.push(name + ' (' + err.constructor.name + ': ' + err.message + ')');
+      continue;
+    }
+    if (result.ok) silent.push(name);
+    /* A diagnostic is only useful if it is addressed like every other. */
+    for (const finding of result.findings) {
+      assert.ok(finding.code && finding.where && typeof finding.path === 'string',
+        name + ': every finding stays addressed');
+    }
+  }
+  assert.deepStrictEqual(threw, [], 'no malformed cartridge may throw out of the validator:\n    ' + threw.join('\n    '));
+  assert.deepStrictEqual(silent, [], 'and none may pass silently:\n    ' + silent.join('\n    '));
+  console.log('  ok — ' + Object.keys(shapes).length + ' malformed shapes all report instead of throwing');
+}
+
+function testMalformedMessagesNameTheShape() {
+  /* "must be an object, got null" is worth more than "cannot read
+     properties of null", which is what the audit saw in a browser. */
+  assert.ok(saysError(broken((c) => { c.world.rooms.ghost = null; }), 'room "ghost" must be an object, got null.'));
+  assert.ok(saysError(broken((c) => { c.rules = { a: 1 }; }), 'rules must be an array, got an object.'));
+  assert.ok(saysError(broken((c) => { c.endings = [null]; }), 'an ending must be an object, got null.'));
+  assert.ok(saysError(broken((c) => { c.world = 'nope'; }), 'world must be an object, got the string "nope".'));
+  console.log('  ok — malformed-shape messages say what arrived and what was wanted');
+}
+
+function testRecursionIsBounded() {
+  let outcome = { type: 'say', text: ['x'] };
+  for (let i = 0; i < 10000; i++) outcome = { type: 'encounter', encounter: 'nope', fallback: outcome };
+  const result = broken((c) => { c.profile.darkness = { onFail: outcome }; });
+  assert.strictEqual(result.ok, false);
+  assert.ok(result.findings.some((f) => f.code === 'outcome-too-deep'),
+    'a runaway outcome chain is reported, not a RangeError');
+  assert.ok(V.OUTCOME_DEPTH > 0 && V.OUTCOME_DEPTH < 100, 'the bound is a small declared number');
+  console.log('  ok — recursive outcome nesting is bounded and reported');
+}
+
+/* ============================================================
+   B-003 — PROSE COVERAGE MATCHES RUNTIME RESOLUTION
+   Every slot the runtime resolves is checked, and a reference in a
+   slot it does not resolve is refused rather than printed raw.
+   ============================================================ */
+
+/* The slots the audit found unvalidated, plus the rest of the object
+   message set found by reading every say()/pushText() call site. */
+const SUPPORTED_SLOTS = [
+  ['intro', (c, v) => { c.intro = v; }],
+  ['help', (c, v) => { c.help = v; }],
+  ['quitText', (c, v) => { c.quitText = v; }],
+  ['world.rooms.a.desc', (c, v) => { c.world.rooms.a.desc = v; }],
+  ['world.rooms.a.short', (c, v) => { c.world.rooms.a.short = v; }],
+  ['world.rooms.a.notes[0].text', (c, v) => { c.world.rooms.a.notes = [{ when: { flags: { opened: true } }, text: v }]; }],
+  ['world.rooms.a.exits.e.deny', (c, v) => { c.world.rooms.a.exits.e.deny = v; }],
+  ['world.objects.lever.desc', (c, v) => { c.world.objects.lever.desc = v; }],
+  ['world.objects.lever.examine', (c, v) => { c.world.objects.lever.examine = v; }],
+  ['world.objects.lever.read', (c, v) => { c.world.objects.lever.read = v; }],
+  ['world.objects.gem.takeText', (c, v) => { c.world.objects.gem.takeText = v; }],
+  ['world.objects.lever.cannotTake', (c, v) => { c.world.objects.lever.cannotTake = v; }],
+  ['world.objects.gem.dropText', (c, v) => { c.world.objects.gem.dropText = v; }],
+  ['world.objects.box.cannotOpen', (c, v) => { c.world.objects.box.cannotOpen = v; }],
+  ['world.objects.box.lockedText', (c, v) => { c.world.objects.box.lockedText = v; }],
+  ['world.objects.box.openText', (c, v) => { c.world.objects.box.openText = v; }],
+  ['world.objects.box.unlockText', (c, v) => { c.world.objects.box.unlockText = v; }],
+  ['world.objects.box.acceptText', (c, v) => { c.world.objects.box.acceptText = v; }],
+  ['world.objects.box.rejectText', (c, v) => { c.world.objects.box.rejectText = v; }],
+  ['world.objects.lever.lightText', (c, v) => { c.world.objects.lever.lightText = v; }],
+  ['world.objects.lever.douseText', (c, v) => { c.world.objects.lever.douseText = v; }],
+  ['vocabulary.verbs.pull.prompt', (c, v) => { c.vocabulary.verbs.pull.prompt = v; }],
+  ['vocabulary.verbs.pull.fallback', (c, v) => { c.vocabulary.verbs.pull.fallback = v; }],
+  ['rules[0].do[1].say', (c, v) => { c.rules[0].do[1] = { say: v }; }],
+  ['rules[0].otherwise[0].say', (c, v) => { c.rules[0].otherwise = [{ say: v }]; }],
+  ['rules[0].do[1].die', (c, v) => { c.rules[0].do[1] = { die: v }; }],
+  ['endings[0].text', (c, v) => { c.endings[0].text = v; }],
+  ['profile.darkness.warning', (c, v) => { c.profile.darkness = { warning: v }; }],
+  ['profile.darkness.onFail.text', (c, v) => { c.profile.darkness = { onFail: { type: 'death', text: v } }; }],
+  ['profile.light.fuel.outText', (c, v) => { c.profile.light = { fuel: { object: 'gem', turns: 5, outText: v } }; }],
+  ['profile.light.fuel.warnings[0][1]', (c, v) => { c.profile.light = { fuel: { object: 'gem', turns: 5, warnings: [[2, v]] } }; }],
+  ['profile.timers[0].do[0].say', (c, v) => { c.profile.timers = [{ id: 't', after: 3, do: [{ say: v }] }]; }],
+  ['encounters.rat.intro', (c, v) => { withCombat(c).intro = v; }],
+  ['encounters.rat.hit', (c, v) => { withCombat(c).hit = v; }],
+  ['encounters.rat.miss', (c, v) => { withCombat(c).miss = v; }],
+  ['encounters.rat.defeated', (c, v) => { withCombat(c).defeated = v; }],
+  ['encounters.rat.actions[0].hitText', (c, v) => { withCombat(c).actions[0].hitText = v; }],
+  ['encounters.rat.actions[0].missText', (c, v) => { withCombat(c).actions[0].missText = v; }],
+  ['encounters.rat.actions[0].deny', (c, v) => { withCombat(c).actions[0].deny = v; }],
+  ['encounters.rat.onWin.text', (c, v) => { withCombat(c).onWin = { type: 'say', text: v }; }]
+];
+
+/* Slots that carry visible words but are NOT resolved: they are
+   concatenated into generated sentences or handed straight to a shell's
+   DOM. A reference in one of these would reach the player as a raw
+   token, so it is refused. */
+const UNSUPPORTED_SLOTS = [
+  ['world.rooms.a.name', (c, v) => { c.world.rooms.a.name = v; }],
+  ['world.objects.gem.name', (c, v) => { c.world.objects.gem.name = v; }],
+  ['profile.score.ranks[0][1]', (c, v) => { c.profile.score = { enabled: true, ranks: [[0, v]] }; }],
+  ['meta.title', (c, v) => { c.meta.title = v; }],
+  ['strings.echo', (c, v) => { c.strings.echo = v; }],
+  ['encounters.rat.opponent.name', (c, v) => { withCombat(c).opponent.name = v; }],
+  ['encounters.rat.actions[0].label', (c, v) => { withCombat(c).actions[0].label = v; }],
+  ['profile.stats.list.might', (c, v) => { withCombat(c); c.profile.stats.list.might = v; }],
+  ['profile.stats.classes.knight.name', (c, v) => { withCombat(c); c.profile.stats.classes.knight.name = v; }],
+  /* `prompt2` is only read where a separator splits a command and the
+     second half is empty, which the parser's splitOn cannot produce. A
+     reference there would never print, so it is refused rather than
+     silently accepted as though it worked. */
+  ['vocabulary.verbs.pull.prompt2', (c, v) => { c.vocabulary.verbs.pull.prompt2 = v; }]
+];
+
+function withCombat(cart) {
+  cart.profile.combat = true;
+  cart.profile.stats = cart.profile.stats || {
+    list: { might: 'Might' },
+    classes: { knight: { name: 'Knight', stats: { might: 3 } } }
+  };
+  cart.encounters = cart.encounters || {
+    rat: {
+      kind: 'combat', opponent: { name: 'Rat', hp: 4 },
+      actions: [{ id: 'hit', kind: 'strike', uses: 'might' }]
+    }
+  };
+  return cart.encounters.rat;
+}
+
+/* A fixture rich enough that every slot above has somewhere to live. */
+function proseBase() {
+  const cart = base();
+  cart.strings = { known: 'Known text.' };
+  cart.profile = cart.profile || {};
+  cart.world.objects.box.key = 'gem';
+  cart.rules[0].do.push({ say: 'placeholder' });
+  return cart;
+}
+
+function testEverySupportedSlotIsChecked() {
+  const missed = [], rejected = [];
+  for (const [name, put] of SUPPORTED_SLOTS) {
+    const good = proseBase();
+    put(good, '@s:known');
+    const g = V.validate(good);
+    if (g.findings.some((f) => f.code === 'string-ref-unsupported')) rejected.push(name);
+
+    const bad = proseBase();
+    put(bad, '@s:nope');
+    const b = V.validate(bad);
+    const found = b.findings.find((f) => f.code === 'string-missing' && f.path === name);
+    if (!found) missed.push(name + ' (got: ' + b.findings.filter((f) => /^string-/.test(f.code)).map((f) => f.code + '@' + f.path).join(', ') + ')');
+  }
+  assert.deepStrictEqual(rejected, [], 'a declared slot must accept a resolvable reference:\n    ' + rejected.join('\n    '));
+  assert.deepStrictEqual(missed, [], 'a missing key must be an error at the exact path:\n    ' + missed.join('\n    '));
+  console.log('  ok — all ' + SUPPORTED_SLOTS.length + ' supported prose slots validate their references');
+}
+
+function testUnsupportedSlotsRefuseReferences() {
+  const silent = [];
+  for (const [name, put] of UNSUPPORTED_SLOTS) {
+    const cart = proseBase();
+    put(cart, '@s:known');          // a key that EXISTS — still refused
+    const result = V.validate(cart);
+    const found = result.findings.find((f) => f.code === 'string-ref-unsupported' && f.path === name);
+    if (!found) silent.push(name);
+  }
+  assert.deepStrictEqual(silent, [], 'a reference in an unresolved slot must be refused:\n    ' + silent.join('\n    '));
+  console.log('  ok — all ' + UNSUPPORTED_SLOTS.length + ' unresolved slots refuse references instead of printing them raw');
+}
+
+function testLiteralContract() {
+  /* Only the exact shape is reserved. Everything else is prose. */
+  const literals = ['see @s:known below', '@s:known and more', '@s: known', '@s:has spaces', 'x@s:known', ''];
+  for (const literal of literals) {
+    const cart = proseBase();
+    cart.world.rooms.a.desc = literal;
+    const result = V.validate(cart);
+    assert.ok(!result.findings.some((f) => /^string-(missing|ref-unsupported)$/.test(f.code)),
+      JSON.stringify(literal) + ' is ordinary prose, not a reference');
+  }
+  /* And the reserved shape is reserved everywhere, including for a key
+     that happens to exist. There is no escape; that is the contract. */
+  const exact = proseBase();
+  exact.world.objects.gem.name = '@s:known';
+  assert.ok(V.validate(exact).findings.some((f) => f.code === 'string-ref-unsupported'),
+    'an exact reference in an unresolved slot has no literal reading');
+  console.log('  ok — only the exact @s:key shape is reserved, and it is reserved everywhere');
+}
+
+function testOneFindingPerMissingReference() {
+  /* A missing key on a death/say outcome used to report twice, because
+     the text was checked before the switch and again inside it. */
+  const cart = proseBase();
+  cart.profile.darkness = { onFail: { type: 'death', text: '@s:nope' } };
+  const findings = V.validate(cart).findings
+    .filter((f) => f.code === 'string-missing' && f.path === 'profile.darkness.onFail.text');
+  assert.strictEqual(findings.length, 1, 'one missing reference, one finding (got ' + findings.length + ')');
+  console.log('  ok — a missing reference is reported exactly once');
+}
+
 const tests = [testCleanCartridge, testShippedCartridges, testWorldErrors, testExitRequirementsFailLoud,
   testContainerCycles, testRuleErrors, testFlagReconciliation, testProfileErrors,
   testUnreachableTreasure, testPresentationErrors, testReportFormatting,
   testFindingsAreStructured, testPathsAddressTheRealFault,
-  testStringReferences, testCrumblyIsWrittenEntirelyInStrings];
+  testStringReferences, testCrumblyIsWrittenEntirelyInStrings,
+  testFormatMustBeDeclared, testVersionMustBeSupported, testFormatCheckIsShared,
+  testValidationIsTotal, testMalformedMessagesNameTheShape, testRecursionIsBounded,
+  testEverySupportedSlotIsChecked, testUnsupportedSlotsRefuseReferences,
+  testLiteralContract, testOneFindingPerMissingReference];
 let failed = 0;
 console.log('\nMORROWLAMP — cartridge validator\n');
 for (const t of tests) {
