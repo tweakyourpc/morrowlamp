@@ -51,8 +51,11 @@
 .ml-panel h2{margin:0 0 8px;font-size:12px;letter-spacing:.14em;color:var(--dim);text-transform:uppercase}
 .ml-inv{display:flex;flex-wrap:wrap;gap:6px;min-height:32px}
 .ml-item{background:#232838;border:1px solid var(--edge);border-radius:4px;padding:4px 8px;
-  font-size:13px;cursor:pointer}
+  font-size:13px;cursor:pointer;display:flex;align-items:center;gap:6px}
+.ml-item canvas{display:block;image-rendering:pixelated;width:24px;height:24px}
 .ml-item.sel{background:var(--warm);color:#151515}
+.ml-item.low{border-color:#8a6a20;color:var(--warm)}
+.ml-item.spent{border-color:#6a2020;color:#c8564f;opacity:.75}
 .ml-cmd{display:flex;gap:6px}
 .ml-cmd input{flex:1;background:#0a0c12;color:var(--ink);border:1px solid var(--edge);
   border-radius:4px;padding:7px 9px;font:inherit;font-size:14px}
@@ -385,12 +388,27 @@
       ];
     }
 
-    function hitTest(x, y) {
+    function findInKind(x, y, kind) {
       for (let i = hotspots.length - 1; i >= 0; i--) {
-        const r = hotspots[i].rect;
-        if (x >= r[0] && x <= r[0] + r[2] && y >= r[1] && y <= r[1] + r[3]) return hotspots[i];
+        const h = hotspots[i];
+        if (h.kind !== kind) continue;
+        const r = h.rect;
+        if (x >= r[0] && x <= r[0] + r[2] && y >= r[1] && y <= r[1] + r[3]) return h;
       }
       return null;
+    }
+
+    /* A trapdoor's clickable area is deliberately the same rectangle as
+       the exit standing on top of it, so an overlap is not a mistake to
+       break ties on arbitrarily: which one a click means depends on what
+       the player is doing. Walking (no item in hand, Walk selected) means
+       the exit; anything else — Look, Hand, Talk, or using a held item on
+       whatever is there — means the object underneath. */
+    function hitTest(x, y) {
+      const objectFirst = !!carried || verb !== 'walk';
+      const first = objectFirst ? findInKind(x, y, 'object') : findInKind(x, y, 'exit');
+      if (first) return first;
+      return objectFirst ? findInKind(x, y, 'exit') : findInKind(x, y, 'object');
     }
 
     /* Turn a click into a command the runtime already understands. The
@@ -443,12 +461,51 @@
 
     function labelOf(id) { return (runtime.describeObject(id) || {}).name || id; }
 
+    /* Whether a carried item is *the* fuelled light source, and if so
+       how it should read: lit and plentiful, lit and low, or spent.
+       Read entirely from the cartridge's own profile.light.fuel config
+       and meta().fuel, the same numbers the status bar already shows —
+       no item id is assumed here, so a cartridge with no light system,
+       or a different one, is untouched. */
+    function fuelState(id) {
+      const fuel = runtime.profile.light.fuel;
+      if (!fuel || fuel.object !== id) return null;
+      const lit = (runtime.describeObject(id) || {}).lit;
+      if (!lit) return { cls: 'spent', text: 'out' };
+      const level = runtime.meta().fuel;
+      const warnAt = fuel.warnings && fuel.warnings[0] && fuel.warnings[0][0];
+      if (level !== null && level !== undefined && warnAt !== undefined && level <= warnAt) return { cls: 'low', text: 'low' };
+      return null;
+    }
+
+    /* A small still portrait of a carried object, drawn through the same
+       art.item(g, id, x, y, scale) contract the scene uses — never the
+       cartridge's painters directly, so a cartridge with no item art
+       just renders a text-only button. */
+    function itemIcon(id) {
+      if (!art.item) return null;
+      const size = 28;
+      const c = document.createElement('canvas');
+      c.width = size; c.height = size;
+      const ig = ml.render.create(c, { profile: profileName, resize: false });
+      ig.ctx.setTransform(size / 26, 0, 0, size / 26, 0, 0);
+      art.item(ig, id, 13, 13, 1);
+      ig.ctx.setTransform(1, 0, 0, 1, 0, 0);
+      return c;
+    }
+
     function renderInventory() {
       invStrip.textContent = '';
       const inv = runtime.inventory();
       if (!inv.length) { invStrip.appendChild(el('span', 'ml-stat', 'nothing')); return; }
       for (const id of inv) {
-        const b = el('button', 'ml-item' + (carried === id ? ' sel' : ''), labelOf(id));
+        const state = fuelState(id);
+        const label = labelOf(id) + (state ? ' (' + state.text + ')' : '');
+        const cls = 'ml-item' + (carried === id ? ' sel' : '') + (state ? ' ' + state.cls : '');
+        const b = el('button', cls);
+        const icon = itemIcon(id);
+        if (icon) b.appendChild(icon);
+        b.appendChild(el('span', null, label));
         b.addEventListener('click', () => {
           if (carried && carried !== id) { const held = carried; carried = null; run({ verb: 'use', target: held, with: id }); return; }
           carried = carried === id ? null : id;

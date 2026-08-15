@@ -172,19 +172,22 @@
         subtitle.textContent = title.subtitle || cart.meta.blurb;
         card.appendChild(subtitle);
       }
+      const dismiss = () => {
+        document.removeEventListener('keydown', titleKey);
+        over.remove();
+        begin();
+      };
       const prompt = document.createElement('button');
       prompt.className = 'ml-btn';
       prompt.textContent = title.prompt || 'BEGIN';
-      prompt.addEventListener('click', () => { over.remove(); begin(); });
+      prompt.addEventListener('click', dismiss);
       card.appendChild(prompt);
       over.appendChild(card);
       document.body.appendChild(over);
       const titleKey = (event) => {
         if (event.key !== 'Enter' && event.key !== ' ') return;
         event.preventDefault();
-        document.removeEventListener('keydown', titleKey);
-        over.remove();
-        begin();
+        dismiss();
       };
       document.addEventListener('keydown', titleKey);
     } else begin();

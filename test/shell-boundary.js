@@ -41,7 +41,8 @@ function installDom() {
   const doc = { readyState: 'complete', body: makeEl('body'), head: makeEl('head'), listeners: {},
     getElementById(id) { if (!elements.has(id)) { const el = makeEl('div'); el.id = id; elements.set(id, el); } return elements.get(id); },
     createElement: makeEl, createElementNS: (_ns, tag) => makeEl(tag), querySelectorAll: () => [],
-    addEventListener(t, fn) { (doc.listeners[t] = doc.listeners[t] || []).push(fn); } };
+    addEventListener(t, fn) { (doc.listeners[t] = doc.listeners[t] || []).push(fn); },
+    removeEventListener(t, fn) { doc.listeners[t] = (doc.listeners[t] || []).filter((f) => f !== fn); } };
   const frames = [];
   global.document = doc;
   global.window = { document: doc, addEventListener() {}, scrollTo: noop, matchMedia: () => ({ matches: false, addEventListener: noop }),
