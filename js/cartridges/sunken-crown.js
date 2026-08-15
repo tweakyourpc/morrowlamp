@@ -798,6 +798,14 @@
       renderer: 'ega',
       interface: 'canvas',
       audio: 'chip',
+      title: {
+        enabled: true,
+        heading: 'THE SUNKEN CROWN',
+        subtitle: 'the Sunken Halls',
+        prompt: 'BEGIN ADVENTURE',
+        showClasses: true,
+        showSplash: true
+      },
       /* Scene painters and sprites are cartridge art, supplied by
          js/scenes.js and js/sprites.js and drawn with the Machine's
          rendering primitives from js/gfx.js. They are looked up lazily

@@ -30,6 +30,10 @@
 .ml-term-row input{flex:1;background:transparent;border:0;border-bottom:1px solid #2c3a2c;
   color:var(--ink);font:inherit;padding:4px 0}
 .ml-term-row input:focus{outline:none;border-color:var(--warm)}
+.ml-term-over{position:fixed;inset:0;background:#050805f2;color:var(--ink);display:flex;align-items:center;justify-content:center;padding:24px;z-index:10}
+.ml-term-card{max-width:700px;text-align:center;border:1px solid #394f39;background:#0d160d;padding:24px}
+.ml-term-card h1{color:var(--warm);letter-spacing:.12em}
+.ml-term-card p{text-align:left;color:var(--dim)}
 `;
 
   function mount(options) {
@@ -145,12 +149,45 @@
       submit(text);
     });
 
-    print(runtime.intro().map((t) => ({ text: t, cls: 'dim' })));
-    print([{ text: '', cls: '' }]);
-    print(runtime.describeRoom(runtime.meta().room, true));
-    renderStatus();
-    announceEncounter();
-    input.focus();
+    function begin() {
+      print(runtime.intro().map((t) => ({ text: t, cls: 'dim' })));
+      print([{ text: '', cls: '' }]);
+      print(runtime.describeRoom(runtime.meta().room, true));
+      renderStatus();
+      announceEncounter();
+      input.focus();
+    }
+
+    const title = (cart.presentation || {}).title;
+    if (title && title.enabled) {
+      const over = document.createElement('div');
+      over.className = 'ml-term-over';
+      const card = document.createElement('div');
+      card.className = 'ml-term-card';
+      const heading = document.createElement('h1');
+      heading.textContent = title.heading || cart.meta.title || 'A MORROWLAMP ADVENTURE';
+      card.appendChild(heading);
+      if (title.subtitle || cart.meta.blurb) {
+        const subtitle = document.createElement('p');
+        subtitle.textContent = title.subtitle || cart.meta.blurb;
+        card.appendChild(subtitle);
+      }
+      const prompt = document.createElement('button');
+      prompt.className = 'ml-btn';
+      prompt.textContent = title.prompt || 'BEGIN';
+      prompt.addEventListener('click', () => { over.remove(); begin(); });
+      card.appendChild(prompt);
+      over.appendChild(card);
+      document.body.appendChild(over);
+      const titleKey = (event) => {
+        if (event.key !== 'Enter' && event.key !== ' ') return;
+        event.preventDefault();
+        document.removeEventListener('keydown', titleKey);
+        over.remove();
+        begin();
+      };
+      document.addEventListener('keydown', titleKey);
+    } else begin();
 
     return { runtime, sound, run, submit, print };
   }

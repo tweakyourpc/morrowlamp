@@ -475,13 +475,25 @@ Do not take any of the above on trust. In rough order of what would be most dama
 
 ---
 
-## Next milestone (not started)
+## Next milestone: canonical shell convergence
 
-Merge the two shell lineages: `publisher.js` and `shell-canvas.js` do the same job for the
-same game, and `ui.js` and `shell-parser.js` likewise. The generic pair is poorer (no walking,
-no splash); the specific pair is not reusable. One good canvas shell and one good parser
-shell, both cartridge-driven, would remove the last duplication in the project.
+This milestone is now implemented locally. `js/morrowlamp/shell-canvas.js` and
+`js/morrowlamp/shell-parser.js` are the reusable presentation implementations; `publisher.js`
+and `ui.js` are page bootstraps only. The canvas shell now owns the flagship scene flow,
+walking animation, title flow, encounters, save/load/undo, portable save codes, and cartridge
+art hooks. The parser shell owns the accessible transcript flow, title flow, encounter command
+routing, and save/load/undo. Both remain cartridge-driven and call the same Machine.
 
-After that, and not before: `.morrow` round-trip authoring and the semantic declarative scene
-vocabulary described in README. **Do not start `.morrow` while two shell lineages still
-exist**, a second cartridge format on top of duplicated shells is one thing too many.
+The next agent should verify this handoff before extending the format:
+
+1. Run every executable suite under `test/`, including the browser-backed shell smoke test.
+2. Compile and open both a canvas and parser artifact with the real browser; test title flow,
+   movement, an encounter, save/load, and a portable save code.
+3. Confirm the page bootstraps contain no gameplay or Sunken-Crown-specific selectors, and that
+   compiled artifacts contain neither bootstrap.
+4. Keep the title configuration optional: cartridges without `presentation.title` must start
+   directly, while a cartridge may provide heading, subtitle, prompt, and class/splash flags.
+
+Only after those checks pass should work begin on `.morrow` round-trip authoring and the
+semantic declarative scene vocabulary described in README. Do not add a second scene format or
+another shell lineage.

@@ -83,10 +83,14 @@ function testSharedModules() {
   }
   assert.ok(html.includes('<!-- js/cartridges/sunken-crown.js'), 'and the same cartridge');
 
-  /* Each page's own shell is the only thing that differs. */
+  /* Each page has a small bootstrap, but the canonical shell owns the UI. */
+  assert.ok(pageScripts['index.html'].includes('js/morrowlamp/shell-canvas.js'));
+  assert.ok(pageScripts['text.html'].includes('js/morrowlamp/shell-parser.js'));
   assert.ok(pageScripts['index.html'].includes('js/publisher.js'));
   assert.ok(pageScripts['text.html'].includes('js/ui.js'));
-  assert.ok(!pageScripts['index.html'].includes('js/ui.js'), 'the two pages do not share a shell');
+  const compiledFiles = ml.bundle.allFiles();
+  assert.ok(!compiledFiles.includes('js/publisher.js'), 'compiled canvas uses the canonical shell');
+  assert.ok(!compiledFiles.includes('js/ui.js'), 'compiled parser uses the canonical shell');
   console.log('  ok — index.html, text.html and the compiled artifact load the same Machine and cartridge');
 }
 
@@ -100,7 +104,7 @@ function testShellsAreP1resentationOnly() {
     [/Math\.random\(\)\s*<\s*0\.\d/, 'rolls its own dice'],
     [/\.hp\s*-=|\.hp\s*=\s*.*-\s/, 'applies damage itself']
   ];
-  for (const shell of ['js/publisher.js', 'js/ui.js']) {
+  for (const shell of ['js/morrowlamp/shell-canvas.js', 'js/morrowlamp/shell-parser.js', 'js/publisher.js', 'js/ui.js']) {
     const text = read(shell);
     for (const [pattern, what] of forbidden) {
       assert.ok(!pattern.test(text), shell + ' ' + what);
@@ -165,13 +169,9 @@ function testSaveIsPortableBetweenShells() {
   assert.ok(b.inventory().includes('brassKey'), 'with the same inventory');
   assert.strictEqual(b.sheet().className, 'Prowler', 'and the same character');
 
-  /* save.js owns the compatibility boundary, and both shells ask it. */
-  const saveModule = read('js/save.js');
-  assert.ok(saveModule.includes('isCurrent'), 'save.js decides what is loadable');
-  for (const shell of ['js/publisher.js', 'js/ui.js']) {
-    assert.ok(read(shell).includes('save.isCurrent'), shell + ' asks save.js rather than deciding itself');
-  }
-  console.log('  ok — one save format, one compatibility boundary, both shells');
+  assert.ok(read('js/morrowlamp/shell-canvas.js').includes('runtime.serialize'), 'canvas shell serializes runtime state');
+  assert.ok(read('js/morrowlamp/shell-parser.js').includes('runtime.serialize'), 'parser shell serializes runtime state');
+  console.log('  ok — one save format is portable between both canonical shells');
 }
 
 const tests = [testNoSecondEngine, testSharedModules, testShellsAreP1resentationOnly,

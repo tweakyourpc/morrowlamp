@@ -1,177 +1,26 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#0b0e12">
-<meta name="description" content="THE SUNKEN CROWN — a modern text adventure in the grand tradition of Zork.">
-<title>THE SUNKEN CROWN</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M8 1 L15 8 L8 15 L1 8 Z' fill='%23ffab40'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="css/style.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>THE SUNKEN CROWN</title>
 </head>
 <body>
-<div class="crt-overlay" aria-hidden="true"></div>
-<div class="vignette" aria-hidden="true"></div>
-
-<header class="topbar">
-  <div class="brand">
-    <span class="brand-mark">◆</span>
-    <span class="brand-name">THE SUNKEN CROWN</span>
-    <span class="brand-sub">the Sunken Halls</span>
-  </div>
-  <div class="hud">
-    <span class="hud-item" id="hud-score" title="Score">Score 0</span>
-    <span class="hud-item" id="hud-turns" title="Turns">0 moves</span>
-    <span class="hud-item hud-treasure" id="hud-treasure" title="Treasures placed in the cabinet">Treasures 0/6</span>
-  </div>
-  <nav class="topbtns">
-    <button class="btn" id="btn-help" type="button" title="How to play (help)">Help</button>
-    <button class="btn" id="btn-save" type="button" title="Save game">Save</button>
-    <button class="btn" id="btn-load" type="button" title="Load game">Load</button>
-    <button class="btn" id="btn-undo" type="button" title="Undo last move">Undo</button>
-    <button class="btn" id="btn-sound" type="button" title="Toggle sound">♪ On</button>
-    <button class="btn" id="btn-settings" type="button" title="Settings">Settings</button>
-  </nav>
-</header>
-
-<main class="layout">
-  <section class="terminal-panel">
-    <div class="terminal-titlebar">
-      <span class="dot dot-red"></span><span class="dot dot-amber"></span><span class="dot dot-green"></span>
-      <span class="title-text">sunkencrown — tty1</span>
-      <span class="title-status" id="room-status">✦ Ashcombe Yard</span>
-    </div>
-    <div id="output" class="output" role="log" aria-live="polite" aria-label="Game output"></div>
-    <form id="input-form" class="input-row" autocomplete="off">
-      <span class="prompt-mark" aria-hidden="true">&gt;</span>
-      <input id="command" class="command" type="text" placeholder="Type a command… (try 'help')"
-             aria-label="Command input" spellcheck="false" autocomplete="off" autocapitalize="off">
-    </form>
-    <div class="input-hints" id="input-hints"></div>
-  </section>
-
-  <aside class="side">
-    <section class="panel">
-      <h2 class="panel-title">Inventory</h2>
-      <ul class="inv-list" id="inv-list"><li class="inv-empty">— empty —</li></ul>
-    </section>
-    <section class="panel">
-      <h2 class="panel-title">Compass</h2>
-      <div class="compass">
-        <button class="c-btn c-n" data-dir="n" title="North">N</button>
-        <button class="c-btn c-s" data-dir="s" title="South">S</button>
-        <button class="c-btn c-e" data-dir="e" title="East">E</button>
-        <button class="c-btn c-w" data-dir="w" title="West">W</button>
-        <button class="c-btn c-u" data-dir="u" title="Up">▲</button>
-        <button class="c-btn c-d" data-dir="d" title="Down">▼</button>
-        <span class="c-core">◆</span>
-      </div>
-    </section>
-    <section class="panel">
-      <h2 class="panel-title">Map</h2>
-      <svg id="map" class="map" viewBox="0 0 640 560" role="img" aria-label="Map of explored locations"></svg>
-    </section>
-  </aside>
-</main>
-
-<!-- Settings modal -->
-<div class="modal-backdrop" id="modal-backdrop" hidden>
-  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-    <h2 id="modal-title">Settings</h2>
-    <label class="setting-row">
-      <span>Typewriter effect</span>
-      <select id="set-typewriter">
-        <option value="off">Off</option>
-        <option value="fast">Fast</option>
-        <option value="normal" selected>Normal</option>
-      </select>
-    </label>
-    <label class="setting-row">
-      <span>Read aloud (speech)</span>
-      <select id="set-speech">
-        <option value="off" selected>Off</option>
-        <option value="on">On</option>
-      </select>
-    </label>
-    <label class="setting-row">
-      <span>Text size</span>
-      <select id="set-fontsize">
-        <option value="0.85">Small</option>
-        <option value="1" selected>Normal</option>
-        <option value="1.15">Large</option>
-      </select>
-    </label>
-    <label class="setting-row">
-      <span>Theme</span>
-      <select id="set-theme">
-        <option value="ember" selected>Ember (amber)</option>
-        <option value="holo">Holo (cyan)</option>
-        <option value="verdant">Verdant (green)</option>
-        <option value="mono">Mono (paper)</option>
-      </select>
-    </label>
-    <div class="modal-actions">
-      <button class="btn btn-primary" id="btn-settings-close" type="button">Done</button>
-    </div>
-  </div>
-</div>
-
-<!-- Save / Load modal -->
-<div class="modal-backdrop" id="slot-backdrop" hidden>
-  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="slot-title">
-    <h2 id="slot-title">Save Game</h2>
-    <p class="slot-hint" id="slot-hint">Choose a slot.</p>
-    <div class="slot-list" id="slot-list"></div>
-    <div class="modal-actions">
-      <button class="btn" id="btn-slot-cancel" type="button">Cancel</button>
-    </div>
-  </div>
-</div>
-
-<!-- Death overlay -->
-<div class="overlay" id="death-overlay" hidden>
-  <div class="overlay-card">
-    <h2 class="death-title">☠ You have died</h2>
-    <div class="overlay-actions">
-      <button class="btn btn-primary" id="btn-death-undo" type="button">Undo last move</button>
-      <button class="btn" id="btn-death-restart" type="button">Restart</button>
-      <button class="btn" id="btn-death-load" type="button">Load game</button>
-    </div>
-  </div>
-</div>
-
-<!-- Victory overlay -->
-<div class="overlay" id="win-overlay" hidden>
-  <div class="overlay-card win-card">
-    <h2 class="win-title">✦ The Sunken Halls Are Yours ✦</h2>
-    <p class="win-rank" id="win-rank"></p>
-    <div class="overlay-actions">
-      <button class="btn btn-primary" id="btn-win-restart" type="button">Adventure again</button>
-      <button class="btn" id="btn-win-keep" type="button">Keep exploring</button>
-    </div>
-  </div>
-</div>
-
-<!-- The Morrowlamp Machine: the same gameplay runtime index.html and
-     every compiled adventure use. -->
-<script src="js/morrowlamp/core.js"></script>
-<script src="js/morrowlamp/world.js"></script>
-<script src="js/morrowlamp/profile.js"></script>
-<script src="js/morrowlamp/outcome.js"></script>
-<script src="js/morrowlamp/rules.js"></script>
-<script src="js/morrowlamp/vocabulary.js"></script>
-<script src="js/morrowlamp/stats.js"></script>
-<script src="js/morrowlamp/encounter.js"></script>
-<script src="js/morrowlamp/runtime.js"></script>
-
-<script src="js/audio.js"></script>
-<script src="js/save.js"></script>
-
-<!-- The Sunken Crown cartridge. -->
-<script src="js/world.js"></script>
-<script src="js/cartridges/sunken-crown.js"></script>
-
-<!-- This page's shell. Presentation only. -->
-<script src="js/ui.js"></script>
+  <main id="morrowlamp-app" aria-label="Morrowlamp text adventure"></main>
+  <script src="js/morrowlamp/core.js"></script>
+  <script src="js/morrowlamp/world.js"></script>
+  <script src="js/morrowlamp/profile.js"></script>
+  <script src="js/morrowlamp/outcome.js"></script>
+  <script src="js/morrowlamp/rules.js"></script>
+  <script src="js/morrowlamp/vocabulary.js"></script>
+  <script src="js/morrowlamp/stats.js"></script>
+  <script src="js/morrowlamp/encounter.js"></script>
+  <script src="js/morrowlamp/runtime.js"></script>
+  <script src="js/morrowlamp/sound.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/world.js"></script>
+  <script src="js/cartridges/sunken-crown.js"></script>
+  <script src="js/morrowlamp/shell-parser.js"></script>
+  <script src="js/ui.js"></script>
 </body>
 </html>

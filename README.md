@@ -499,8 +499,10 @@ js/world.js                 — rooms, objects, prose        (Sunken Crown cartr
 js/scenes.js                — 18 scene painters + click data        (Sunken Crown art)
 js/sprites.js               — actor, monsters, item icons           (Sunken Crown art)
 
-js/publisher.js             — the point-and-click shell   (presentation only)
-js/ui.js                    — the terminal shell          (presentation only)
+js/morrowlamp/shell-canvas.js — reusable point-and-click shell (presentation only)
+js/morrowlamp/shell-parser.js — reusable terminal shell       (presentation only)
+js/publisher.js               — canvas page bootstrap
+js/ui.js                      — terminal page bootstrap
 
 test/                       — see "Running the tests"
 PROVENANCE.md               — where this repository came from, and what it does not contain
@@ -520,12 +522,10 @@ Honestly, after consolidation:
 
 - **There is no second gameplay engine.** `js/engine.js`, `js/rpg.js` and `js/parser.js` are
   gone. Every gameplay decision in every shell is made by `js/morrowlamp/`.
-- **`js/publisher.js` and `js/ui.js` are Sunken-Crown-specific shells.** They are presentation
-  only, no scoring, no dice, no damage, but they are written against this game's scene
-  layout and hotspot ids, and `publisher.js` contains a handful of per-object gestures
-  (`sarcophagus` and `mirror` respond to Hand as a push). A *generic* pair of shells already
-  exists in `js/morrowlamp/shell-canvas.js` and `shell-parser.js`; those are what compiled
-  adventures use. Merging the two lineages is future work, not a duplicate engine.
+- **`js/morrowlamp/shell-canvas.js` and `shell-parser.js` are the canonical shells.** They are
+  cartridge-driven presentation only: no scoring, no dice, no damage. The top-level
+  `publisher.js` and `ui.js` files are thin page bootstraps, and compiled adventures embed
+  the canonical shells directly.
 - **`js/sprites.js` mixes generic and specific.** `drawActor` is a generic person; the item
   icons and monsters are Sunken Crown art. It ships as cartridge art in one piece.
 - **`js/world.js`, `js/scenes.js` and `js/sprites.js` are cartridge content, not engine.**

@@ -114,6 +114,10 @@
     let carried = null;          // inventory item lifted onto the cursor
     let hotspots = [];
     let g = null, bg = null, bgG = null, bgKey = '';
+    let actor = null;
+    let actorFrame = 0;
+    let actorFacing = 1;
+    let actorAnimation = null;
 
     /* ---------------- chrome ---------------- */
     if (!document.getElementById('ml-shell-css')) {
@@ -133,7 +137,9 @@
     const btnUndo = el('button', 'ml-btn', 'Undo');
     const btnVideo = el('button', 'ml-btn', profileName.toUpperCase());
     const btnSound = el('button', 'ml-btn on', '♪ ' + sound.profile.name);
-    bar.append(titleTag, statRoom, statScore, btnUndo, btnSave, btnLoad, btnVideo, btnSound);
+    const btnCodeOut = el('button', 'ml-btn', 'Code out');
+    const btnCodeIn = el('button', 'ml-btn', 'Code in');
+    bar.append(titleTag, statRoom, statScore, btnUndo, btnSave, btnLoad, btnCodeOut, btnCodeIn, btnVideo, btnSound);
 
     const main = el('div', 'ml-main');
     const stageCol = el('div', 'ml-stagecol');
@@ -195,6 +201,39 @@
 
     function currentScene() { return art.scene(runtime.meta().room); }
 
+    function entryPoint(scene) {
+      return (scene && scene.entry && (scene.entry.start || scene.entry.n)) || [160, 170];
+    }
+
+    function ensureActor(scene) {
+      const entry = entryPoint(scene);
+      if (!actor) actor = { x: entry[0], y: entry[1] };
+      return actor;
+    }
+
+    function animateActorTo(target) {
+      if (!target) return;
+      const current = ensureActor(currentScene());
+      const start = { x: current.x, y: current.y };
+      const distance = Math.hypot(target[0] - start.x, target[1] - start.y);
+      if (distance < 2) { current.x = target[0]; current.y = target[1]; repaint(); return; }
+      actorFacing = target[0] < start.x ? -1 : 1;
+      const started = performance.now();
+      const duration = Math.max(180, Math.min(900, distance * 4));
+      if (actorAnimation) cancelAnimationFrame(actorAnimation);
+      const step = (now) => {
+        const t = Math.min(1, (now - started) / duration);
+        const eased = t * t * (3 - 2 * t);
+        current.x = start.x + (target[0] - start.x) * eased;
+        current.y = start.y + (target[1] - start.y) * eased;
+        actorFrame = Math.floor(now / 90) % 4;
+        repaint();
+        if (t < 1) actorAnimation = requestAnimationFrame(step);
+        else { actorAnimation = null; current.x = target[0]; current.y = target[1]; repaint(); }
+      };
+      actorAnimation = requestAnimationFrame(step);
+    }
+
     function visibleIds() { return runtime.visibleObjects().map((o) => o.id); }
 
     /* Which rectangles are clickable right now: authored hotspots for
@@ -232,7 +271,8 @@
         if (e.needs && !flags[e.needs]) continue;
         const check = runtime.exits().find((x) => x.dir === e.dir);
         if (!check) continue;
-        out.push({ kind: 'exit', dir: e.dir, rect: [e.x, e.y, e.w, e.h], ok: check.ok, label: exitLabel(e.dir, check) });
+        out.push({ kind: 'exit', dir: e.dir, rect: [e.x, e.y, e.w, e.h], walkTo: e.walkTo,
+          ok: check.ok, label: exitLabel(e.dir, check) });
       }
       return out;
     }
@@ -287,16 +327,17 @@
         }
       }
       if (art.actor) {
-        const entry = (scene.entry && (scene.entry.start || scene.entry.n)) || [160, 170];
+        const entry = entryPoint(scene);
+        const pose = ensureActor(scene);
         drawables.push({
-          y: entry[1],
+          y: pose.y,
           /* `carryingLight` is as specific as the shell is allowed to be:
              whether the player is lighting their own way here. Which
              prop that is — a lamp, a torch, a glowing rock — is the
              cartridge's business, decided in its actor painter. */
-          fn: () => art.actor(g, entry[0], entry[1], {
-            scale: art.actorScale(scene, entry[1]),
-            facing: 1, frame: 0, walking: false,
+          fn: () => art.actor(g, pose.x, pose.y, {
+            scale: art.actorScale(scene, pose.y),
+            facing: actorFacing, frame: actorFrame, walking: !!actorAnimation,
             carryingLight: m.dark && m.hasLight
           })
         });
@@ -356,7 +397,7 @@
        shell never invents game logic; it only phrases requests. */
     function commandFor(spot) {
       if (!spot) return null;
-      if (spot.kind === 'exit') return { verb: 'move', text: spot.dir };
+      if (spot.kind === 'exit') return { verb: 'move', text: spot.dir, _walkTo: spot.walkTo };
       const info = runtime.describeObject(spot.id);
       if (!info) return null;
 
@@ -512,15 +553,58 @@
 
     /* ---------------- the turn ---------------- */
     function run(action) {
-      const result = runtime.perform(action);
+      const beforeRoom = runtime.meta().room;
+      const walkTo = action && action._walkTo;
+      let result;
+      if (action && action._text !== undefined) result = runtime.command(action._text);
+      else {
+        const clean = Object.assign({}, action);
+        delete clean._walkTo;
+        delete clean._text;
+        result = runtime.perform(clean);
+      }
       if (result.meta.clear) log.textContent = '';
       print(result.messages);
       if (result.meta.saveRequest !== undefined && result.meta.saveRequest !== null) saveGame(result.meta.saveRequest);
       if (result.meta.loadRequest !== undefined && result.meta.loadRequest !== null) loadGame(result.meta.loadRequest);
       refresh();
+      if (beforeRoom !== runtime.meta().room) animateActorTo(entryPoint(currentScene()));
+      else if (walkTo) animateActorTo(walkTo);
       if (result.meta.win) showEnd('win');
       else if (result.meta.dead) showEnd('death');
     }
+
+    function encodeCode(value) {
+      const bytes = unescape(encodeURIComponent(JSON.stringify(value)));
+      return 'ML1-' + btoa(bytes).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    }
+
+    function decodeCode(code) {
+      const raw = String(code || '').trim();
+      if (!raw.startsWith('ML1-')) throw new Error('unknown save code');
+      const bytes = raw.slice(4).replace(/-/g, '+').replace(/_/g, '/');
+      return JSON.parse(decodeURIComponent(escape(atob(bytes))));
+    }
+
+    btnCodeOut.addEventListener('click', () => {
+      const code = encodeCode({ cartridge: cart.meta.id, state: runtime.serialize() });
+      if (global.prompt) global.prompt('Copy this save code:', code);
+      else print([{ text: code, cls: 'info' }]);
+    });
+    btnCodeIn.addEventListener('click', () => {
+      if (!global.prompt) return;
+      const code = global.prompt('Paste a save code:');
+      if (!code) return;
+      try {
+        const saved = decodeCode(code);
+        if (saved.cartridge !== cart.meta.id) throw new Error('wrong cartridge');
+        runtime.restore(saved.state);
+        print([{ text: 'Restored from code.', cls: 'good' }]);
+        refresh();
+      } catch (err) {
+        print([{ text: 'That save code could not be read.', cls: 'bad' }]);
+      }
+    });
 
     function refresh() {
       repaint();
@@ -538,7 +622,7 @@
       input.value = '';
       if (!text.trim()) return;
       print([{ text: '> ' + text, cls: 'dim' }]);
-      run(runtime.parse(text));
+      run({ _text: text });
     });
 
     document.addEventListener('keydown', (event) => {
@@ -606,9 +690,10 @@
     }
 
     function showTitle() {
+      const title = presentation.title || {};
       overlay((card, close) => {
-        card.appendChild(el('h1', null, cart.meta.title || 'A MORROWLAMP ADVENTURE'));
-        if (cart.meta.blurb) card.appendChild(el('p', 'ml-stat', cart.meta.blurb));
+        card.appendChild(el('h1', null, title.heading || cart.meta.title || 'A MORROWLAMP ADVENTURE'));
+        if (title.subtitle || cart.meta.blurb) card.appendChild(el('p', 'ml-stat', title.subtitle || cart.meta.blurb));
         for (const line of runtime.intro()) card.appendChild(el('p', null, line));
 
         const begin = () => {
@@ -621,7 +706,7 @@
 
         /* A cartridge with more than one class asks; one with a single
            class, or none, simply starts. The shell does not decide. */
-        const classes = runtime.hasStats() ? runtime.classes() : [];
+        const classes = title.showClasses === false ? [] : (runtime.hasStats() ? runtime.classes() : []);
         if (classes.length > 1) {
           card.appendChild(el('h2', 'ml-stat', 'CHOOSE WHO GOES'));
           const box = el('div', 'ml-classes');
@@ -638,7 +723,7 @@
           }
           card.appendChild(box);
         } else {
-          const go = el('button', 'ml-btn', 'BEGIN');
+          const go = el('button', 'ml-btn', title.prompt || 'BEGIN');
           go.addEventListener('click', begin);
           card.appendChild(go);
         }
@@ -667,7 +752,7 @@
     /* ---------------- boot ---------------- */
     print(runtime.describeRoom(runtime.meta().room, true));
     refresh();
-    if (options.title !== false) showTitle();
+    if (options.title !== false && presentation.title && presentation.title.enabled !== false) showTitle();
 
     return { runtime, sound, refresh, run, print, setVerb, canvas };
   }
