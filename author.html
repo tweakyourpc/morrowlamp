@@ -108,6 +108,16 @@ code{color:var(--lime); font-size:12px}
 .hint{color:var(--dim); font-size:11.5px; margin:4px 0 0}
 fieldset{border:1px solid var(--edge); border-radius:3px; padding:10px 12px; margin:0 0 12px}
 legend{font-size:10px; letter-spacing:.14em; color:var(--dim); text-transform:uppercase; padding:0 6px}
+.editorbar{display:flex;gap:6px;align-items:center;flex-wrap:wrap;padding:10px 20px;background:#10131c;border-bottom:1px solid var(--edge)}
+.editorbar .status{color:var(--dim);font-size:11px;margin-left:auto}
+.editorbar button{padding:5px 9px}
+.room-map{position:relative;min-height:300px;overflow:auto;background:#080a10;border:1px solid var(--edge);border-radius:3px;background-image:linear-gradient(#151b2a 1px,transparent 1px),linear-gradient(90deg,#151b2a 1px,transparent 1px);background-size:24px 24px}
+.room-map svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;min-width:720px;min-height:300px}
+.room-map .map-room{position:absolute;min-width:120px;max-width:170px;padding:8px;background:var(--raise);color:var(--ink);border:1px solid var(--edge);border-radius:4px;text-align:left;cursor:grab;box-shadow:0 3px 10px #0008}
+.room-map .map-room:active{cursor:grabbing}.room-map .map-room.on{border-color:var(--warm);box-shadow:0 0 0 1px var(--warm)}
+.map-room b{display:block;color:var(--warm);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.map-room span{display:block;color:var(--dim);font-size:10px;margin-top:3px}
+.guide-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.guide-grid label{margin:0}.guide-grid select,.guide-grid input{margin-top:4px}
+.advanced-rule{margin-top:12px}.advanced-rule summary{cursor:pointer;color:var(--warm);font-size:11px;letter-spacing:.1em;text-transform:uppercase}
 </style>
 </head>
 <body>
@@ -116,8 +126,14 @@ legend{font-size:10px; letter-spacing:.14em; color:var(--dim); text-transform:up
   <span class="mark">MORROWLAMP GAME WORKSHOP</span>
   <span class="model">MODEL 2 · ADVENTURE CONSTRUCTION SYSTEM</span>
   <span class="spacer"></span>
-  <span class="model" id="engine-stamp"></span>
+<span class="model" id="engine-stamp"></span>
 </header>
+<div class="editorbar">
+  <button id="btn-undo" disabled>Undo</button>
+  <button id="btn-redo" disabled>Redo</button>
+  <button id="btn-recover" disabled>Recover draft</button>
+  <span class="status" id="editor-status">No cartridge inserted.</span>
+</div>
 
 <div class="wrap">
 <div class="cols">
@@ -214,6 +230,11 @@ legend{font-size:10px; letter-spacing:.14em; color:var(--dim); text-transform:up
       <!-- WORLD -->
       <div class="sheet" id="sheet-world">
         <fieldset>
+          <legend>World map</legend>
+          <p class="hint">Drag rooms to arrange the story. Click a room to edit it; the map is editor metadata and never changes gameplay.</p>
+          <div id="room-map" class="room-map"></div>
+        </fieldset>
+        <fieldset>
           <legend>Rooms</legend>
           <div class="scroll">
             <table>
@@ -251,6 +272,7 @@ legend{font-size:10px; letter-spacing:.14em; color:var(--dim); text-transform:up
           <button id="btn-add-rule">Add rule</button>
         </div>
         <div id="rule-editor"></div>
+        <p class="hint">The guided editor covers the common case. Open Advanced JSON when you need a multi-step rule or an uncommon condition.</p>
         <p class="hint">A rule matches on <code>verb</code>, <code>target</code>, <code>with</code> and <code>phrase</code>, checks the world with <code>when</code>, and performs <code>do</code>. If the head matches but <code>when</code> does not, <code>otherwise</code> explains why. First match wins; anything unclaimed falls through to the Machine's own verbs.</p>
       </div>
 
@@ -298,6 +320,11 @@ legend{font-size:10px; letter-spacing:.14em; color:var(--dim); text-transform:up
             <tbody id="profile-rows"></tbody>
           </table>
         </fieldset>
+        <fieldset style="margin-top:14px">
+          <legend>Semantic scenes</legend>
+          <p class="hint">Workshop scenes describe rooms with a small vocabulary. They contain no drawing commands and survive JSON saves.</p>
+          <div id="scene-editor"></div>
+        </fieldset>
       </div>
     </section>
 
@@ -321,6 +348,7 @@ legend{font-size:10px; letter-spacing:.14em; color:var(--dim); text-transform:up
 <script src="js/morrowlamp/stats.js"></script>
 <script src="js/morrowlamp/encounter.js"></script>
 <script src="js/morrowlamp/runtime.js"></script>
+<script src="js/morrowlamp/scene.js"></script>
 <script src="js/morrowlamp/render.js"></script>
 <script src="js/morrowlamp/sound.js"></script>
 
@@ -334,6 +362,7 @@ legend{font-size:10px; letter-spacing:.14em; color:var(--dim); text-transform:up
 <script src="js/cartridges/sunken-crown.js"></script>
 <script src="js/cartridges/captains-thistle.js"></script>
 <script src="js/cartridges/sir-crumbly.js"></script>
+<script src="js/cartridges/ringling-helpdesk.js"></script>
 
 <!-- Synthesized sound and the two generic shells, so the Workshop can
      play a cartridge on the bench instead of making the operator build
@@ -345,6 +374,7 @@ legend{font-size:10px; letter-spacing:.14em; color:var(--dim); text-transform:up
 
 <!-- The Workshop. -->
 <script src="js/workshop/validator.js"></script>
+<script src="js/workshop/editor-state.js"></script>
 <script src="js/workshop/import.js"></script>
 <script src="js/workshop/prove.js"></script>
 <script src="js/workshop/bundle.js"></script>

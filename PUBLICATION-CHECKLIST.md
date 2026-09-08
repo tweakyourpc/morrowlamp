@@ -52,8 +52,8 @@ the evidence behind each line.
 | ✅ | Routes covered through real shells are documented | |
 | ✅ | Remaining presentation-shell duplication documented honestly | |
 | ✅ | Provenance accurate, including the pre-publication rewrite | |
-| ✅ | Shell convergence clearly marked future work | |
-| ✅ | `.morrow` clearly marked future work | |
+| ✅ | Shell convergence is documented and implemented | |
+| ✅ | `.morrow` semantic scene authoring is documented and implemented | |
 
 ## Final independent gate
 
@@ -64,6 +64,6 @@ the evidence behind each line.
 
 ## Not started, deliberately
 
-- Shell convergence (`publisher.js` + `shell-canvas.js`, `ui.js` + `shell-parser.js`)
-- `.morrow` round-trip authoring
+- Expansion beyond the bounded semantic scene vocabulary
+- Conversion of bespoke developer painters to semantic data
 - Any new cartridge, graphics mode, animation, speech or sharing feature

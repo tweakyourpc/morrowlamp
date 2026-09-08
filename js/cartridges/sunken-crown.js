@@ -806,6 +806,11 @@
         showClasses: true,
         showSplash: true
       },
+      speech: {
+        room: 'caveMouth', target: 'gates', verb: 'say', submit: 'Speak',
+        heading: 'THE CAVERN OF ECHOES',
+        prompt: 'I borrow every voice you give me, then return it from stone. I have no throat, but caves teach me to answer. What am I?'
+      },
       /* Scene painters and sprites are cartridge art, supplied by
          js/scenes.js and js/sprites.js and drawn with the Machine's
          rendering primitives from js/gfx.js. They are looked up lazily

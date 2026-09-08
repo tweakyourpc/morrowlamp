@@ -38,6 +38,7 @@
   /* Rendering primitives, needed only by the canvas interface. */
   const RENDERER = [
     'js/gfx.js',
+    'js/morrowlamp/scene.js',
     'js/morrowlamp/render.js'
   ];
 
@@ -70,6 +71,10 @@
     'sir-crumbly': {
       content: [],
       cartridge: 'js/cartridges/sir-crumbly.js'
+    },
+    'ringling-helpdesk': {
+      content: [],
+      cartridge: 'js/cartridges/ringling-helpdesk.js'
     }
   };
 

@@ -85,7 +85,7 @@ Everything specific to one game, declarative wherever practical: metadata, intro
 placement, vocabulary, rules, gameplay profile, endings, and presentation preferences
 including its own procedural drawing routines.
 
-Three ship in the box:
+Four ship in the box:
 
 - **`sunken-crown.js`**: the full game. 18 scenes, 48 objects, 47 rules, six treasures,
   darkness, lamp oil, the sentinel, the echo, the mirror, the boat, the ending.
@@ -97,6 +97,8 @@ Three ship in the box:
   to prove the RPG layer is a capability and not The Sunken Crown in a false moustache: two
   stats called MIGHT and NERVE, one class, ten health, its own growth curve, one encounter,
   and the parser interface instead of the canvas.
+- **`ringling-helpdesk.js`**: *LAB SUPPORT: THE LAST LOGIN*, a compact parser adventure about
+  clearing three computer-lab support tickets before critique time.
 
 ### The rule dialect
 
@@ -280,13 +282,17 @@ Sunken Crown the first time it ran.)
 ## Making a game without touching the runtime
 
 1. Open `author.html` (serve the folder: see below), press **New blank cartridge**.
-2. Fill in the game sheet, add rooms and objects in the **World Editor**, write rules in the
-   **Rule Book**, write prose in **Text**, pick a display adapter and sound hardware.
-3. Press **Validate** until the readout says `CARTRIDGE VALIDATED — 0 errors`.
-4. Open **Test** and press **Play it**. The cartridge runs right there, on the same Machine a
+2. Fill in the game sheet, arrange rooms on the **World Map**, add objects in the **World
+   Editor**, and use the guided **Rule Book**. The advanced JSON view remains available for
+   unusual or multi-step rules. Write prose in **Text**, then pick a display adapter and sound
+   hardware.
+3. Use **Undo**, **Redo**, and **Recover draft** while you work. Editable cartridges are saved
+   locally as drafts; the runtime never sees the editor history or map positions.
+4. Press **Validate** until the readout says `CARTRIDGE VALIDATED — 0 errors`.
+5. Open **Test** and press **Play it**. The cartridge runs right there, on the same Machine a
    compiled adventure uses, through the shell it declared.
-5. Press **Prove** if it carries a walkthrough.
-6. Press **BUILD GAME**. You get one HTML file.
+6. Press **Prove** if it carries a walkthrough.
+7. Press **BUILD GAME**. You get one HTML file.
 
 **Save cartridge (JSON)** writes the cartridge out; **Load cartridge…** reads one back, from
 the button or by dropping the file on the slot. That round trip is what makes the Workshop
@@ -376,7 +382,7 @@ Deliberately **not**
 minified: each embedded module keeps its source path and its comments, so whoever finds the
 file in 2056 can read it. Minification would be a future opt-in build mode, not the default.
 
-`test/compiler.js` scans all three artifacts for any `<script src>`, `<link href>`, non-`data:`
+`test/compiler.js` scans all four artifacts for any `<script src>`, `<link href>`, non-`data:`
 image or audio source, CSS `url()` or `@import`, `fetch`, `XMLHttpRequest`, `WebSocket`,
 `new Image`/`new Audio`, or URL to another host. It also boots each artifact in a sandbox and
 plays it to the ending.
@@ -568,16 +574,35 @@ One state representation, one boundary. `js/save.js` owns it:
 
 ## Recorded direction: `.morrow` source cartridges
 
-**Half of this is now built.** A cartridge saves as JSON, loads back into the Workshop,
-validates, proves, plays and compiles, and `test/workshop.js` checks that every declarative
-section survives the trip. The `.morrow` extension is accepted everywhere `.json` is.
+**The two authoring tiers are now complete.** A cartridge saves as JSON, loads back into the
+Workshop, validates, proves, plays and compiles, and a canvas cartridge may describe its rooms
+with a small semantic scene vocabulary. The `.morrow` extension is accepted everywhere
+`.json` is.
 
-What is still missing is the interesting half: two of the shipped cartridges carry painter
-*functions*, which do not survive JSON, so **a cartridge assembled in the Workshop can only
-ever be a parser game**. Until a room can be described rather than drawn, the JSON tier is
-capped. That is the next milestone.
+Developer cartridges may still carry bespoke painter *functions*. Workshop cartridges use
+`presentation.art.scene` as a JSON-safe room map instead:
 
-Round-trip authoring therefore still needs two tiers:
+```js
+scene: {
+  cellar: {
+    environment: 'stone_chamber',
+    perspective: 'interior',
+    features: [
+      { type: 'door',  position: 'north', style: 'iron', object: 'hatch' },
+      { type: 'torch', position: 'left_wall', lit: true },
+      { type: 'table', position: 'center' }
+    ]
+  }
+}
+```
+
+Morrowlamp owns the painter primitives and interprets those features through the selected
+CGA, EGA or VGA adapter. Exits and object hotspots remain tied to the world model, so the
+scene description changes presentation without changing what the game does. Unsupported
+scene vocabulary is a validation error, and no drawing commands are accepted in a `.morrow`
+cartridge.
+
+Round-trip authoring has two first-class tiers:
 
 | | Workshop cartridge | Developer cartridge |
 | --- | --- | --- |

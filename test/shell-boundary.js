@@ -52,8 +52,13 @@ function installDom() {
   global.cancelAnimationFrame = global.window.cancelAnimationFrame;
   global.performance = global.window.performance;
   global.AudioContext = undefined;
+  global.SpeechSynthesisUtterance = function SpeechSynthesisUtterance(text) { this.text = text; };
+  global.__speechLog = [];
+  global.speechSynthesis = { cancel() {}, speak(utterance) { global.__speechLog.push(utterance.text); } };
+  global.window.SpeechSynthesisUtterance = global.SpeechSynthesisUtterance;
+  global.window.speechSynthesis = global.speechSynthesis;
   global.localStorage = { getItem: () => null, setItem: noop, removeItem: noop };
-  return { doc, tick(n) { for (let i = 0; i < (n || 1); i++) { const f = frames.splice(0); f.forEach((fn) => fn(Date.now() + i * 40)); } } };
+  return { doc, speech: global.speechSynthesis, speechLog: global.__speechLog, tick(n) { for (let i = 0; i < (n || 1); i++) { const f = frames.splice(0); f.forEach((fn) => fn(Date.now() + i * 40)); } } };
 }
 
 function loadMachine() {
@@ -109,9 +114,39 @@ function parser() {
   return true;
 }
 
+function restoredCanvasPresentation() {
+  const dom = installDom();
+  const Z = loadMachine();
+  const cart = Z.cartridges['the-sunken-crown'];
+  cart.presentation.title.enabled = true;
+  const root = dom.doc.getElementById('morrowlamp-app');
+  const shell = Z.ml.shellCanvas.mount({ cartridge: cart, root });
+  const overlays = () => root.children.filter((node) => node.className === 'ml-over' && !node._removed);
+  assert.ok(overlays().length === 1, 'the splash overlay appears first');
+  const splashButton = overlays()[0].children[0].children.find((node) => node.tagName === 'BUTTON');
+  assert.ok(splashButton, 'the splash has a continue control');
+  splashButton.click();
+  assert.ok(overlays()[0].allText().includes('CHOOSE WHO GOES'), 'the readable class picker follows the splash: ' + overlays()[0].allText());
+  assert.ok(overlays()[0].allText().includes('Delver'), 'class choices remain visible: ' + overlays()[0].allText());
+  assert.ok(root.children.includes(overlays()[0]), 'title overlay stays inside the themed shell');
+
+  const speechButton = root.children.find((node) => node.className === 'ml-bar').children.find((node) => node.textContent === 'Speech off');
+  assert.ok(speechButton, 'the shell exposes speech');
+  speechButton.click();
+  shell.run({ _text: 'look' });
+  assert.ok(dom.speechLog.length, 'speech synthesis receives transcript text');
+
+  cart.presentation.title.enabled = false;
+  const floorShell = Z.ml.shellCanvas.mount({ cartridge: cart, root: dom.doc.createElement('main'), title: false });
+  const before = floorShell.runtime.meta().turns;
+  floorShell.canvas.listeners.click[0]({ clientX: 24, clientY: 190 });
+  assert.strictEqual(floorShell.runtime.meta().turns, before, 'walking to bare floor is presentation-only');
+  console.log('  ok — splash, class picker, speech, and bare-floor walking are restored');
+}
+
 if (require.main === module) {
-  try { console.log('\nSHELL BOUNDARIES — canonical reusable shells\n'); graphical(); parser(); console.log('\nAll canonical shell checks passed.'); }
+  try { console.log('\nSHELL BOUNDARIES — canonical reusable shells\n'); graphical(); parser(); restoredCanvasPresentation(); console.log('\nAll canonical shell checks passed.'); }
   catch (e) { console.error('FAIL — ' + e.message); process.exitCode = 1; }
 }
 
-module.exports = { installDom, graphical, parser };
+module.exports = { installDom, graphical, parser, restoredCanvasPresentation };

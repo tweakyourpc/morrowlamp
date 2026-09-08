@@ -27,10 +27,16 @@
      a cartridge with no art at all still runs under the parser shell. */
   function artOf(cartridge) {
     const art = (cartridge.presentation || {}).art || {};
+    const semantic = art.scene && typeof art.scene === 'object' && !Array.isArray(art.scene) ? art.scene : null;
+    const scene = typeof art.scene === 'function'
+      ? art.scene.bind(art)
+      : semantic && ml.scene
+        ? (id) => ml.scene.build(cartridge, id, semantic[id] || ml.scene.defaultScene(cartridge, id).semantic)
+        : () => null;
     return {
-      scene: art.scene ? art.scene.bind(art) : () => null,
-      item: art.item ? art.item.bind(art) : null,
-      actor: art.actor ? art.actor.bind(art) : null,
+      scene,
+      item: art.item ? art.item.bind(art) : (semantic && ml.scene ? ml.scene.item : null),
+      actor: art.actor ? art.actor.bind(art) : (semantic && ml.scene ? ml.scene.actor : null),
       itemScale: art.itemScale ? art.itemScale.bind(art) : () => 1,
       actorScale: art.actorScale ? art.actorScale.bind(art) : () => 1,
       clampToWalk: art.clampToWalk ? art.clampToWalk.bind(art) : (scene, x, y) => [x, y],

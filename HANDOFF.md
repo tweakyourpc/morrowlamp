@@ -22,8 +22,8 @@ returned:
 
 This milestone is the response to that verdict. It fixed the publication blockers, added
 regression coverage aimed at the class of defect the audit found, sanitized the unpushed
-history, and stopped. No new features were built. Shell convergence and `.morrow` were not
-started and remain the next milestone.
+history, and stopped. Shell convergence was completed locally, followed by the semantic
+`.morrow` scene milestone described in §12.
 
 ## 3. Each publication blocker and the fix applied
 
@@ -423,13 +423,13 @@ cartridge proofs still pass, and shipped-cartridge validator output is byte-iden
 
 ## 12. Remaining known issues
 
-0. **A Workshop-made cartridge can only ever be a parser game.** Painters are functions and do
-   not survive JSON, so `presentation.art.scene` is unreachable from the JSON tier. This is the
-   cap on the whole authoring loop and the reason the semantic `.morrow` scene description is
-   the next milestone.
-1. **Two shell lineages still exist.** `publisher.js` and `shell-canvas.js` do the same job
-   for the same game, as do `ui.js` and `shell-parser.js`. That is duplicated presentation,
-   not duplicated gameplay, and it is the next milestone.
+0. **Semantic scenes intentionally cover a small vocabulary.** Workshop cartridges use
+   JSON-safe environment, perspective and feature descriptors under `presentation.art.scene`.
+   Unsupported visual concepts are validation errors; bespoke JavaScript painters remain the
+   developer tier.
+1. **Shell presentation parity is not exhaustively tested.** The canonical shells are shared
+   by the pages and compiled games, but visual parity across every route remains a browser
+   verification task.
 2. **`publisher.js` still contains a few per-object gestures** (`sarcophagus` and `mirror`
    answer Hand with a push). Game knowledge in a game-specific shell, which is where it
    belongs, but worth knowing about.
@@ -494,6 +494,5 @@ The next agent should verify this handoff before extending the format:
 4. Keep the title configuration optional: cartridges without `presentation.title` must start
    directly, while a cartridge may provide heading, subtitle, prompt, and class/splash flags.
 
-Only after those checks pass should work begin on `.morrow` round-trip authoring and the
-semantic declarative scene vocabulary described in README. Do not add a second scene format or
-another shell lineage.
+The next work should extend the existing semantic vocabulary only when a real cartridge needs
+it. Do not add a second scene format or another shell lineage.

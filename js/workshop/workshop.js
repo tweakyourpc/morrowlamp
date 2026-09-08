@@ -23,6 +23,46 @@
   let sources = null;        // module source text, fetched once
   let sourceState = 'loading';
   let selection = { room: null, object: null, rule: null };
+  let sceneRoom = null;
+  const history = ml.editorState.create({ storage: global.localStorage || null });
+
+  function updateEditorStatus() {
+    if (!current) {
+      $('editor-status').textContent = 'No cartridge inserted.';
+      $('btn-undo').disabled = true;
+      $('btn-redo').disabled = true;
+      $('btn-recover').disabled = true;
+      return;
+    }
+    $('editor-status').textContent = (editable ? (history.isDirty(current) ? 'Unsaved draft' : 'Saved state') : 'Read-only reference') +
+      ' · ' + current.meta.id;
+    $('btn-undo').disabled = !editable || !history.canUndo();
+    $('btn-redo').disabled = !editable || !history.canRedo();
+    $('btn-recover').disabled = !editable || !history.recover(current);
+  }
+
+  function edit(label, mutate, redraw) {
+    if (!current || !editable) return;
+    if ($('test-stage') && $('test-stage').children.length) stopTest();
+    history.capture(current);
+    mutate();
+    history.changed(current);
+    if (redraw) redraw();
+    updateEditorStatus();
+    validate();
+  }
+
+  function replaceCurrent(next) {
+    if (!next) return;
+    current = next;
+    Z.cartridges[current.meta.id] = current;
+    selection = { room: null, object: null, rule: null };
+    sceneRoom = null;
+    renderShelf();
+    renderAll();
+    updateEditorStatus();
+    validate();
+  }
 
   /* ---------------- diagnostics readout ---------------- */
   function readout(text, kind) {
@@ -88,12 +128,19 @@
     stopTest();
     current = Z.cartridges[id];
     editable = !READ_ONLY.has(id);
+    if (editable) {
+      current.editor = current.editor || {};
+      current.editor.map = current.editor.map || {};
+    }
+    history.begin(current);
     selection = { room: null, object: null, rule: null };
+    sceneRoom = null;
     $('bench-title').textContent = current.meta.title + (editable ? '' : '  ·  READ-ONLY REFERENCE CARTRIDGE');
     lamp('lamp-cart', current.meta.id.toUpperCase(), 'lit');
     lamp('lamp-image', '—', '');
     renderShelf();
     renderAll();
+    updateEditorStatus();
     validate();
   }
 
@@ -117,10 +164,10 @@
         const value = field.getAttribute('data-lines')
           ? field.value.split('\n').filter((line) => line.trim().length)
           : field.value;
-        writePath(current, path, value);
+        edit(path, () => writePath(current, path, value));
         if (path === 'meta.title') $('bench-title').textContent = value;
         renderShelf();
-        validate();
+        if (path === 'presentation.interface') renderPresentation();
       });
     }
   }
@@ -180,6 +227,52 @@
     return bits.join(' ') || '—';
   }
 
+  function renderRoomMap() {
+    const host = $('room-map');
+    host.textContent = '';
+    if (!current) return;
+    const rooms = (current.world || {}).rooms || {};
+    const positions = ((current.editor || {}).map || {});
+    const ids = Object.keys(rooms), coords = {};
+    ids.forEach((id, index) => {
+      coords[id] = positions[id] || { x: 28 + (index % 4) * 174, y: 28 + Math.floor(index / 4) * 112 };
+    });
+    const svg = document.createElement('svg');
+    svg.setAttribute('viewBox', '0 0 720 300');
+    for (const from of ids) for (const dir in (rooms[from].exits || {})) {
+      const edge = rooms[from].exits[dir], to = typeof edge === 'string' ? edge : edge && edge.room;
+      if (!to || !coords[to] || ids.indexOf(to) < ids.indexOf(from)) continue;
+      const line = document.createElement('line');
+      line.setAttribute('x1', coords[from].x + 60); line.setAttribute('y1', coords[from].y + 28);
+      line.setAttribute('x2', coords[to].x + 60); line.setAttribute('y2', coords[to].y + 28);
+      line.setAttribute('stroke', '#65708a'); line.setAttribute('stroke-width', '2'); svg.appendChild(line);
+    }
+    host.appendChild(svg);
+    ids.forEach((id) => {
+      const room = rooms[id], pos = coords[id], node = document.createElement('button');
+      node.className = 'map-room' + (selection.room === id ? ' on' : '');
+      node.style.left = pos.x + 'px'; node.style.top = pos.y + 'px';
+      const name = document.createElement('b'); name.textContent = room.name || id;
+      const detail = document.createElement('span'); detail.textContent = id + ' · ' + Object.keys(room.exits || {}).length + ' exits';
+      node.append(name, detail);
+      node.addEventListener('click', () => { selection.room = id; renderRoomMap(); renderRoomEditor(); });
+      node.addEventListener('pointerdown', (event) => {
+        if (!editable) return;
+        const startX = event.clientX, startY = event.clientY, original = { x: pos.x, y: pos.y };
+        const move = (moveEvent) => {
+          positions[id] = { x: Math.max(8, original.x + moveEvent.clientX - startX), y: Math.max(8, original.y + moveEvent.clientY - startY) };
+          node.style.left = positions[id].x + 'px'; node.style.top = positions[id].y + 'px';
+        };
+        const stop = () => {
+          document.removeEventListener('pointermove', move); document.removeEventListener('pointerup', stop);
+          if (positions[id].x !== original.x || positions[id].y !== original.y) { history.capture(current); history.changed(current); updateEditorStatus(); }
+        };
+        document.addEventListener('pointermove', move); document.addEventListener('pointerup', stop);
+      });
+      host.appendChild(node);
+    });
+  }
+
   function renderRooms() {
     const rows = $('room-rows');
     rows.textContent = '';
@@ -196,6 +289,7 @@
       tr.addEventListener('click', () => { selection.room = selection.room === id ? null : id; renderRooms(); });
       rows.appendChild(tr);
     }
+    renderRoomMap();
     renderRoomEditor();
   }
 
@@ -207,7 +301,7 @@
     const input = document.createElement(options && options.multiline ? 'textarea' : 'input');
     input.value = value === undefined || value === null ? '' : value;
     input.readOnly = !editable;
-    input.addEventListener('input', () => { if (editable) { onChange(input.value); validate(); } });
+    input.addEventListener('input', () => { if (editable) edit(label, () => onChange(input.value)); });
     wrap.appendChild(input);
     return wrap;
   }
@@ -234,10 +328,11 @@
       remove.textContent = 'Delete room';
       remove.style.marginTop = '10px';
       remove.addEventListener('click', () => {
-        delete current.world.rooms[selection.room];
-        selection.room = null;
-        renderAll();
-        validate();
+        edit('delete room', () => {
+          delete current.world.rooms[selection.room];
+          selection.room = null;
+          renderAll();
+        });
       });
       box.appendChild(remove);
     }
@@ -335,7 +430,7 @@
     box2.checked = !!o.takeable;
     box2.style.width = 'auto';
     box2.disabled = !editable;
-    box2.addEventListener('change', () => { o.takeable = box2.checked; renderObjects(); validate(); });
+    box2.addEventListener('change', () => edit('toggle portable', () => { o.takeable = box2.checked; renderObjects(); }));
     check.append(box2, document.createTextNode('Portable — the player can pick it up'));
     box.appendChild(check);
 
@@ -345,10 +440,11 @@
       remove.textContent = 'Delete object';
       remove.style.marginTop = '10px';
       remove.addEventListener('click', () => {
-        delete current.world.objects[selection.object];
-        selection.object = null;
-        renderAll();
-        validate();
+        edit('delete object', () => {
+          delete current.world.objects[selection.object];
+          selection.object = null;
+          renderAll();
+        });
       });
       box.appendChild(remove);
     }
@@ -405,11 +501,52 @@
     legend.textContent = 'RULE ' + (selection.rule + 1) + (rule.id ? ' (' + rule.id + ')' : '');
     box.appendChild(legend);
 
-    const source = document.createElement('textarea');
-    source.style.minHeight = '220px';
+    let advancedSource = null;
+    const guide = document.createElement('div');
+    guide.className = 'guide-grid';
+    const guideInput = (label, value, onChange, multiline) => {
+      const wrap = document.createElement('label'); wrap.textContent = label;
+      const input = document.createElement(multiline ? 'textarea' : 'input');
+      input.value = value === undefined || value === null ? '' : value;
+      input.readOnly = !editable;
+      input.addEventListener('input', () => edit(label, () => {
+        onChange(input.value);
+        if (advancedSource) advancedSource.value = JSON.stringify(rule, null, 2);
+      }));
+      wrap.appendChild(input); return wrap;
+    };
+    const guideSelect = (label, value, options, onChange) => {
+      const wrap = document.createElement('label'); wrap.textContent = label;
+      const select = document.createElement('select');
+      options.forEach((option) => {
+        const item = document.createElement('option'); item.value = option.value; item.textContent = option.label; select.appendChild(item);
+      });
+      select.value = value === undefined || value === null ? '' : value;
+      select.disabled = !editable;
+      select.addEventListener('change', () => edit(label, () => onChange(select.value), renderRules));
+      wrap.appendChild(select); return wrap;
+    };
+    const verbs = Object.keys(ml.vocabulary.CORE_VERBS).concat(Object.keys((current.vocabulary || {}).verbs || {}));
+    const verbOptions = Array.from(new Set(verbs)).map((id) => ({ value: id, label: id }));
+    const targetOptions = [{ value: '', label: '(no target)' }].concat(Object.keys((current.world || {}).objects || {}).map((id) => ({ value: id, label: id })));
+    const verb = Array.isArray(rule.verb) ? rule.verb[0] : (rule.verb || '');
+    const target = Array.isArray(rule.target) ? (rule.target.find((id) => id) || '') : (rule.target || '');
+    guide.appendChild(guideInput('Rule id', rule.id, (value) => { rule.id = value; }));
+    guide.appendChild(guideSelect('When the player', verb, verbOptions, (value) => { rule.verb = value; }));
+    guide.appendChild(guideSelect('On this object', target, targetOptions, (value) => { rule.target = value || null; }));
+    guide.appendChild(guideInput('Say this', rule.do && rule.do[0] && rule.do[0].say, (value) => {
+      rule.do = rule.do || [];
+      if (rule.do[0] && Object.keys(rule.do[0]).length === 1 && rule.do[0].say !== undefined) rule.do[0].say = value;
+      else rule.do.unshift({ say: value });
+    }, true));
+    box.appendChild(guide);
+
+    const advanced = document.createElement('details'); advanced.className = 'advanced-rule';
+    const summary = document.createElement('summary'); summary.textContent = 'Advanced JSON'; advanced.appendChild(summary);
+    const source = document.createElement('textarea'); source.style.minHeight = '220px'; advancedSource = source;
     source.value = JSON.stringify(rule, null, 2);
     source.readOnly = !editable;
-    box.appendChild(source);
+    advanced.appendChild(source); box.appendChild(advanced);
 
     if (editable) {
       const row = document.createElement('div');
@@ -419,9 +556,8 @@
       apply.textContent = 'Apply';
       apply.addEventListener('click', () => {
         try {
-          current.rules[selection.rule] = JSON.parse(source.value);
-          renderRules();
-          validate();
+          const parsed = JSON.parse(source.value);
+          edit('apply advanced rule', () => { current.rules[selection.rule] = parsed; }, renderRules);
         } catch (err) {
           readout('RULE ' + (selection.rule + 1) + ': that is not valid JSON.\n  ' + err.message, 'bad');
         }
@@ -430,10 +566,11 @@
       remove.className = 'danger';
       remove.textContent = 'Delete rule';
       remove.addEventListener('click', () => {
-        current.rules.splice(selection.rule, 1);
-        selection.rule = null;
-        renderRules();
-        validate();
+        edit('delete rule', () => {
+          current.rules.splice(selection.rule, 1);
+          selection.rule = null;
+          renderRules();
+        });
       });
       row.append(apply, remove);
       box.appendChild(row);
@@ -495,6 +632,97 @@
       td.appendChild(code);
       tr.append(th, td);
       rows.appendChild(tr);
+    }
+    renderSceneEditor();
+  }
+
+  function sceneSelect(label, value, choices, onChange) {
+    const wrap = document.createElement('label');
+    wrap.textContent = label;
+    const select = document.createElement('select');
+    for (const choice of choices) {
+      const option = document.createElement('option');
+      option.value = choice;
+      option.textContent = choice || '(none)';
+      select.appendChild(option);
+    }
+    select.value = value || choices[0];
+    select.disabled = !editable;
+    select.addEventListener('change', () => { if (editable) { onChange(select.value); validate(); } });
+    wrap.appendChild(select);
+    return wrap;
+  }
+
+  function renderSceneEditor() {
+    const host = $('scene-editor');
+    if (!host) return;
+    host.textContent = '';
+    if (!current) return;
+    const presentation = current.presentation || (current.presentation = {});
+    const art = presentation.art || {};
+    const semantic = art.scene && typeof art.scene === 'object' && !Array.isArray(art.scene) ? art.scene : null;
+    if (!semantic) {
+      const note = document.createElement('p');
+      note.className = 'hint';
+      note.textContent = art.scene && typeof art.scene === 'function'
+        ? 'This reference cartridge supplies bespoke painter functions.'
+        : 'No semantic scenes are installed.';
+      host.appendChild(note);
+      if (editable && !(art.scene && typeof art.scene === 'function')) {
+        const button = document.createElement('button');
+        button.textContent = 'Create semantic scenes';
+        button.addEventListener('click', () => {
+          presentation.art = presentation.art || {};
+          presentation.art.scene = {};
+          for (const id of Object.keys((current.world || {}).rooms || {})) {
+            presentation.art.scene[id] = { environment: 'stone_chamber', perspective: 'interior', features: [] };
+          }
+          sceneRoom = current.world.startRoom;
+          renderPresentation();
+          validate();
+        });
+        host.appendChild(button);
+      }
+      return;
+    }
+    const rooms = Object.keys((current.world || {}).rooms || {});
+    if (!rooms.length) return;
+    if (!sceneRoom || !semantic[sceneRoom]) sceneRoom = rooms[0];
+    host.appendChild(sceneSelect('Room', sceneRoom, rooms, (value) => { sceneRoom = value; renderSceneEditor(); }));
+    const spec = semantic[sceneRoom] || { environment: 'stone_chamber', perspective: 'interior', features: [] };
+    if (editable && !semantic[sceneRoom]) semantic[sceneRoom] = spec;
+    host.appendChild(sceneSelect('Environment', spec.environment, ml.scene.ENVIRONMENTS, (value) => { spec.environment = value; }));
+    host.appendChild(sceneSelect('Perspective', spec.perspective, ml.scene.PERSPECTIVES, (value) => { spec.perspective = value; }));
+
+    const label = document.createElement('p');
+    label.className = 'hint'; label.textContent = 'Features'; host.appendChild(label);
+    const features = Array.isArray(spec.features) ? spec.features : [];
+    if (editable && !Array.isArray(spec.features)) spec.features = features;
+    features.forEach((feature, index) => {
+      const box = document.createElement('fieldset');
+      const legend = document.createElement('legend'); legend.textContent = 'FEATURE ' + (index + 1); box.appendChild(legend);
+      box.appendChild(sceneSelect('Type', feature.type, ml.scene.FEATURES, (value) => { feature.type = value; renderSceneEditor(); }));
+      box.appendChild(sceneSelect('Position', feature.position, ml.scene.POSITIONS, (value) => { feature.position = value; }));
+      box.appendChild(sceneSelect('Style', feature.style || 'plain', ml.scene.STYLES, (value) => { feature.style = value; }));
+      box.appendChild(sceneSelect('Gameplay object', feature.object || '', [''].concat(Object.keys((current.world || {}).objects || {})), (value) => {
+        if (value) feature.object = value; else delete feature.object;
+      }));
+      if (feature.type === 'torch') {
+        const lit = document.createElement('label');
+        const check = document.createElement('input'); check.type = 'checkbox'; check.checked = feature.lit !== false; check.disabled = !editable;
+        check.addEventListener('change', () => { feature.lit = check.checked; validate(); });
+        lit.append(check, document.createTextNode(' Lit')); box.appendChild(lit);
+      }
+      if (editable) {
+        const remove = document.createElement('button'); remove.className = 'danger'; remove.textContent = 'Remove feature';
+        remove.addEventListener('click', () => { features.splice(index, 1); renderSceneEditor(); validate(); }); box.appendChild(remove);
+      }
+      host.appendChild(box);
+    });
+    if (editable) {
+      const add = document.createElement('button'); add.textContent = 'Add feature';
+      add.addEventListener('click', () => { features.push({ type: 'door', position: 'north', style: 'wood' }); renderSceneEditor(); validate(); });
+      host.appendChild(add);
     }
   }
 
@@ -563,6 +791,7 @@
     const result = ml.validator.validate(current);
     readout(ml.validator.report(result), result.ok ? (result.warnings.length ? '' : 'ok') : 'bad');
     $('btn-build').disabled = !result.ok || sourceState !== 'ready';
+    updateEditorStatus();
     return result;
   }
 
@@ -639,7 +868,13 @@
       }],
       profile: { score: { enabled: true, ranks: [[0, 'Visitor'], [10, 'Arrived']] } },
       endings: [{ id: 'through', kind: 'win', when: { room: 'beyond' }, score: 10, text: ['You are through. That is the whole adventure. Now make a bigger one.'] }],
-      presentation: { renderer: 'ega', audio: 'chip', interface: 'parser' }
+      presentation: {
+        renderer: 'ega', audio: 'chip', interface: 'parser',
+        art: { scene: {
+          threshold: { environment: 'stone_chamber', perspective: 'interior', features: [{ type: 'door', position: 'north', style: 'wood', object: 'door' }] },
+          beyond: { environment: 'wood_room', perspective: 'interior', features: [] }
+        } }
+      }
     };
   }
 
@@ -765,45 +1000,52 @@
 
   $('btn-add-room').addEventListener('click', () => {
     if (!current || !editable) return;
-    const id = uniqueId(current.world.rooms, 'room');
-    current.world.rooms[id] = { name: 'New Room', desc: 'Nothing has been written here yet.', exits: {} };
-    selection.room = id;
-    renderAll();
-    validate();
+    edit('add room', () => {
+      const id = uniqueId(current.world.rooms, 'room');
+      current.world.rooms[id] = { name: 'New Room', desc: 'Nothing has been written here yet.', exits: {} };
+      if (current.presentation && current.presentation.art && current.presentation.art.scene && typeof current.presentation.art.scene === 'object') {
+        current.presentation.art.scene[id] = { environment: 'stone_chamber', perspective: 'interior', features: [] };
+      }
+      selection.room = id;
+      renderAll();
+    });
   });
 
   $('btn-add-object').addEventListener('click', () => {
     if (!current || !editable) return;
-    const id = uniqueId(current.world.objects, 'thing');
-    current.world.objects[id] = {
-      name: 'new thing', aliases: ['thing'], at: current.world.startRoom,
-      takeable: true, desc: 'A new thing lies here.', examine: 'Nothing has been written about it yet.'
-    };
-    selection.object = id;
-    renderAll();
-    validate();
+    edit('add object', () => {
+      const id = uniqueId(current.world.objects, 'thing');
+      current.world.objects[id] = {
+        name: 'new thing', aliases: ['thing'], at: current.world.startRoom,
+        takeable: true, desc: 'A new thing lies here.', examine: 'Nothing has been written about it yet.'
+      };
+      selection.object = id;
+      renderAll();
+    });
   });
 
   $('btn-add-rule').addEventListener('click', () => {
     if (!current || !editable) return;
-    current.rules = current.rules || [];
-    current.rules.push({
-      id: 'rule-' + (current.rules.length + 1),
-      verb: 'push', target: Object.keys(current.world.objects)[0] || null,
-      do: [{ say: 'Nothing happens yet.' }]
+    edit('add rule', () => {
+      current.rules = current.rules || [];
+      current.rules.push({
+        id: 'rule-' + (current.rules.length + 1),
+        verb: 'look', target: Object.keys(current.world.objects)[0] || null,
+        do: [{ say: 'Nothing happens yet.' }]
+      });
+      selection.rule = current.rules.length - 1;
+      renderRules();
     });
-    selection.rule = current.rules.length - 1;
-    renderRules();
-    validate();
   });
 
   $('btn-add-string').addEventListener('click', () => {
     if (!current || !editable) return;
-    current.strings = current.strings || {};
-    const key = uniqueId(current.strings, 'line');
-    current.strings[key] = 'Nothing has been written here yet.';
-    renderStrings();
-    validate();
+    edit('add string', () => {
+      current.strings = current.strings || {};
+      const key = uniqueId(current.strings, 'line');
+      current.strings[key] = 'Nothing has been written here yet.';
+      renderStrings();
+    });
   });
 
   $('btn-load').addEventListener('click', () => $('file-cart').click());
@@ -830,6 +1072,25 @@
   $('btn-test-start').addEventListener('click', startTest);
   $('btn-test-stop').addEventListener('click', stopTest);
   $('btn-test-stop').disabled = true;
+
+  $('btn-undo').addEventListener('click', () => {
+    if (!current || !editable) return;
+    const next = history.undo(current);
+    if (next) replaceCurrent(next);
+  });
+  $('btn-redo').addEventListener('click', () => {
+    if (!current || !editable) return;
+    const next = history.redo(current);
+    if (next) replaceCurrent(next);
+  });
+  $('btn-recover').addEventListener('click', () => {
+    if (!current || !editable) return;
+    const next = history.recover(current);
+    if (!next) return;
+    history.begin(next);
+    replaceCurrent(next);
+    readout('DRAFT RECOVERED — the last locally saved version is back on the bench.', 'ok');
+  });
 
   $('btn-validate').addEventListener('click', validate);
   $('btn-build').addEventListener('click', build);

@@ -29,6 +29,7 @@ require('../js/workshop/compiler.js');
 require('../js/world.js');
 require('../js/cartridges/sunken-crown.js');
 require('../js/cartridges/captains-thistle.js');
+require('../js/cartridges/ringling-helpdesk.js');
 
 const ml = Z.ml;
 

@@ -1,6 +1,6 @@
 /* ============================================================
    MORROWLAMP — BUILD GAME
-   Compiles both cartridges, then treats the results the way an
+   Compiles every shipped cartridge, then treats the results the way an
    archivist would: does this file reach for anything it will not
    have in thirty years, and does it actually start?
    Run with:  node test/compiler.js
@@ -29,6 +29,7 @@ require('../js/world.js');
 require('../js/cartridges/sunken-crown.js');
 require('../js/cartridges/captains-thistle.js');
 require('../js/cartridges/sir-crumbly.js');
+require('../js/cartridges/ringling-helpdesk.js');
 
 const ml = Z.ml;
 const NOW = '2026-08-11T12:00:00.000Z';
@@ -60,9 +61,11 @@ function testCompiles() {
   const crown = build('the-sunken-crown');
   const thistle = build('captains-thistle');
   const crumbly = build('sir-crumbly');
+  const helpdesk = build('ringling-helpdesk');
   assert.strictEqual(path.basename(crown.file), 'the-sunken-crown.html');
   assert.strictEqual(path.basename(thistle.file), 'captains-thistle.html');
   assert.strictEqual(path.basename(crumbly.file), 'sir-crumbly.html');
+  assert.strictEqual(path.basename(helpdesk.file), 'ringling-helpdesk.html');
   for (const id in built) {
     assert.ok(built[id].html.startsWith('<!doctype html>'), id + ' starts with a doctype');
     assert.ok(built[id].html.trimEnd().endsWith('</html>'), id + ' is a complete document');
@@ -230,6 +233,15 @@ function testCompiledThistleIsWinnable() {
   console.log('  ok — the compiled Captain Thistle plays through to its ending');
 }
 
+function testCompiledHelpdeskIsWinnable() {
+  const sandbox = bootArtifact(built['ringling-helpdesk'].html);
+  const rt = sandbox.Z.ml.runtime.create(sandbox.Z.cartridges['ringling-helpdesk']);
+  for (const step of sandbox.Z.cartridges['ringling-helpdesk'].walkthrough.route) rt.command(step);
+  assert.strictEqual(rt.meta().win, true, 'the compiled help-desk adventure can be won');
+  assert.strictEqual(rt.meta().score, 30, 'the compiled help-desk game awards its complete score');
+  console.log('  ok — the compiled Ringling help-desk game plays through to its ending');
+}
+
 /* ---------------- the compiled RPG cartridge, end to end ----------------
    Sir Crumbly is the cartridge that proves stats and combat are generic.
    Proving it at source level is not the same as proving the *compiled*
@@ -312,7 +324,7 @@ function testCompiledCrumblyPlaythrough() {
 
 const tests = [testCompiles, testHeader, testSelfContained, testReadable, testBundleIsSpecific,
   testRefusesBrokenCartridge, testArtifactBoots, testCompiledGameIsWinnable, testCompiledThistleIsWinnable,
-  testCompiledCrumblyPlaythrough];
+  testCompiledHelpdeskIsWinnable, testCompiledCrumblyPlaythrough];
 let failed = 0;
 console.log('\nMORROWLAMP — BUILD GAME\n');
 for (const t of tests) {

@@ -83,10 +83,16 @@
 .ml-over{position:fixed;inset:0;background:#050609ee;display:flex;align-items:center;justify-content:center;
   padding:20px;z-index:20}
 .ml-card{background:var(--panel);border:1px solid var(--edge);border-radius:6px;padding:22px;
-  max-width:620px;text-align:center}
+  width:min(620px,calc(100vw - 40px));max-width:620px;text-align:center;box-shadow:0 12px 40px #00000099}
 .ml-card h1{color:var(--warm);letter-spacing:.1em;margin:0 0 6px;font-size:26px}
-.ml-card p{color:var(--dim);text-align:left}
+.ml-card p{color:var(--ink);text-align:left}
 .ml-card .ml-btn{margin-top:12px;font-size:15px;padding:8px 18px}
+.ml-card .ml-classes{margin-top:12px}
+.ml-card .ml-class{background:#293249;border-color:#65708a;color:var(--ink);padding:12px 14px;text-align:left}
+.ml-card .ml-class:hover{background:#35415d;border-color:var(--warm)}
+.ml-card .ml-class b{color:var(--warm);font-size:15px}
+.ml-card .ml-class span{color:#d6dbea;font-size:13px}
+.ml-splash-canvas{display:block;width:100%;max-width:520px;height:auto;margin:0 auto 12px;background:#000;image-rendering:pixelated}
 `;
 
   const VERBS = [
@@ -121,6 +127,7 @@
     let actorFrame = 0;
     let actorFacing = 1;
     let actorAnimation = null;
+    let speechEnabled = false;
 
     /* ---------------- chrome ---------------- */
     if (!document.getElementById('ml-shell-css')) {
@@ -142,7 +149,8 @@
     const btnSound = el('button', 'ml-btn on', '♪ ' + sound.profile.name);
     const btnCodeOut = el('button', 'ml-btn', 'Code out');
     const btnCodeIn = el('button', 'ml-btn', 'Code in');
-    bar.append(titleTag, statRoom, statScore, btnUndo, btnSave, btnLoad, btnCodeOut, btnCodeIn, btnVideo, btnSound);
+    const btnSpeech = el('button', 'ml-btn', 'Speech off');
+    bar.append(titleTag, statRoom, statScore, btnUndo, btnSave, btnLoad, btnCodeOut, btnCodeIn, btnVideo, btnSound, btnSpeech);
 
     const main = el('div', 'ml-main');
     const stageCol = el('div', 'ml-stagecol');
@@ -427,7 +435,13 @@
       }
       switch (verb) {
         case 'look': return { verb: 'examine', target: spot.id };
-        case 'talk': return { verb: 'talk', target: spot.id };
+        case 'talk': {
+          const speech = presentation.speech;
+          if (speech && speech.target === spot.id && (!speech.room || speech.room === runtime.meta().room)) {
+            return { _speech: speech };
+          }
+          return { verb: 'talk', target: spot.id };
+        }
         case 'hand':
           if (info.takeable && !info.carried) return { verb: 'take', target: spot.id };
           if (info.container) return { verb: info.open ? 'close' : 'open', target: spot.id };
@@ -454,9 +468,15 @@
     canvas.addEventListener('click', (event) => {
       sound.unlock();
       const [x, y] = canvasPoint(event);
-      const action = commandFor(hitTest(x, y));
-      if (action) run(action);
-      else renderInventory();
+      const spot = hitTest(x, y);
+      const action = commandFor(spot);
+      if (action && action._speech) openSpeech(action._speech);
+      else if (action) run(action);
+      else if (!spot && verb === 'walk' && !carried) {
+        const scene = currentScene();
+        const point = art.clampToWalk(scene, x, y);
+        if (Array.isArray(point) && point.length >= 2) animateActorTo(point);
+      } else renderInventory();
     });
 
     function labelOf(id) { return (runtime.describeObject(id) || {}).name || id; }
@@ -601,11 +621,19 @@
     }
 
     function print(messages) {
+      const spoken = [];
       for (const line of messages) {
         const p = el('p', line.cls || '', line.text);
         log.appendChild(p);
+        if (line.text) spoken.push(String(line.text));
       }
       log.scrollTop = log.scrollHeight;
+      if (speechEnabled && spoken.length && global.speechSynthesis && global.SpeechSynthesisUtterance) {
+        try {
+          global.speechSynthesis.cancel();
+          global.speechSynthesis.speak(new global.SpeechSynthesisUtterance(spoken.join(' ')));
+        } catch (err) { /* speech is an optional browser capability */ }
+      }
     }
 
     /* ---------------- the turn ---------------- */
@@ -735,6 +763,12 @@
       btnSound.classList.toggle('on', sound.isEnabled());
       btnSound.textContent = (sound.isEnabled() ? '♪ ' : '· ') + sound.profile.name;
     });
+    btnSpeech.addEventListener('click', () => {
+      speechEnabled = !speechEnabled;
+      btnSpeech.classList.toggle('on', speechEnabled);
+      btnSpeech.textContent = speechEnabled ? 'Speech on' : 'Speech off';
+      if (!speechEnabled && global.speechSynthesis) global.speechSynthesis.cancel();
+    });
 
     /* ---------------- overlays ---------------- */
     function overlay(build) {
@@ -742,8 +776,62 @@
       const card = el('div', 'ml-card');
       build(card, () => over.remove());
       over.appendChild(card);
-      document.body.appendChild(over);
+      /* Keep overlays inside the shell so they inherit its theme variables.
+         Appending to body makes var(--ink)/var(--panel) resolve to nothing,
+         leaving title text effectively invisible on the dark overlay. */
+      root.appendChild(over);
       return over;
+    }
+
+    function openSpeech(config) {
+      overlay((card, close) => {
+        card.appendChild(el('h1', null, config.heading || 'SPEAK'));
+        card.appendChild(el('p', null, config.prompt || 'What do you say?'));
+        const form = el('form', 'ml-cmd');
+        const field = el('input'); field.autocomplete = 'off';
+        const submit = el('button', 'ml-btn', config.submit || 'Say it');
+        form.append(field, submit); card.appendChild(form);
+        const cancel = el('button', 'ml-btn', 'Cancel'); card.appendChild(cancel);
+        cancel.addEventListener('click', close);
+        form.addEventListener('submit', (event) => {
+          event.preventDefault();
+          const value = field.value.trim();
+          if (!value) return;
+          close();
+          print([{ text: '"' + value + '"', cls: 'dim' }]);
+          run({ _text: (config.verb || 'say') + ' ' + value });
+        });
+        field.focus();
+      });
+    }
+
+    function showSplash() {
+      const title = presentation.title || {};
+      overlay((card, close) => {
+        const splash = document.createElement('canvas');
+        splash.className = 'ml-splash-canvas';
+        const sg = ml.render.create(splash, { profile: profileName, logicalWidth: 320, logicalHeight: 200 });
+        const C = sg.C;
+        sg.clear(C.black);
+        sg.vgrad(0, 0, 320, 160, ['blue', 'black']);
+        sg.poly([[0, 165], [42, 120], [76, 148], [126, 94], [178, 145], [224, 108], [320, 165]], C.blue);
+        sg.poly([[0, 176], [66, 139], [112, 160], [160, 121], [220, 156], [276, 128], [320, 176]], C.dkgray);
+        sg.circle(160, 77, 32, C.yellow);
+        sg.circle(171, 68, 29, C.black);
+        sg.line(160, 44, 160, 52, C.brown);
+        sg.line(160, 52, 153, 60, C.yellow); sg.line(160, 52, 167, 60, C.yellow);
+        sg.poly([[151, 61], [169, 61], [174, 68], [169, 91], [151, 91], [146, 68]], C.brown);
+        sg.px(151, 68, 18, 2, C.yellow); sg.px(153, 72, 14, 14, C.ltgray);
+        const ctx = sg.ctx;
+        ctx.save(); ctx.textAlign = 'center'; ctx.fillStyle = C.yellow;
+        ctx.font = 'bold 11px monospace'; ctx.fillText('MORROWLAMP', 160, 133);
+        ctx.font = 'bold 8px monospace'; ctx.fillText('SOFTWARE', 160, 146); ctx.restore();
+        card.appendChild(splash);
+        card.appendChild(el('p', null, title.subtitle || cart.meta.blurb || 'THE HALLS ARE BELOW'));
+        const begin = el('button', 'ml-btn', title.prompt || 'CONTINUE');
+        begin.addEventListener('click', () => { sound.unlock(); close(); showTitle(); });
+        card.appendChild(begin);
+      });
     }
 
     function showTitle() {
@@ -809,7 +897,10 @@
     /* ---------------- boot ---------------- */
     print(runtime.describeRoom(runtime.meta().room, true));
     refresh();
-    if (options.title !== false && presentation.title && presentation.title.enabled !== false) showTitle();
+    if (options.title !== false && presentation.title && presentation.title.enabled !== false) {
+      if (presentation.title.showSplash) showSplash();
+      else showTitle();
+    }
 
     return { runtime, sound, refresh, run, print, setVerb, canvas };
   }

@@ -1060,6 +1060,54 @@
     if (presentation.interface && !INTERFACES.includes(presentation.interface)) {
       err('unknown-interface', 'INTERFACE', 'presentation.interface', 'unknown interface profile "' + presentation.interface + '" (known: ' + INTERFACES.join(', ') + ').');
     }
+    if (presentation.speech !== undefined) {
+      const speech = presentation.speech;
+      if (!plainObject(speech)) err('speech-malformed', 'DISPLAY', 'presentation.speech', 'speech prompt configuration must be an object.');
+      else {
+        if (!speech.target || !objects[speech.target]) err('speech-missing-target', 'DISPLAY', 'presentation.speech.target', 'speech prompt names missing object "' + speech.target + '".');
+        if (speech.room && !rooms[speech.room]) err('speech-missing-room', 'DISPLAY', 'presentation.speech.room', 'speech prompt names missing room "' + speech.room + '".');
+        if (speech.prompt !== undefined && (typeof speech.prompt !== 'string' || !speech.prompt.trim())) err('speech-prompt-malformed', 'DISPLAY', 'presentation.speech.prompt', 'speech prompt must be non-empty text.');
+        if (speech.verb !== undefined && !knownVerbs.has(speech.verb)) err('speech-unknown-verb', 'DISPLAY', 'presentation.speech.verb', 'speech prompt uses unknown verb "' + speech.verb + '".');
+      }
+    }
+    const art = objectAt(presentation.art);
+    const semanticScene = art.scene && plainObject(art.scene) && typeof art.scene !== 'function' ? art.scene : null;
+    if (semanticScene) {
+      const sceneApi = ml.scene || {};
+      const environments = sceneApi.ENVIRONMENTS || ['stone_chamber', 'wood_room', 'cave', 'deck'];
+      const perspectives = sceneApi.PERSPECTIVES || ['interior', 'exterior', 'corridor'];
+      const positions = sceneApi.POSITIONS || ['north', 'south', 'east', 'west', 'center', 'left_wall', 'right_wall', 'far', 'foreground'];
+      const features = sceneApi.FEATURES || ['door', 'torch', 'table', 'crate', 'window', 'stairs', 'water'];
+      const styles = sceneApi.STYLES || ['plain', 'wood', 'iron', 'stone'];
+      for (const roomId of Object.keys(semanticScene)) {
+        const base = 'presentation.art.scene.' + roomId;
+        const spec = semanticScene[roomId];
+        if (!plainObject(spec)) {
+          err('scene-malformed', 'SCENE ' + roomId, base, 'a semantic scene must be an object.');
+          continue;
+        }
+        if (!rooms[roomId]) err('scene-unknown-room', 'DISPLAY', base, 'names unknown room "' + roomId + '".');
+        if (!environments.includes(spec.environment)) err('scene-unknown-environment', 'SCENE ' + roomId, base + '.environment', 'unknown environment "' + spec.environment + '" (known: ' + environments.join(', ') + ').');
+        if (!perspectives.includes(spec.perspective)) err('scene-unknown-perspective', 'SCENE ' + roomId, base + '.perspective', 'unknown perspective "' + spec.perspective + '" (known: ' + perspectives.join(', ') + ').');
+        if (spec.features !== undefined && !Array.isArray(spec.features)) {
+          err('scene-features-not-array', 'SCENE ' + roomId, base + '.features', 'features must be an array.');
+          continue;
+        }
+        for (let i = 0; i < (spec.features || []).length; i++) {
+          const feature = spec.features[i];
+          const path = base + '.features[' + i + ']';
+          if (!plainObject(feature)) { err('scene-feature-malformed', 'SCENE ' + roomId, path, 'a feature must be an object.'); continue; }
+          if (!features.includes(feature.type)) err('scene-unknown-feature', 'SCENE ' + roomId, path + '.type', 'unknown feature type "' + feature.type + '" (known: ' + features.join(', ') + ').');
+          if (!positions.includes(feature.position)) err('scene-unknown-position', 'SCENE ' + roomId, path + '.position', 'unknown position "' + feature.position + '" (known: ' + positions.join(', ') + ').');
+          if (feature.style !== undefined && !styles.includes(feature.style)) err('scene-unknown-style', 'SCENE ' + roomId, path + '.style', 'unknown style "' + feature.style + '" (known: ' + styles.join(', ') + ').');
+          if (feature.object !== undefined && !objects[feature.object]) err('scene-missing-object', 'SCENE ' + roomId, path + '.object', 'feature refers to missing object "' + feature.object + '".');
+          if (feature.lit !== undefined && typeof feature.lit !== 'boolean') err('scene-lit-not-boolean', 'SCENE ' + roomId, path + '.lit', 'lit must be true or false.');
+        }
+      }
+      for (const roomId of roomIds) {
+        if (!Object.prototype.hasOwnProperty.call(semanticScene, roomId)) warn('scene-missing-room', 'DISPLAY', 'presentation.art.scene.' + roomId, 'canvas scene is not declared; the generic stone chamber fallback will be used.');
+      }
+    }
     if (presentation.interface === 'canvas' && !(plainObject(presentation.art) && presentation.art.scene)) {
       warn('canvas-no-art', 'DISPLAY', 'presentation.art.scene', 'the canvas interface is selected but the cartridge supplies no scene painters; rooms will be blank.');
     }
