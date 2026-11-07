@@ -1,0 +1,137 @@
+{
+ "room": "wellBottom",
+ "size": [
+  1280,
+  800
+ ],
+ "camera": {
+  "matrix": [
+   1.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.999964,
+   0.008474,
+   0.0,
+   0.0,
+   -0.008474,
+   0.999964,
+   0.0,
+   0.0,
+   1.5,
+   1.2,
+   1.0
+  ],
+  "fov": 64.0108,
+  "aspect": 1.6,
+  "near": 0.1,
+  "far": 60.0,
+  "depthRange": 40.0
+ },
+ "passes": {
+  "beauty": "beauty.webp",
+  "albedo": "albedo.webp",
+  "normal": "normal.webp",
+  "emit": "emit.webp",
+  "data": "data.webp"
+ },
+ "ids": {
+  "1": "floor",
+  "2": "well",
+  "3": "sunstone"
+ },
+ "variants": [
+  {
+   "id": "sunstone",
+   "when": {
+    "here": "sunstone"
+   },
+   "rect": [
+    508,
+    618,
+    130,
+    124
+   ],
+   "passes": {
+    "beauty": "v.sunstone.beauty.webp",
+    "albedo": "v.sunstone.albedo.webp",
+    "normal": "v.sunstone.normal.webp",
+    "emit": "v.sunstone.emit.webp",
+    "data": "v.sunstone.data.webp"
+   }
+  }
+ ],
+ "walk": {
+  "area": [
+   -1.9,
+   1.9,
+   -3.6,
+   -0.8
+  ],
+  "blocks": []
+ },
+ "points": {
+  "start": [
+   -0.9,
+   0.0,
+   -1.4
+  ],
+  "u": [
+   0.9,
+   0.0,
+   -3.1
+  ],
+  "d": [
+   0.9,
+   0.0,
+   -3.1
+  ]
+ },
+ "walkTo": {
+  "well": [
+   0.9,
+   0.0,
+   -3.1
+  ],
+  "exit:u": [
+   0.9,
+   0.0,
+   -3.1
+  ],
+  "sunstone": [
+   -0.35,
+   0.0,
+   -1.7
+  ]
+ },
+ "zones": [
+  {
+   "id": "exit:u",
+   "fromHotspot": "well"
+  }
+ ],
+ "lights": {
+  "ambient": [
+   0.07,
+   0.08,
+   0.12
+  ],
+  "key": {
+   "color": [
+    0.62,
+    0.72,
+    1.0
+   ],
+   "dir": [
+    0.2,
+    -1.0,
+    -0.1
+   ],
+   "intensity": 0.35
+  }
+ },
+ "music": "outside",
+ "wake": "change",
+ "exposure": 1.1
+}

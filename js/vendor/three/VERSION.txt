@@ -1,0 +1,2 @@
+three.js r180 (0.180.0), MIT. Vendored unmodified so the remastered shell needs no build step.
+three.module.min.js imports ./three.core.min.js (kept side by side, out of a build/ folder: Netlify Drop skips folders named build); the GLTF loader imports "three" via the import map in remastered.html.

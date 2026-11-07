@@ -1,0 +1,139 @@
+{
+ "room": "vault",
+ "size": [
+  1280,
+  800
+ ],
+ "camera": {
+  "matrix": [
+   1.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.999201,
+   -0.039968,
+   0.0,
+   0.0,
+   0.039968,
+   0.999201,
+   0.0,
+   0.0,
+   1.7,
+   6.0,
+   1.0
+  ],
+  "fov": 50.2297,
+  "aspect": 1.6,
+  "near": 0.1,
+  "far": 60.0,
+  "depthRange": 40.0
+ },
+ "passes": {
+  "beauty": "beauty.webp",
+  "albedo": "albedo.webp",
+  "normal": "normal.webp",
+  "emit": "emit.webp",
+  "data": "data.webp"
+ },
+ "ids": {
+  "1": "floor",
+  "2": "scepter",
+  "3": "exit:e"
+ },
+ "variants": [
+  {
+   "id": "scepter",
+   "when": {
+    "here": "scepter"
+   },
+   "rect": [
+    551,
+    373,
+    180,
+    108
+   ],
+   "passes": {
+    "beauty": "v.scepter.beauty.webp",
+    "albedo": "v.scepter.albedo.webp",
+    "normal": "v.scepter.normal.webp",
+    "emit": "v.scepter.emit.webp",
+    "data": "v.scepter.data.webp"
+   }
+  }
+ ],
+ "walk": {
+  "area": [
+   -3.6,
+   3.9,
+   -2.9,
+   2.3
+  ],
+  "blocks": [
+   [
+    -0.55,
+    0.55,
+    -2.55,
+    -1.45
+   ]
+  ]
+ },
+ "points": {
+  "start": [
+   -1.4,
+   0.0,
+   0.6
+  ],
+  "w": [
+   3.5,
+   0.0,
+   -1.9
+  ]
+ },
+ "walkTo": {
+  "scepter": [
+   0.0,
+   0.0,
+   -1.15
+  ],
+  "exit:e": [
+   3.85,
+   0.0,
+   -1.9
+  ]
+ },
+ "zones": [
+  {
+   "id": "exit:e",
+   "rect": [
+    1180,
+    230,
+    100,
+    340
+   ]
+  }
+ ],
+ "lights": {
+  "ambient": [
+   0.04,
+   0.045,
+   0.045
+  ],
+  "key": {
+   "color": [
+    1.0,
+    0.6,
+    0.3
+   ],
+   "dir": [
+    -1.0,
+    -0.2,
+    0.0
+   ],
+   "intensity": 0.3
+  }
+ },
+ "music": "throne",
+ "wake": "change",
+ "exposure": 1.1
+}

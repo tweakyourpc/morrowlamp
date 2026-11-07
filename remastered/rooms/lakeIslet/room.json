@@ -1,0 +1,135 @@
+{
+ "room": "lakeIslet",
+ "size": [
+  1280,
+  800
+ ],
+ "camera": {
+  "matrix": [
+   1.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.998053,
+   -0.062378,
+   0.0,
+   0.0,
+   0.062378,
+   0.998053,
+   0.0,
+   0.0,
+   1.7,
+   6.0,
+   1.0
+  ],
+  "fov": 50.2297,
+  "aspect": 1.6,
+  "near": 0.1,
+  "far": 60.0,
+  "depthRange": 40.0
+ },
+ "passes": {
+  "beauty": "beauty.webp",
+  "albedo": "albedo.webp",
+  "normal": "normal.webp",
+  "emit": "emit.webp",
+  "data": "data.webp"
+ },
+ "ids": {
+  "1": "floor",
+  "2": "plinth",
+  "3": "chalice",
+  "4": "exit:e"
+ },
+ "variants": [
+  {
+   "id": "chalice",
+   "when": {
+    "here": "chalice"
+   },
+   "rect": [
+    584,
+    333,
+    113,
+    126
+   ],
+   "passes": {
+    "beauty": "v.chalice.beauty.webp",
+    "albedo": "v.chalice.albedo.webp",
+    "normal": "v.chalice.normal.webp",
+    "emit": "v.chalice.emit.webp",
+    "data": "v.chalice.data.webp"
+   }
+  }
+ ],
+ "walk": {
+  "area": [
+   -3.0,
+   3.0,
+   -2.4,
+   1.6
+  ],
+  "blocks": [
+   [
+    -0.45,
+    0.45,
+    -1.8499999999999999,
+    -0.95
+   ]
+  ]
+ },
+ "points": {
+  "start": [
+   -1.2,
+   0.0,
+   0.7
+  ],
+  "w": [
+   -2.3,
+   0.0,
+   0.5
+  ]
+ },
+ "walkTo": {
+  "plinth": [
+   0.0,
+   0.0,
+   -0.65
+  ],
+  "chalice": [
+   0.0,
+   0.0,
+   -0.65
+  ],
+  "exit:e": [
+   -2.6,
+   0.0,
+   0.8
+  ]
+ },
+ "zones": [],
+ "lights": {
+  "ambient": [
+   0.06,
+   0.09,
+   0.13
+  ],
+  "key": {
+   "color": [
+    0.35,
+    0.7,
+    1.0
+   ],
+   "dir": [
+    0.0,
+    -1.0,
+    0.0
+   ],
+   "intensity": 0.35
+  }
+ },
+ "music": "lake",
+ "wake": "change",
+ "exposure": 1.1
+}

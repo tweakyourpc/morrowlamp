@@ -1,0 +1,267 @@
+{
+ "room": "cellar",
+ "size": [
+  1280,
+  800
+ ],
+ "camera": {
+  "matrix": [
+   1.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.998989,
+   -0.044954,
+   0.0,
+   0.0,
+   0.044954,
+   0.998989,
+   0.0,
+   0.0,
+   1.6,
+   6.0,
+   1.0
+  ],
+  "fov": 50.2297,
+  "aspect": 1.6,
+  "near": 0.1,
+  "far": 60.0,
+  "depthRange": 40.0
+ },
+ "passes": {
+  "beauty": "beauty.webp",
+  "albedo": "albedo.webp",
+  "normal": "normal.webp",
+  "emit": "emit.webp",
+  "data": "data.webp"
+ },
+ "ids": {
+  "1": "floor",
+  "2": "shelves",
+  "3": "wineRack",
+  "4": "crack",
+  "5": "shovel",
+  "6": "oilJar",
+  "7": "pitchPot",
+  "8": "emptyBottle",
+  "9": "exit:u",
+  "10": "exit:s"
+ },
+ "variants": [
+  {
+   "id": "tunnel",
+   "when": {
+    "flag": "tunnelDug"
+   },
+   "rect": [
+    564,
+    276,
+    277,
+    276
+   ],
+   "passes": {
+    "beauty": "v.tunnel.beauty.webp",
+    "albedo": "v.tunnel.albedo.webp",
+    "normal": "v.tunnel.normal.webp",
+    "emit": "v.tunnel.emit.webp",
+    "data": "v.tunnel.data.webp"
+   }
+  },
+  {
+   "id": "shovel",
+   "when": {
+    "here": "shovel"
+   },
+   "rect": [
+    567,
+    377,
+    29,
+    138
+   ],
+   "passes": {
+    "beauty": "v.shovel.beauty.webp",
+    "albedo": "v.shovel.albedo.webp",
+    "normal": "v.shovel.normal.webp",
+    "emit": "v.shovel.emit.webp",
+    "data": "v.shovel.data.webp"
+   }
+  },
+  {
+   "id": "oilJar",
+   "when": {
+    "in": [
+     "oilJar",
+     "shelves"
+    ]
+   },
+   "rect": [
+    266,
+    380,
+    23,
+    30
+   ],
+   "passes": {
+    "beauty": "v.oilJar.beauty.webp",
+    "albedo": "v.oilJar.albedo.webp",
+    "normal": "v.oilJar.normal.webp",
+    "emit": "v.oilJar.emit.webp",
+    "data": "v.oilJar.data.webp"
+   }
+  },
+  {
+   "id": "pitchPot",
+   "when": {
+    "in": [
+     "pitchPot",
+     "shelves"
+    ]
+   },
+   "rect": [
+    313,
+    383,
+    34,
+    27
+   ],
+   "passes": {
+    "beauty": "v.pitchPot.beauty.webp",
+    "albedo": "v.pitchPot.albedo.webp",
+    "normal": "v.pitchPot.normal.webp",
+    "emit": "v.pitchPot.emit.webp",
+    "data": "v.pitchPot.data.webp"
+   }
+  },
+  {
+   "id": "emptyBottle",
+   "when": {
+    "in": [
+     "emptyBottle",
+     "wineRack"
+    ]
+   },
+   "rect": [
+    1006,
+    441,
+    26,
+    14
+   ],
+   "passes": {
+    "beauty": "v.emptyBottle.beauty.webp",
+    "albedo": "v.emptyBottle.albedo.webp",
+    "normal": "v.emptyBottle.normal.webp",
+    "emit": "v.emptyBottle.emit.webp",
+    "data": "v.emptyBottle.data.webp"
+   }
+  }
+ ],
+ "walk": {
+  "area": [
+   -4.0,
+   4.0,
+   -2.6,
+   2.3
+  ],
+  "blocks": [
+   [
+    -1.75,
+    -0.8500000000000001,
+    -1.5,
+    -0.95
+   ],
+   [
+    2.9,
+    3.9,
+    -1.4,
+    -0.4
+   ]
+  ]
+ },
+ "points": {
+  "start": [
+   0.0,
+   0.0,
+   0.6
+  ],
+  "d": [
+   -1.3,
+   0.0,
+   -0.4
+  ],
+  "u": [
+   0.7,
+   0.0,
+   -2.3
+  ]
+ },
+ "walkTo": {
+  "shelves": [
+   -3.3,
+   0.0,
+   -2.3
+  ],
+  "oilJar": [
+   -2.0,
+   0.0,
+   -2.3
+  ],
+  "pitchPot": [
+   -2.0,
+   0.0,
+   -2.3
+  ],
+  "wineRack": [
+   3.3,
+   0.0,
+   -2.3
+  ],
+  "emptyBottle": [
+   3.3,
+   0.0,
+   -2.3
+  ],
+  "crack": [
+   0.7,
+   0.0,
+   -2.3
+  ],
+  "shovel": [
+   -0.6,
+   0.0,
+   -2.3
+  ],
+  "exit:s": [
+   0.7,
+   0.0,
+   -2.45
+  ],
+  "exit:u": [
+   -1.3,
+   0.0,
+   -0.4
+  ]
+ },
+ "zones": [],
+ "lights": {
+  "ambient": [
+   0.04,
+   0.045,
+   0.06
+  ],
+  "key": {
+   "color": [
+    1.0,
+    0.75,
+    0.45
+   ],
+   "dir": [
+    0.0,
+    -1.0,
+    0.0
+   ],
+   "intensity": 0.2
+  }
+ },
+ "music": "under",
+ "wake": "change",
+ "exposure": 1.1
+}

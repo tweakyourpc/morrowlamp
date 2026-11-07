@@ -1,0 +1,152 @@
+{
+ "room": "mirrorHall",
+ "size": [
+  1280,
+  800
+ ],
+ "camera": {
+  "matrix": [
+   1.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.9998,
+   -0.019996,
+   0.0,
+   0.0,
+   0.019996,
+   0.9998,
+   0.0,
+   0.0,
+   1.7,
+   6.0,
+   1.0
+  ],
+  "fov": 50.2297,
+  "aspect": 1.6,
+  "near": 0.1,
+  "far": 60.0,
+  "depthRange": 40.0
+ },
+ "passes": {
+  "beauty": "beauty.webp",
+  "albedo": "albedo.webp",
+  "normal": "normal.webp",
+  "emit": "emit.webp",
+  "data": "data.webp"
+ },
+ "ids": {
+  "1": "floor",
+  "2": "mirror",
+  "3": "exit:e",
+  "4": "exit:w"
+ },
+ "variants": [
+  {
+   "id": "flour",
+   "when": {
+    "flag": "flourRevealed"
+   },
+   "rect": [
+    155,
+    248,
+    225,
+    302
+   ],
+   "passes": {
+    "beauty": "v.flour.beauty.webp",
+    "albedo": "v.flour.albedo.webp",
+    "normal": "v.flour.normal.webp",
+    "emit": "v.flour.emit.webp",
+    "data": "v.flour.data.webp"
+   }
+  },
+  {
+   "id": "mirror.open",
+   "when": {
+    "flag": "mirrorOpened"
+   },
+   "rect": [
+    139,
+    230,
+    260,
+    351
+   ],
+   "passes": {
+    "beauty": "v.mirror.open.beauty.webp",
+    "albedo": "v.mirror.open.albedo.webp",
+    "normal": "v.mirror.open.normal.webp",
+    "emit": "v.mirror.open.emit.webp",
+    "data": "v.mirror.open.data.webp"
+   }
+  }
+ ],
+ "walk": {
+  "area": [
+   -4.6,
+   4.6,
+   -2.9,
+   2.3
+  ],
+  "blocks": []
+ },
+ "points": {
+  "start": [
+   0.0,
+   0.0,
+   0.6
+  ],
+  "w": [
+   4.2,
+   0.0,
+   -1.0
+  ],
+  "e": [
+   -3.4,
+   0.0,
+   -2.2
+  ]
+ },
+ "walkTo": {
+  "mirror": [
+   -3.4,
+   0.0,
+   -2.2
+  ],
+  "exit:w": [
+   -3.9,
+   0.0,
+   -2.6
+  ],
+  "exit:e": [
+   4.55,
+   0.0,
+   -1.0
+  ]
+ },
+ "zones": [],
+ "lights": {
+  "ambient": [
+   0.04,
+   0.045,
+   0.055
+  ],
+  "key": {
+   "color": [
+    1.0,
+    0.6,
+    0.3
+   ],
+   "dir": [
+    0.0,
+    -0.4,
+    0.9
+   ],
+   "intensity": 0.25
+  }
+ },
+ "music": "under",
+ "wake": "change",
+ "exposure": 1.1
+}
