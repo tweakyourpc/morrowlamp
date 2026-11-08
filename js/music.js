@@ -110,6 +110,61 @@
       ]
     },
 
+    /* Intrigue: rooms that keep secrets (the study, the vault). D minor
+       with a chromatic turn in every phrase, chords on the off-beat, a
+       bass that walks as if pacing. */
+    intrigue: {
+      bpm: 84, amb: null,
+      ch: [
+        { wave: 'triangle', gain: 0.05, det: 3, notes:
+          'd5:0.5 -:0.5 f5:0.5 e5:0.5 d5 -  c#5:0.5 d5:0.5 e5 a4:2 ' +
+          'bb4:0.5 -:0.5 d5:0.5 c5:0.5 bb4 -  a4:0.5 bb4:0.5 c#5 e5:2 ' +
+          'f5:0.5 -:0.5 a5:0.5 g5:0.5 f5 e5  d5:0.5 e5:0.5 f5:0.5 g#4:0.5 a4:2 ' +
+          'bb4 g4:0.5 e4:0.5 c#4 e4  d4:3 -' },
+        { wave: 'square', gain: 0.022, notes:
+          '-:0.5 a3:0.5 -:0.5 f3:0.5 -:0.5 a3:0.5 -:0.5 f3:0.5  -:0.5 g3:0.5 -:0.5 e3:0.5 -:0.5 g3:0.5 -:0.5 c#4:0.5 ' +
+          '-:0.5 bb3:0.5 -:0.5 g3:0.5 -:0.5 bb3:0.5 -:0.5 d4:0.5  -:0.5 c#4:0.5 -:0.5 e3:0.5 -:0.5 g3:0.5 -:0.5 c#4:0.5 ' +
+          '-:0.5 a3:0.5 -:0.5 f3:0.5 -:0.5 c4:0.5 -:0.5 a3:0.5  -:0.5 g#3:0.5 -:0.5 d4:0.5 -:0.5 e3:0.5 -:0.5 c#4:0.5 ' +
+          '-:0.5 bb3:0.5 -:0.5 e3:0.5 -:0.5 g3:0.5 -:0.5 c#4:0.5  -:0.5 a3:0.5 -:0.5 f3:0.5 d3:2' },
+        { wave: 'sine', gain: 0.08, notes:
+          'd2 a1 d2 f2  a1 c#2 e2 a1  g1 bb1 d2 g1  a1 e2 a1 c#2 ' +
+          'f2 a2 f2 c2  e2 g#1 a1 c#2  g1 bb1 a1 a1  d2:2 a1:2' }
+      ]
+    },
+
+    /* Tension: the approach to the Sentinel. E Phrygian; a held lead
+       that leans on the flat second, a nagging ostinato, a low pulse
+       like a heartbeat heard through stone. */
+    tension: {
+      bpm: 96, amb: { cutoff: 280, gain: 0.035 },
+      ch: [
+        { wave: 'sawtooth', gain: 0.03, det: 4, notes:
+          'b4:6 c5:2  b4:4 -:4  g4:6 a4 bb4  b4:8' },
+        { wave: 'square', gain: 0.02, notes:
+          'e3:0.5 e3:0.5 f3:0.5 e3:0.5 e3:0.5 e3:0.5 g3:0.5 f3:0.5  e3:0.5 e3:0.5 f3:0.5 e3:0.5 e3:0.5 e3:0.5 g3:0.5 f3:0.5 ' +
+          'c3:0.5 c3:0.5 db3:0.5 c3:0.5 c3:0.5 c3:0.5 eb3:0.5 db3:0.5  e3:0.5 e3:0.5 f3:0.5 e3:0.5 e3:0.5 e3:0.5 g3:0.5 f3:0.5' },
+        { wave: 'sine', gain: 0.1, notes:
+          'e1:1.5 e1:0.5 -:2  e1:1.5 e1:0.5 -:2  c1:1.5 c1:0.5 -:2  e1:1.5 e1:0.5 -:2' }
+      ]
+    },
+
+    /* The mirrors: nothing is quite where it seems. Whole-tone glass,
+       arpeggios that never resolve, a bass that steps but never lands. */
+    mirrors: {
+      bpm: 66, amb: null,
+      ch: [
+        { wave: 'sine', gain: 0.045, det: 4, notes:
+          'c6 d6 e6:2 f#5:2 g#5:2  a#5:3 g#5 e5:4  d6 c6 a#5:2 g#5:2 f#5:2  e5:6 -:2' },
+        { wave: 'triangle', gain: 0.03, notes:
+          'c5:0.5 e5:0.5 g#5:0.5 e5:0.5 c5:0.5 e5:0.5 g#5:0.5 e5:0.5  c5:0.5 e5:0.5 g#5:0.5 e5:0.5 c5:0.5 e5:0.5 g#5:0.5 e5:0.5 ' +
+          'd5:0.5 f#5:0.5 a#5:0.5 f#5:0.5 d5:0.5 f#5:0.5 a#5:0.5 f#5:0.5  d5:0.5 f#5:0.5 a#5:0.5 f#5:0.5 d5:0.5 f#5:0.5 a#5:0.5 f#5:0.5 ' +
+          'c5:0.5 e5:0.5 g#5:0.5 e5:0.5 c5:0.5 e5:0.5 g#5:0.5 e5:0.5  c5:0.5 e5:0.5 g#5:0.5 e5:0.5 c5:0.5 e5:0.5 g#5:0.5 e5:0.5 ' +
+          'd5:0.5 f#5:0.5 a#5:0.5 f#5:0.5 d5:0.5 f#5:0.5 a#5:0.5 f#5:0.5  d5:0.5 f#5:0.5 a#5:0.5 f#5:0.5 d5:0.5 f#5:0.5 a#5:0.5 f#5:0.5' },
+        { wave: 'sine', gain: 0.07, notes:
+          'c2:8 d2:8 e2:8 d2:8' }
+      ]
+    },
+
     combat: {
       bpm: 148, amb: null,
       ch: [
@@ -332,7 +387,8 @@
         master.gain.linearRampToValueAtTime(0.25, t + 0.12);
         master.gain.linearRampToValueAtTime(0.9, t + (ms || 1200) / 1000);
       },
-      TRACKS
+      TRACKS,
+      parse      // shared with any richer player of the same score
     };
   })();
 

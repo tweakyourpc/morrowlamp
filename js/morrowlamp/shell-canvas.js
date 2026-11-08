@@ -301,11 +301,7 @@
       return null;
     }
 
-    function exitLabel(dir, check) {
-      const name = check.room ? ((cart.world.rooms[check.room] || {}).name || '') : '';
-      const dirName = (ml.world.DIR_NAMES[dir] || dir);
-      return check.ok && name ? dirName + ' — ' + name : dirName;
-    }
+    function exitLabel(dir, check) { return ml.interact.exitLabel(cart, dir, check); }
 
     function sceneFlags() { return runtime.flags(); }
 
@@ -422,35 +418,9 @@
     /* Turn a click into a command the runtime already understands. The
        shell never invents game logic; it only phrases requests. */
     function commandFor(spot) {
-      if (!spot) return null;
-      if (spot.kind === 'exit') return { verb: 'move', text: spot.dir, _walkTo: spot.walkTo };
-      const info = runtime.describeObject(spot.id);
-      if (!info) return null;
-
-      if (carried) {
-        const held = carried;
-        carried = null;
-        if (info.container && info.open) return { verb: 'put', target: held, with: spot.id };
-        return { verb: 'use', target: held, with: spot.id };
-      }
-      switch (verb) {
-        case 'look': return { verb: 'examine', target: spot.id };
-        case 'talk': {
-          const speech = presentation.speech;
-          if (speech && speech.target === spot.id && (!speech.room || speech.room === runtime.meta().room)) {
-            return { _speech: speech };
-          }
-          return { verb: 'talk', target: spot.id };
-        }
-        case 'hand':
-          if (info.takeable && !info.carried) return { verb: 'take', target: spot.id };
-          if (info.container) return { verb: info.open ? 'close' : 'open', target: spot.id };
-          return { verb: 'push', target: spot.id };
-        case 'walk':
-        default:
-          if (info.container && !info.open) return { verb: 'open', target: spot.id };
-          return { verb: 'examine', target: spot.id };
-      }
+      const action = ml.interact.commandFor(runtime, presentation, spot, verb, carried);
+      if (ml.interact.usesHeld(action, carried)) carried = null;
+      return action;
     }
 
     canvas.addEventListener('mousemove', (event) => {
@@ -527,7 +497,8 @@
         if (icon) b.appendChild(icon);
         b.appendChild(el('span', null, label));
         b.addEventListener('click', () => {
-          if (carried && carried !== id) { const held = carried; carried = null; run({ verb: 'use', target: held, with: id }); return; }
+          const action = ml.interact.commandForItem(id, verb, carried);
+          if (action) { if (action.with) carried = null; run(action); return; }
           carried = carried === id ? null : id;
           renderInventory();
         });

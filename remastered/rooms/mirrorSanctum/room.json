@@ -1,0 +1,129 @@
+{
+ "room": "mirrorSanctum",
+ "size": [
+  1280,
+  800
+ ],
+ "camera": {
+  "matrix": [
+   1.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.998752,
+   -0.049938,
+   0.0,
+   0.0,
+   0.049938,
+   0.998752,
+   0.0,
+   0.0,
+   1.7,
+   6.0,
+   1.0
+  ],
+  "fov": 50.2297,
+  "aspect": 1.6,
+  "near": 0.1,
+  "far": 60.0,
+  "depthRange": 40.0
+ },
+ "passes": {
+  "beauty": "beauty.webp",
+  "albedo": "albedo.webp",
+  "normal": "normal.webp",
+  "emit": "emit.webp",
+  "data": "data.webp"
+ },
+ "ids": {
+  "1": "floor",
+  "2": "idol",
+  "3": "exit:e"
+ },
+ "variants": [
+  {
+   "id": "idol",
+   "when": {
+    "here": "idol"
+   },
+   "rect": [
+    578,
+    350,
+    124,
+    141
+   ],
+   "passes": {
+    "beauty": "v.idol.beauty.webp",
+    "albedo": "v.idol.albedo.webp",
+    "normal": "v.idol.normal.webp",
+    "emit": "v.idol.emit.webp",
+    "data": "v.idol.data.webp"
+   }
+  }
+ ],
+ "walk": {
+  "area": [
+   -3.2,
+   3.3,
+   -2.5,
+   2.3
+  ],
+  "blocks": [
+   [
+    -0.95,
+    0.95,
+    -2.25,
+    -0.9500000000000001
+   ]
+  ]
+ },
+ "points": {
+  "start": [
+   -1.0,
+   0.0,
+   0.4
+  ],
+  "w": [
+   2.9,
+   0.0,
+   -0.9
+  ]
+ },
+ "walkTo": {
+  "idol": [
+   0.0,
+   0.0,
+   -0.7
+  ],
+  "exit:e": [
+   3.25,
+   0.0,
+   -0.9
+  ]
+ },
+ "zones": [],
+ "lights": {
+  "ambient": [
+   0.05,
+   0.055,
+   0.07
+  ],
+  "key": {
+   "color": [
+    0.6,
+    0.75,
+    1.0
+   ],
+   "dir": [
+    0.0,
+    -1.0,
+    0.3
+   ],
+   "intensity": 0.35
+  }
+ },
+ "music": "lake",
+ "wake": "change",
+ "exposure": 1.1
+}

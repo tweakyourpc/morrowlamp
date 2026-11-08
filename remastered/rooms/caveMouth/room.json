@@ -1,0 +1,188 @@
+{
+ "room": "caveMouth",
+ "size": [
+  1280,
+  800
+ ],
+ "camera": {
+  "matrix": [
+   1.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.997913,
+   0.064571,
+   0.0,
+   0.0,
+   -0.064571,
+   0.997913,
+   0.0,
+   0.0,
+   1.7,
+   6.0,
+   1.0
+  ],
+  "fov": 50.2297,
+  "aspect": 1.6,
+  "near": 0.1,
+  "far": 60.0,
+  "depthRange": 40.0
+ },
+ "passes": {
+  "beauty": "beauty.webp",
+  "albedo": "albedo.webp",
+  "normal": "normal.webp",
+  "emit": "emit.webp",
+  "data": "data.webp"
+ },
+ "ids": {
+  "1": "floor",
+  "2": "gates",
+  "3": "exit:w",
+  "4": "exit:e",
+  "5": "exit:s"
+ },
+ "variants": [
+  {
+   "id": "gates.open",
+   "when": {
+    "flag": "gatesOpen"
+   },
+   "rect": [
+    438,
+    29,
+    404,
+    578
+   ],
+   "passes": {
+    "beauty": "v.gates.open.beauty.webp",
+    "albedo": "v.gates.open.albedo.webp",
+    "normal": "v.gates.open.normal.webp",
+    "emit": "v.gates.open.emit.webp",
+    "data": "v.gates.open.data.webp"
+   }
+  }
+ ],
+ "walk": {
+  "area": [
+   -5.0,
+   5.4,
+   -10.1,
+   1.3
+  ],
+  "blocks": [
+   [
+    -5.35,
+    -3.8499999999999996,
+    -8.75,
+    -7.25
+   ],
+   [
+    -7.6,
+    -5.0,
+    -3.8,
+    0.6
+   ]
+  ]
+ },
+ "points": {
+  "start": [
+   2.2,
+   0.0,
+   -0.0
+  ],
+  "s": [
+   -0.0,
+   0.0,
+   1.0
+  ],
+  "n": [
+   -0.0,
+   0.0,
+   -9.4
+  ],
+  "e": [
+   4.8,
+   0.0,
+   -3.1
+  ]
+ },
+ "walkTo": {
+  "gates": [
+   -0.0,
+   0.0,
+   -10.0
+  ],
+  "exit:s": [
+   -0.0,
+   0.0,
+   -10.0
+  ],
+  "exit:w": [
+   5.3,
+   0.0,
+   -3.1
+  ],
+  "exit:e": [
+   -4.8,
+   0.0,
+   -1.6
+  ],
+  "exit:n": [
+   -0.0,
+   0.0,
+   1.25
+  ]
+ },
+ "zones": [
+  {
+   "id": "exit:n",
+   "rect": [
+    0,
+    740,
+    1280,
+    60
+   ]
+  },
+  {
+   "id": "exit:w",
+   "rect": [
+    1130,
+    400,
+    150,
+    300
+   ]
+  },
+  {
+   "id": "exit:s",
+   "fromHotspot": "gates",
+   "when": {
+    "flag": "gatesOpen"
+   }
+  }
+ ],
+ "lights": {
+  "ambient": [
+   0.07,
+   0.085,
+   0.12
+  ],
+  "key": {
+   "color": [
+    0.4,
+    0.65,
+    1.0
+   ],
+   "dir": [
+    -0.8,
+    -0.3,
+    0.2
+   ],
+   "intensity": 0.3
+  }
+ },
+ "music": "under",
+ "wake": "change",
+ "exposure": 1.1
+}

@@ -34,7 +34,9 @@
     options = options || {};
     const profile = PROFILES[known(options.profile) ? String(options.profile).toLowerCase() : 'chip'];
     const fx = Z.audio || null;
-    const score = profile.music ? (Z.music || null) : null;
+    // A shell may bring its own player for the same score (the remastered
+    // edition does); it must offer the js/music.js interface.
+    const score = profile.music ? (options.score || Z.music || null) : null;
     let enabled = options.enabled !== false;
 
     const api = {

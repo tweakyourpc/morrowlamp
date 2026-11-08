@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Trailer capture</title>
+<!-- Loaded by tools/trailer/capture.mjs in headless Chromium, never by players.
+     It renders the trailer's music (the game's cues, and the trailer's own
+     score, tools/trailer/score.js) with the remaster's own score engine
+     (an OfflineAudioContext, so no speaker and no real time), and paints EGA
+     scenes with the classic painter, exactly as the game draws them. -->
+<script src="../../js/morrowlamp/core.js"></script>
+<script src="../../js/morrowlamp/world.js"></script>
+<script src="../../js/morrowlamp/profile.js"></script>
+<script src="../../js/morrowlamp/outcome.js"></script>
+<script src="../../js/morrowlamp/rules.js"></script>
+<script src="../../js/morrowlamp/vocabulary.js"></script>
+<script src="../../js/morrowlamp/stats.js"></script>
+<script src="../../js/morrowlamp/encounter.js"></script>
+<script src="../../js/morrowlamp/runtime.js"></script>
+<script src="../../js/morrowlamp/render.js"></script>
+<script src="../../js/music.js"></script>
+<script src="../../js/gfx.js"></script>
+<script src="../../js/sprites.js"></script>
+<script src="../../js/scenes.js"></script>
+<script src="../../js/world.js"></script>
+<script src="../../js/cartridges/sunken-crown.js"></script>
+</head>
+<body style="margin:0;background:#000">
+<canvas id="ega"></canvas>
+<script type="module">
+import { createScore } from '../../js/remastered/score.js';
+import { TRACKS, SPACES, renderTrailerScore } from './score.js';
+
+const Z = window.Z;
+// The trailer's own beds join the game's tracks for this page only.
+Object.assign(Z.music.TRACKS, TRACKS);
+const score = createScore(Z);
+Object.assign(score.SPACE, SPACES);
+
+/* 16-bit stereo WAV, as base64, from an AudioBuffer. */
+function wav(buffer) {
+  const ch = [buffer.getChannelData(0), buffer.getChannelData(buffer.numberOfChannels > 1 ? 1 : 0)];
+  const n = buffer.length, rate = buffer.sampleRate;
+  const out = new DataView(new ArrayBuffer(44 + n * 4));
+  const text = (at, s) => { for (let i = 0; i < s.length; i++) out.setUint8(at + i, s.charCodeAt(i)); };
+  text(0, 'RIFF'); out.setUint32(4, 36 + n * 4, true); text(8, 'WAVE'); text(12, 'fmt ');
+  out.setUint32(16, 16, true); out.setUint16(20, 1, true); out.setUint16(22, 2, true);
+  out.setUint32(24, rate, true); out.setUint32(28, rate * 4, true); out.setUint16(32, 4, true); out.setUint16(34, 16, true);
+  text(36, 'data'); out.setUint32(40, n * 4, true);
+  for (let i = 0, at = 44; i < n; i++) {
+    for (const c of ch) { out.setInt16(at, Math.max(-1, Math.min(1, c[i])) * 0x7fff, true); at += 2; }
+  }
+  let bin = '';
+  const bytes = new Uint8Array(out.buffer);
+  for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+  return btoa(bin);
+}
+
+window.renderCue = async (id, seconds) => wav(await score.render(id, seconds, 48000));
+window.renderTrailerScore = async () => wav(await renderTrailerScore(Z, score, 48000));
+
+window.paintEga = (roomId, profile) => {
+  const ml = Z.ml;
+  const art = ml.render.artOf(Z.cartridges['the-sunken-crown']);
+  const canvas = document.getElementById('ega');
+  const g = ml.render.create(canvas, { profile: profile || 'ega' });
+  g.clear(g.C.black);
+  art.scene(roomId).paint(g, {});
+  if (g.flush) g.flush();
+  return canvas.toDataURL('image/png');
+};
+window.captureReady = true;
+</script>
+</body>
+</html>

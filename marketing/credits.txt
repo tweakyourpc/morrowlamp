@@ -1,0 +1,186 @@
+THE SUNKEN CROWN
+REMASTERED
+
+A Morrowlamp Software production
+
+GitHub    github.com/tweakyourpc
+LinkedIn  linkedin.com/in/srqhelpdesk
+
+
+CREATED, DIRECTED AND PRODUCED BY
+Christopher Davis
+
+
+ABOUT THE GAME
+The Sunken Crown began as a tribute to the Infocom text
+adventures of the late 1970s and early '80s: interactive fiction
+driven by a natural-language parser, where the only graphics
+were the ones the prose put in your head.
+
+The goal was a port to modern hardware that kept the parser at
+its heart and added what those machines never could: spoken
+narration and modern graphics, with a nod to the EGA look of the
+1980s computer role-playing games.
+
+The text port came first. Its engine, the Morrowlamp Machine,
+then drove a graphical front end in the point-and-click
+tradition, and every feature since has been a modular layer on
+that same core: mouse control, a typed command line with
+scrollback history, fully voiced narration with a choice of
+narrators, a synthesized score, and pre-rendered 3D rooms.
+
+Then the signature trick. Every room starts out in period
+16-colour EGA, and the first time you act in it, whether you
+pick something up or open a door, it remasters itself in front
+of you. The house fills in as you play, and becomes your map.
+
+
+OPEN SOURCE, START TO FINISH
+The Sunken Crown is free and open-source software,
+released under the MIT licence.
+
+Its engine, art pipeline, score, voices and films
+were built with free and open-source software:
+no commercial game engine, no paid art package,
+no stock assets. Every tool is credited below
+with its licence.
+
+Two closed-source tools were used in production,
+and neither ships with the game:
+NVIDIA's OptiX and GPU driver, to speed up the renders,
+and Claude Code, the AI assistant used in development.
+
+
+STORY AND GAME WRITING
+Generated and revised with AI assistance
+under the direction of Christopher Davis
+
+
+THE MORROWLAMP MACHINE
+The game engine: parser, rules, combat,
+validator and walkthrough prover
+Original to Morrowlamp · MIT licence
+
+The classic edition
+HTML5 Canvas, drawn in CGA, EGA and VGA palettes
+by Morrowlamp's own scene painters
+
+
+THE REMASTERED EDITION
+three.js r180 · MIT licence
+WebGL, for the live hero and the lantern's light
+glTF 2.0, the Khronos open standard, for the hero's model and animation
+WebP, the open image format, for the rendered rooms
+
+
+ROOMS, HERO, EPILOGUE AND TRAILER
+Blender 5.3 · GNU GPL
+Cycles path tracer · Apache 2.0
+Intel Open Image Denoise · Apache 2.0
+AgX colour management
+
+Every room, prop and creature built in Python
+by Morrowlamp's own scripts.
+No stock models, textures or photographs.
+
+
+MUSIC
+An original score, composed as code
+for Morrowlamp's own sequencer,
+played on the remastered score engine
+through the Web Audio API.
+Every note and every sound is synthesized
+while you play. No recordings, no samples.
+
+The trailer's score is written the same way.
+
+
+VOICES
+Narration synthesized with Piper text-to-speech · GNU GPL 3.0
+Michael Hansen and the Open Home Foundation
+
+Southern English woman (narrator)
+  Piper voice "cori" by Bryce Beattie
+  LibriVox recordings, public domain
+
+American man (narrator)
+  Piper voice "norman"
+  LibriVox recordings, public domain
+
+American woman (narrator)
+  Piper voice "kristin"
+  LibriVox recordings, public domain
+
+Your grandmother's note
+  Piper voice "ljspeech"
+  The LJ Speech Dataset, Keith Ito and Linda Johnson
+  LibriVox recordings, public domain
+
+The chroniclers' books
+  Piper voice "john"
+  LibriVox recordings, public domain
+
+With thanks to the LibriVox volunteers,
+who give their readings to the public domain
+
+Every sentence voiced in several takes,
+and the clearest chosen by machine listening:
+faster-whisper (SYSTRAN) on CTranslate2 · MIT licence,
+with OpenAI's Whisper speech model · MIT licence
+
+Narration delivered as Opus audio in WebM · BSD licence
+Device voice by the Web Speech API
+
+
+TRAILER AND FILM PRODUCTION
+FFmpeg · GNU LGPL and GPL
+x264, for H.264 video · GNU GPL
+Loudness to EBU R128
+
+Playwright · Apache 2.0
+and headless Chromium · BSD licence,
+for the title cards and the offline score
+
+
+TYPEFACES
+Cormorant Garamond
+EB Garamond
+SIL Open Font License 1.1
+
+
+BUILT WITH
+Node.js · MIT licence
+Python · PSF licence
+Pillow · MIT-CMU licence
+NumPy · BSD licence
+Bash and rsync · GNU GPL
+OpenSSH · BSD licence
+systemd · GNU LGPL
+git · GNU GPL 2.0
+Ubuntu, on the Linux kernel · GNU GPL
+
+The Showrig render worker
+
+
+AI DEVELOPMENT
+Claude Code, by Anthropic
+Software, procedural art, writing,
+voice and render pipelines, and testing,
+under human direction
+
+
+SPECIAL THANKS
+Grandmother, for the note
+The cavern, for the echo
+The Sentinel, now off duty
+
+
+The Sentinel appears courtesy of the Sunken Halls.
+No kings were woken in the making of this game.
+
+Arcade veterans, take note:
+one famous Konami cheat still works in these halls.
+We won't tell you the sequence. Your thumbs may remember it.
+
+© 2026 Christopher Davis
+Morrowlamp Software

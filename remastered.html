@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>THE SUNKEN CROWN — Remastered</title>
+  <link rel="stylesheet" href="css/remastered.css">
+</head>
+<body>
+  <main id="rm-app" aria-label="The Sunken Crown, remastered"></main>
+
+  <!-- The same Machine and the same cartridge as index.html and text.html. -->
+  <script src="js/morrowlamp/core.js"></script>
+  <script src="js/morrowlamp/world.js"></script>
+  <script src="js/morrowlamp/profile.js"></script>
+  <script src="js/morrowlamp/outcome.js"></script>
+  <script src="js/morrowlamp/rules.js"></script>
+  <script src="js/morrowlamp/vocabulary.js"></script>
+  <script src="js/morrowlamp/stats.js"></script>
+  <script src="js/morrowlamp/encounter.js"></script>
+  <script src="js/morrowlamp/runtime.js"></script>
+  <script src="js/morrowlamp/savecode.js"></script>
+  <script src="js/morrowlamp/render.js"></script>
+  <script src="js/morrowlamp/sound.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/music.js"></script>
+  <script src="js/gfx.js"></script>
+  <script src="js/sprites.js"></script>
+  <script src="js/scenes.js"></script>
+  <script src="js/world.js"></script>
+  <script src="js/cartridges/sunken-crown.js"></script>
+  <script src="js/morrowlamp/interact.js"></script>
+  <script src="js/remastered/voice-key.js"></script>
+
+  <!-- The remastered presentation: three.js, vendored, no build step. -->
+  <script type="importmap">{ "imports": { "three": "./js/vendor/three/three.module.min.js" } }</script>
+  <script type="module" src="js/remastered/main.js"></script>
+</body>
+</html>

@@ -21,11 +21,13 @@
       map: [300, 42],
       desc: [
         'A cobbled yard stretches before a grey manor house that has been ignoring the weather for three hundred years. ',
-        'Morning mist coils around the gateposts, and the gravel road curls away east toward the wide world — and, your grandmother swore, toward a kingdom that sank into a hill.'
+        'Morning mist coils around the gateposts, and the gravel road curls away east toward the wide world — and, your grandmother swore, toward a kingdom that sank into a hill. ',
+        'A path runs west, round the side of the house.'
       ].join(''),
       short: 'The cobbled yard of Ashcombe. The mist has not made up its mind about you yet.',
       exits: {
         n: 'porch',
+        w: 'kitchenGarden',
         e: { room: null, deny: 'The road curls away into the mist. Somewhere out there is a town with warm food and no umbras. Not today.' },
         s: { room: null, deny: 'The woods are thick with brambles and a low, patient sound. The trees can keep their secrets.' },
         d: { room: 'wellBottom', deny: 'The well is the only way down here.' }
@@ -53,7 +55,7 @@
       map: [300, 172],
       desc: [
         'A grand entrance hall that has given up on grand. Dust hangs in the light like it owns the place. ',
-        'A chandelier slumps overhead with only a few sad crystals left. A grandfather clock stands against the wall, stopped at 11:41 forever. ',
+        'A chandelier slumps overhead with only a few sad crystals left. A grandfather clock stands against the wall. ',
         'To the west, a study; to the east, a kitchen. A heavy trapdoor in the floor leads to the cellar, and a long glass cabinet against the north wall gleams, empty and expectant.'
       ].join(''),
       short: 'The entrance hall, dust-thick and dignified. A long glass cabinet gleams expectantly.',
@@ -62,7 +64,7 @@
         w: 'study',
         e: 'kitchen',
         d: { room: 'cellar', objReq: 'hatch', open: true, deny: 'The trapdoor is shut. (Unlock it, then open it.)' },
-        u: { room: null, deny: 'The grand staircase ends in a heap of rubble and a hole in the roof. Up is not an option.' }
+        u: { room: 'grandmotherRoom', flagReq: 'stairsCrossed', deny: 'The middle steps of the grand staircase lie in a heap of rubble. The banister post at the top still stands. (Something long, looped over it, would get you up.)' }
       }
     },
 
@@ -88,11 +90,13 @@
       desc: [
         'A kitchen where the last meal was cooked before the plumbing was invented. ',
         'A black iron stove stands cold, a table holds the remains of someone\'s unfinished business — a knife, a loaf of bread — and a moth-eaten curtain hangs by the window. ',
-        'A pantry door stands ajar in the corner.'
+        'A pantry door stands ajar in the corner, and a back door is set in the north wall.'
       ].join(''),
       short: 'The kitchen. Everything here has been cold for a very long time.',
       exits: {
-        w: 'hall'
+        w: 'hall',
+        n: { room: 'kitchenGarden', objReq: 'backDoor', open: true, deny: 'The back door is shut, and bolted on this side.' },
+        u: { room: 'grandmotherRoom', flagReq: 'servantStair', deny: 'There is no way up from the kitchen that you know of.' }
       }
     },
 
@@ -292,6 +296,58 @@
       exits: {
         u: 'yard'
       }
+    },
+
+    /* --- upstairs and the back of the house (story bible, sections 6 and 6b) --- */
+    grandmotherRoom: {
+      name: 'Grandmother\'s Room',
+      dark: false,
+      map: [188, 108],
+      desc: [
+        'A low room under the eaves, where the roof has fallen in and the moon has let itself in after it. ',
+        'Moonlight lies across a narrow bed that was made forty years ago and never slept in since, and a writing table with its chair pushed back, as if she had only just stood up. ',
+        'The grand stair drops away below; in the corner there is a narrow servants\' door; overhead, the hole in the roof, and the garden beyond it.'
+      ].join(''),
+      short: 'Your grandmother\'s room. The moon keeps it now.',
+      exits: {
+        d: { room: 'hall', flagReq: 'stairsCrossed', deny: 'From up here the gap in the stairs looks even worse. You need a way down that is not falling.' },
+        e: { room: 'kitchen', flagReq: 'servantStair', deny: 'The servants\' door is stuck fast in its frame.' },
+        u: { room: 'kitchenGarden', flagReq: 'ladderUp', deny: 'The hole in the roof opens on a long drop into the garden. Without a ladder, the garden would get you all at once.' }
+      }
+    },
+
+    kitchenGarden: {
+      name: 'Kitchen Garden',
+      dark: false,
+      map: [524, 172],
+      desc: [
+        'Behind the manor, a kitchen garden has gone back to being a field with ambitions. ',
+        'Moonlight silvers the overgrown beds and a yew older than the house, and under the yew stands a single gravestone. ',
+        'To the north a glasshouse glints, half its panes gone. The kitchen\'s back door is set in the wall to the south, and two storeys up the roof has a hole in it the shape of a bad winter. ',
+        'From the woods comes a low, patient sound. A path runs west, round the side of the house, to the yard.'
+      ].join(''),
+      short: 'The overgrown kitchen garden. The yew keeps watch over its one grave.',
+      exits: {
+        w: 'yard',
+        n: 'glasshouse',
+        s: { room: 'kitchen', objReq: 'backDoor', open: true, deny: 'The back door is bolted from the inside.' },
+        u: { room: 'grandmotherRoom', flagReq: 'ladderUp', deny: 'The hole in the roof is two storeys up. You would need a ladder, or wings, and you left your wings in your other coat.' }
+      }
+    },
+
+    glasshouse: {
+      name: 'The Glasshouse',
+      dark: false,
+      map: [524, 108],
+      desc: [
+        'A glasshouse that has lost its argument with the weather: half its panes lie on the floor, and the rest hold the moon in pieces. ',
+        'Dead vines have climbed the frame and stayed there. On the potting bench, among clay pots and a trowel rusted to its own shadow, sits a phonograph with a brass horn like a frozen lily. ',
+        'The garden is south.'
+      ].join(''),
+      short: 'The glasshouse, full of broken moonlight and your grandmother\'s phonograph.',
+      exits: {
+        s: 'kitchenGarden'
+      }
     }
   };
 
@@ -334,10 +390,84 @@
     },
     well: {
       name: 'dry well',
-      aliases: ['well', 'stone well', 'ladder'],
+      aliases: ['well', 'stone well', 'rusty ladder'],
       takeable: false,
       desc: 'A stone well, dry as a sermon. A rusty ladder descends into shadow, and the faintest honey-coloured glow rises from below.',
       examine: 'Forty feet of rough stone, a ladder of dubious intent, and at the bottom — something glowing. The note said the well is dry. The note was right, and also wrong.'
+    },
+
+    /* --- the stairs, the back door, and what lies beyond them --- */
+    stairs: {
+      name: 'grand staircase',
+      aliases: ['stairs', 'staircase', 'stair', 'steps', 'banister', 'post', 'banister post', 'grand staircase', 'rubble'],
+      takeable: false,
+      desc: 'A grand staircase climbs towards a landing it can no longer reach.',
+      examine: 'The grand staircase climbs halfway to glory and then gives up: its middle steps lie in a heap of rubble at the bottom. Above the gap, the banister post at the top still stands, solid as a grudge. Something long, looped over that post, would get you up.'
+    },
+    backDoor: {
+      name: 'back door',
+      aliases: ['back door', 'bolt', 'backdoor'],
+      takeable: false,
+      container: true,
+      open: false,
+      desc: '',
+      examine: 'A plank door set deep in the wall, with an iron bolt on the kitchen side.',
+      openText: 'You draw the bolt and haul the back door open. Night air comes in, smelling of wet leaves and of something the woods are thinking about.'
+    },
+    servantDoor: {
+      name: 'servants\' door',
+      aliases: ['servants door', 'servants\' door', 'servant door', 'narrow door'],
+      takeable: false,
+      desc: '',
+      examine: 'A narrow door for servants, painted the colour of not being noticed. It is stuck in its frame, not locked.'
+    },
+    roofHole: {
+      name: 'hole in the roof',
+      aliases: ['hole', 'roof', 'hole in the roof'],
+      takeable: false,
+      desc: '',
+      examine: 'A hole the shape of a bad winter, two storeys up. The moon uses it as a door.'
+    },
+    cylinder: {
+      name: 'wax cylinder',
+      aliases: ['cylinder', 'wax cylinder', 'recording', 'record', 'sleeve'],
+      takeable: true,
+      desc: 'On the writing table, a wax cylinder sits in a cardboard sleeve.',
+      examine: 'A brown wax cylinder in a cardboard sleeve. On the sleeve, in your grandmother\'s hand: "1. For whoever comes next. Play it in the glasshouse."'
+    },
+    verse: {
+      name: 'page of verse',
+      aliases: ['page', 'verse', 'second verse', 'page of verse', 'lullaby verse'],
+      takeable: true,
+      desc: 'Beside it lies a single page in the same hand.',
+      read: [
+        'In your grandmother\'s hand, under a heading underlined twice, THE SECOND VERSE:',
+        '"Sleep now, keeper, the watch is done; the door is barred and the halls are won. Lay down the key that you held so long, and go where the halls have kept their song."'
+      ]
+    },
+    grave: {
+      name: 'gravestone',
+      aliases: ['grave', 'gravestone', 'headstone', 'yew', 'tree', 'inscription'],
+      takeable: false,
+      desc: '',
+      examine: [
+        'A plain stone under the yew, the letters cut deep:',
+        '"THE LAST ASHCOMBE BUT ONE. SHE WENT DOWN, AND SHE CAME BACK UP, WHICH IS MORE THAN MOST. SING IT ALL THE WAY THROUGH."'
+      ]
+    },
+    phonograph: {
+      name: 'phonograph',
+      aliases: ['phonograph', 'gramophone', 'horn', 'player', 'bench', 'potting bench'],
+      takeable: false,
+      desc: '',
+      examine: 'A cylinder phonograph with a brass horn like a frozen lily. Its crank still turns. It is waiting for a cylinder.'
+    },
+    ladder: {
+      name: 'ladder',
+      aliases: ['ladder', 'wooden ladder'],
+      takeable: true,
+      desc: 'A long wooden ladder is here.',
+      examine: 'A long wooden ladder, grey with weather but sound. Long enough for a roof, if you were the kind of person who goes in through roofs.'
     },
 
     /* --- porch --- */
@@ -385,8 +515,8 @@
       container: true,
       open: false,
       contents: ['brassKey', 'musicSheet'],
-      desc: 'A grandfather clock stands against the wall, hands frozen at 11:41.',
-      examine: 'A towering clock, stopped at 11:41. Its cabinet door is closed. You can hear, very faintly, the idea of ticking — a habit the clock has not quite given up.',
+      desc: '',
+      examine: 'A towering clock, stopped at 9:41. There are little winding holes in its face. You can hear, very faintly, the idea of ticking — a habit the clock has not quite given up.',
       openText: 'The clock door swings open with a held-in sigh. Inside rests a brass key and a sheet of music, folded into thirds.'
     },
     brassKey: {
@@ -436,7 +566,6 @@
       aliases: ['book', 'tome', 'history', 'a history of the sunken kings', 'history of the sunken kings'],
       takeable: false,
       desc: 'On the shelves: "A History of the Sunken Kings", "On the Care of Musical Instruments", and a slim, worried-looking volume: "A Field Guide to Palace Security".',
-      examine: 'Three books, and the shelf looks relieved to be useful again.',
       read: [
         'From "A History of the Sunken Kings":',
         '"...when the Halls sank, the court mage sealed the Cavern of Echoes behind doors of brass. They open, it is said, to the truest name of the cavern — a name spoken only by the cavern itself."'

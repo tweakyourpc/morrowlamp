@@ -1,0 +1,131 @@
+{
+ "default": "cori",
+ "bitrate_kbps": 16,
+ "narrators": {
+  "cori": {
+   "label": "Southern English woman",
+   "blurb": "Clear, and a little amused. Knows the house.",
+   "model": "~/snap/pied/common/models/en_GB-cori-high.onnx",
+   "length_scale": 1.06,
+   "takes": [
+    {
+     "noise_scale": 0.55,
+     "noise_w": 0.7
+    },
+    {
+     "noise_scale": 0.667,
+     "noise_w": 0.8
+    },
+    {
+     "noise_scale": 0.45,
+     "noise_w": 0.6
+    }
+   ]
+  },
+  "norman": {
+   "label": "American man",
+   "blurb": "Warm and steady. A campfire storyteller.",
+   "model": "~/.local/share/piper-voices/en_US-norman-medium.onnx",
+   "length_scale": 1.08,
+   "takes": [
+    {
+     "noise_scale": 0.55,
+     "noise_w": 0.7
+    },
+    {
+     "noise_scale": 0.667,
+     "noise_w": 0.8
+    },
+    {
+     "noise_scale": 0.45,
+     "noise_w": 0.6
+    }
+   ]
+  },
+  "kristin": {
+   "label": "American woman",
+   "blurb": "Bright, and quietly delighted by danger.",
+   "model": "~/.local/share/piper-voices/en_US-kristin-medium.onnx",
+   "length_scale": 1.06,
+   "takes": [
+    {
+     "noise_scale": 0.55,
+     "noise_w": 0.7
+    },
+    {
+     "noise_scale": 0.667,
+     "noise_w": 0.8
+    },
+    {
+     "noise_scale": 0.45,
+     "noise_w": 0.6
+    }
+   ]
+  }
+ },
+ "cast": {
+  "ljspeech": {
+   "model": "~/.local/share/piper-voices/en_US-ljspeech-high.onnx",
+   "length_scale": 1.16,
+   "takes": [
+    {
+     "noise_scale": 0.55,
+     "noise_w": 0.7
+    },
+    {
+     "noise_scale": 0.667,
+     "noise_w": 0.8
+    },
+    {
+     "noise_scale": 0.5,
+     "noise_w": 0.75
+    },
+    {
+     "noise_scale": 0.6,
+     "noise_w": 0.65
+    }
+   ],
+   "note": "LJ Speech, a woman reading old books aloud: the grandmother's note"
+  },
+  "john": {
+   "model": "~/.local/share/piper-voices/en_US-john-medium.onnx",
+   "length_scale": 1.12,
+   "takes": [
+    {
+     "noise_scale": 0.55,
+     "noise_w": 0.7
+    },
+    {
+     "noise_scale": 0.667,
+     "noise_w": 0.8
+    },
+    {
+     "noise_scale": 0.45,
+     "noise_w": 0.6
+    }
+   ],
+   "note": "John, a man from the LibriVox stacks: the chroniclers of the Sunken Kings"
+  }
+ },
+ "writers": {
+  "_doc": "Quoted words in a readable object's text are spoken by whoever wrote them, never by the narrator the player chose. voice: a narrator or cast id; instead: who reads it when the player's narrator is that same voice; filter: ffmpeg audio filter applied to the writer's words.",
+  "grandmother": {
+   "voice": "ljspeech",
+   "filter": "volume=0.8,asetrate=22050*0.9,aresample=22050,atempo=1.04,vibrato=f=5.2:d=0.16,tremolo=f=4.6:d=0.14,highpass=f=150,lowpass=f=5000",
+   "objects": [
+    "note"
+   ],
+   "_filter_doc": "An old woman: a little headroom first (Piper writes to full scale), pitched down and slowed (asetrate 0.9), a 5 Hz tremor in pitch (vibrato, done in Python by build_voices.conform) and loudness (tremolo), and a thin band like an old recording."
+  },
+  "chronicler": {
+   "voice": "john",
+   "filter": "aecho=0.8:0.6:40:0.12",
+   "objects": [
+    "bookHistory",
+    "bookMusic",
+    "bookSecurity"
+   ]
+  }
+ },
+ "_licence": "Every voice here is public domain (LibriVox recordings or LJ Speech), so the game can be sold. Credit each one in js/remastered/credits.js; test/remastered-manifest.js checks it. Chosen 2026-11-07."
+}

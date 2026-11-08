@@ -1,0 +1,193 @@
+{
+ "room": "study",
+ "size": [
+  1280,
+  800
+ ],
+ "camera": {
+  "matrix": [
+   1.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.999688,
+   -0.024992,
+   0.0,
+   0.0,
+   0.024992,
+   0.999688,
+   0.0,
+   0.0,
+   1.7,
+   6.0,
+   1.0
+  ],
+  "fov": 50.2297,
+  "aspect": 1.6,
+  "near": 0.1,
+  "far": 60.0,
+  "depthRange": 40.0
+ },
+ "passes": {
+  "beauty": "beauty.webp",
+  "albedo": "albedo.webp",
+  "normal": "normal.webp",
+  "emit": "emit.webp",
+  "data": "data.webp"
+ },
+ "ids": {
+  "1": "floor",
+  "2": "lyre",
+  "3": "picture",
+  "4": "desk",
+  "5": "bookHistory",
+  "6": "bookMusic",
+  "7": "bookSecurity",
+  "8": "lens",
+  "9": "exit:e"
+ },
+ "variants": [
+  {
+   "id": "lyre",
+   "when": {
+    "here": "lyre"
+   },
+   "rect": [
+    618,
+    306,
+    119,
+    123
+   ],
+   "passes": {
+    "beauty": "v.lyre.beauty.webp",
+    "albedo": "v.lyre.albedo.webp",
+    "normal": "v.lyre.normal.webp",
+    "emit": "v.lyre.emit.webp",
+    "data": "v.lyre.data.webp"
+   }
+  },
+  {
+   "id": "lens",
+   "when": {
+    "in": [
+     "lens",
+     "desk"
+    ]
+   },
+   "rect": [
+    930,
+    466,
+    89,
+    34
+   ],
+   "passes": {
+    "beauty": "v.lens.beauty.webp",
+    "albedo": "v.lens.albedo.webp",
+    "normal": "v.lens.normal.webp",
+    "emit": "v.lens.emit.webp",
+    "data": "v.lens.data.webp"
+   }
+  }
+ ],
+ "walk": {
+  "area": [
+   -4.5,
+   4.5,
+   -2.7,
+   2.4
+  ],
+  "blocks": [
+   [
+    2.1500000000000004,
+    4.05,
+    -3.5,
+    -2.25
+   ],
+   [
+    -3.0,
+    -2.0,
+    -1.7,
+    -0.75
+   ]
+  ]
+ },
+ "points": {
+  "start": [
+   -0.5,
+   0.0,
+   1.0
+  ],
+  "w": [
+   4.0,
+   0.0,
+   -1.0
+  ]
+ },
+ "walkTo": {
+  "lyre": [
+   0.4,
+   0.0,
+   -2.3
+  ],
+  "picture": [
+   0.4,
+   0.0,
+   -2.1
+  ],
+  "desk": [
+   2.9,
+   0.0,
+   -1.95
+  ],
+  "lens": [
+   2.9,
+   0.0,
+   -1.95
+  ],
+  "bookHistory": [
+   -3.3,
+   0.0,
+   -2.4
+  ],
+  "bookMusic": [
+   -3.3,
+   0.0,
+   -2.4
+  ],
+  "bookSecurity": [
+   -3.3,
+   0.0,
+   -2.4
+  ],
+  "exit:e": [
+   4.45,
+   0.0,
+   -1.0
+  ]
+ },
+ "zones": [],
+ "lights": {
+  "ambient": [
+   0.1,
+   0.11,
+   0.16
+  ],
+  "key": {
+   "color": [
+    0.62,
+    0.72,
+    1.0
+   ],
+   "dir": [
+    -0.3,
+    -0.7,
+    0.6
+   ],
+   "intensity": 0.45
+  }
+ },
+ "music": "manor",
+ "wake": "change",
+ "exposure": 1.1
+}

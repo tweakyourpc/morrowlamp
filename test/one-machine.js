@@ -64,7 +64,8 @@ function testSharedModules() {
   const machine = ml.bundle.RUNTIME;
   const pageScripts = {
     'index.html': scriptsIn(read('index.html')),
-    'text.html': scriptsIn(read('text.html'))
+    'text.html': scriptsIn(read('text.html')),
+    'remastered.html': scriptsIn(read('remastered.html'))
   };
   for (const page in pageScripts) {
     for (const file of machine) {
@@ -88,10 +89,11 @@ function testSharedModules() {
   assert.ok(pageScripts['text.html'].includes('js/morrowlamp/shell-parser.js'));
   assert.ok(pageScripts['index.html'].includes('js/publisher.js'));
   assert.ok(pageScripts['text.html'].includes('js/ui.js'));
+  assert.ok(read('remastered.html').includes('src="js/remastered/main.js"'), 'remastered.html boots its own shell');
   const compiledFiles = ml.bundle.allFiles();
   assert.ok(!compiledFiles.includes('js/publisher.js'), 'compiled canvas uses the canonical shell');
   assert.ok(!compiledFiles.includes('js/ui.js'), 'compiled parser uses the canonical shell');
-  console.log('  ok — index.html, text.html and the compiled artifact load the same Machine and cartridge');
+  console.log('  ok — index.html, text.html, remastered.html and the compiled artifact load the same Machine and cartridge');
 }
 
 /* ---------------- the shells contain no gameplay ---------------- */
@@ -104,13 +106,15 @@ function testShellsAreP1resentationOnly() {
     [/Math\.random\(\)\s*<\s*0\.\d/, 'rolls its own dice'],
     [/\.hp\s*-=|\.hp\s*=\s*.*-\s/, 'applies damage itself']
   ];
-  for (const shell of ['js/morrowlamp/shell-canvas.js', 'js/morrowlamp/shell-parser.js', 'js/publisher.js', 'js/ui.js']) {
+  const remastered = fs.readdirSync(path.join(ROOT, 'js/remastered')).map((f) => 'js/remastered/' + f);
+  for (const shell of ['js/morrowlamp/shell-canvas.js', 'js/morrowlamp/shell-parser.js', 'js/morrowlamp/interact.js',
+    'js/publisher.js', 'js/ui.js'].concat(remastered)) {
     const text = read(shell);
     for (const [pattern, what] of forbidden) {
       assert.ok(!pattern.test(text), shell + ' ' + what);
     }
   }
-  console.log('  ok — neither shell scores, rolls or applies damage');
+  console.log('  ok — no shell scores, rolls or applies damage');
 }
 
 /* ---------------- one change, three places ----------------

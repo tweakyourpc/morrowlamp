@@ -1,0 +1,334 @@
+{
+ "room": "kitchen",
+ "size": [
+  1280,
+  800
+ ],
+ "camera": {
+  "matrix": [
+   1.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.99955,
+   -0.029986,
+   0.0,
+   0.0,
+   0.029986,
+   0.99955,
+   0.0,
+   0.0,
+   1.7,
+   6.0,
+   1.0
+  ],
+  "fov": 50.2297,
+  "aspect": 1.6,
+  "near": 0.1,
+  "far": 60.0,
+  "depthRange": 40.0
+ },
+ "passes": {
+  "beauty": "beauty.webp",
+  "albedo": "albedo.webp",
+  "normal": "normal.webp",
+  "emit": "emit.webp",
+  "data": "data.webp"
+ },
+ "ids": {
+  "1": "floor",
+  "2": "stove",
+  "3": "curtain",
+  "4": "pantry",
+  "5": "knife",
+  "6": "loaf",
+  "7": "candle",
+  "8": "flour",
+  "9": "exit:w",
+  "10": "backDoor"
+ },
+ "variants": [
+  {
+   "id": "knife",
+   "when": {
+    "here": "knife"
+   },
+   "rect": [
+    613,
+    441,
+    85,
+    42
+   ],
+   "passes": {
+    "beauty": "v.knife.beauty.webp",
+    "albedo": "v.knife.albedo.webp",
+    "normal": "v.knife.normal.webp",
+    "emit": "v.knife.emit.webp",
+    "data": "v.knife.data.webp"
+   }
+  },
+  {
+   "id": "loaf",
+   "when": {
+    "here": "loaf"
+   },
+   "rect": [
+    664,
+    409,
+    121,
+    113
+   ],
+   "passes": {
+    "beauty": "v.loaf.beauty.webp",
+    "albedo": "v.loaf.albedo.webp",
+    "normal": "v.loaf.normal.webp",
+    "emit": "v.loaf.emit.webp",
+    "data": "v.loaf.data.webp"
+   }
+  },
+  {
+   "id": "curtain",
+   "when": {
+    "here": "curtain"
+   },
+   "rect": [
+    669,
+    228,
+    162,
+    261
+   ],
+   "passes": {
+    "beauty": "v.curtain.beauty.webp",
+    "albedo": "v.curtain.albedo.webp",
+    "normal": "v.curtain.normal.webp",
+    "emit": "v.curtain.emit.webp",
+    "data": "v.curtain.data.webp"
+   }
+  },
+  {
+   "id": "candle",
+   "when": {
+    "in": [
+     "candle",
+     "pantry"
+    ]
+   },
+   "rect": [
+    945,
+    331,
+    56,
+    97
+   ],
+   "passes": {
+    "beauty": "v.candle.beauty.webp",
+    "albedo": "v.candle.albedo.webp",
+    "normal": "v.candle.normal.webp",
+    "emit": "v.candle.emit.webp",
+    "data": "v.candle.data.webp"
+   }
+  },
+  {
+   "id": "flour",
+   "when": {
+    "in": [
+     "flour",
+     "pantry"
+    ]
+   },
+   "rect": [
+    925,
+    432,
+    103,
+    124
+   ],
+   "passes": {
+    "beauty": "v.flour.beauty.webp",
+    "albedo": "v.flour.albedo.webp",
+    "normal": "v.flour.normal.webp",
+    "emit": "v.flour.emit.webp",
+    "data": "v.flour.data.webp"
+   }
+  },
+  {
+   "id": "backDoor.open",
+   "when": {
+    "open": "backDoor"
+   },
+   "rect": [
+    402,
+    287,
+    233,
+    292
+   ],
+   "passes": {
+    "beauty": "v.backDoor.open.beauty.webp",
+    "albedo": "v.backDoor.open.albedo.webp",
+    "normal": "v.backDoor.open.normal.webp",
+    "emit": "v.backDoor.open.emit.webp",
+    "data": "v.backDoor.open.data.webp"
+   }
+  },
+  {
+   "id": "servantStair",
+   "when": {
+    "flag": "servantStair"
+   },
+   "rect": [
+    1061,
+    312,
+    167,
+    295
+   ],
+   "passes": {
+    "beauty": "v.servantStair.beauty.webp",
+    "albedo": "v.servantStair.albedo.webp",
+    "normal": "v.servantStair.normal.webp",
+    "emit": "v.servantStair.emit.webp",
+    "data": "v.servantStair.data.webp"
+   }
+  }
+ ],
+ "walk": {
+  "area": [
+   -4.5,
+   4.5,
+   -2.9,
+   2.4
+  ],
+  "blocks": [
+   [
+    -0.8499999999999999,
+    1.45,
+    -2.35,
+    -0.7000000000000001
+   ],
+   [
+    -4.4,
+    -2.3,
+    -3.55,
+    -2.4
+   ]
+  ]
+ },
+ "points": {
+  "start": [
+   0.3,
+   0.0,
+   0.9
+  ],
+  "e": [
+   -4.0,
+   0.0,
+   -0.65
+  ],
+  "s": [
+   -1.1,
+   0.0,
+   -2.5
+  ],
+  "d": [
+   4.2,
+   0.0,
+   -2.3
+  ]
+ },
+ "walkTo": {
+  "stove": [
+   -2.1,
+   0.0,
+   -2.1
+  ],
+  "curtain": [
+   1.45,
+   0.0,
+   -2.7
+  ],
+  "pantry": [
+   4.0,
+   0.0,
+   -2.75
+  ],
+  "candle": [
+   4.0,
+   0.0,
+   -2.75
+  ],
+  "flour": [
+   4.0,
+   0.0,
+   -2.75
+  ],
+  "knife": [
+   0.0,
+   0.0,
+   -0.45
+  ],
+  "loaf": [
+   0.65,
+   0.0,
+   -0.45
+  ],
+  "exit:w": [
+   -4.45,
+   0.0,
+   -0.65
+  ],
+  "backDoor": [
+   -1.1,
+   0.0,
+   -2.85
+  ],
+  "exit:n": [
+   -1.1,
+   0.0,
+   -2.85
+  ],
+  "exit:u": [
+   4.4,
+   0.0,
+   -2.3
+  ]
+ },
+ "zones": [
+  {
+   "id": "exit:n",
+   "fromHotspot": "backDoor"
+  },
+  {
+   "id": "exit:u",
+   "rect": [
+    1125,
+    321,
+    64,
+    239
+   ],
+   "when": {
+    "flag": "servantStair"
+   }
+  }
+ ],
+ "lights": {
+  "ambient": [
+   0.1,
+   0.11,
+   0.16
+  ],
+  "key": {
+   "color": [
+    0.62,
+    0.72,
+    1.0
+   ],
+   "dir": [
+    -0.2,
+    -0.7,
+    0.65
+   ],
+   "intensity": 0.45
+  }
+ },
+ "music": "manor",
+ "wake": "change",
+ "exposure": 1.1
+}

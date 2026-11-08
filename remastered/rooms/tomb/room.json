@@ -1,0 +1,164 @@
+{
+ "room": "tomb",
+ "size": [
+  1280,
+  800
+ ],
+ "camera": {
+  "matrix": [
+   1.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.998008,
+   -0.063092,
+   0.0,
+   0.0,
+   0.063092,
+   0.998008,
+   0.0,
+   0.0,
+   1.7,
+   3.7,
+   1.0
+  ],
+  "fov": 58.7155,
+  "aspect": 1.6,
+  "near": 0.1,
+  "far": 60.0,
+  "depthRange": 40.0
+ },
+ "passes": {
+  "beauty": "beauty.webp",
+  "albedo": "albedo.webp",
+  "normal": "normal.webp",
+  "emit": "emit.webp",
+  "data": "data.webp"
+ },
+ "ids": {
+  "1": "floor",
+  "2": "sarcophagus",
+  "3": "ring",
+  "4": "exit:u"
+ },
+ "variants": [
+  {
+   "id": "sarc.open",
+   "when": {
+    "open": "sarcophagus"
+   },
+   "rect": [
+    441,
+    401,
+    398,
+    121
+   ],
+   "passes": {
+    "beauty": "v.sarc.open.beauty.webp",
+    "albedo": "v.sarc.open.albedo.webp",
+    "normal": "v.sarc.open.normal.webp",
+    "emit": "v.sarc.open.emit.webp",
+    "data": "v.sarc.open.data.webp"
+   }
+  },
+  {
+   "id": "ring",
+   "when": {
+    "open": "sarcophagus",
+    "in": [
+     "ring",
+     "sarcophagus"
+    ]
+   },
+   "rect": [
+    735,
+    445,
+    44,
+    30
+   ],
+   "passes": {
+    "beauty": "v.ring.beauty.webp",
+    "albedo": "v.ring.albedo.webp",
+    "normal": "v.ring.normal.webp",
+    "emit": "v.ring.emit.webp",
+    "data": "v.ring.data.webp"
+   }
+  }
+ ],
+ "walk": {
+  "area": [
+   -3.0,
+   3.0,
+   -3.3,
+   1.4
+  ],
+  "blocks": [
+   [
+    -1.55,
+    1.55,
+    -2.55,
+    -0.85
+   ],
+   [
+    2.55,
+    4.0,
+    -3.6,
+    -0.7
+   ]
+  ]
+ },
+ "points": {
+  "start": [
+   1.4,
+   0.0,
+   0.6
+  ],
+  "d": [
+   2.1,
+   0.0,
+   -0.5
+  ]
+ },
+ "walkTo": {
+  "sarcophagus": [
+   -0.3,
+   0.0,
+   -0.65
+  ],
+  "ring": [
+   0.75,
+   0.0,
+   -0.65
+  ],
+  "exit:u": [
+   2.3,
+   0.0,
+   -0.5
+  ]
+ },
+ "zones": [],
+ "lights": {
+  "ambient": [
+   0.035,
+   0.04,
+   0.05
+  ],
+  "key": {
+   "color": [
+    0.45,
+    0.55,
+    0.8
+   ],
+   "dir": [
+    0.0,
+    -1.0,
+    0.0
+   ],
+   "intensity": 0.2
+  }
+ },
+ "music": "throne",
+ "wake": "change",
+ "exposure": 1.1
+}

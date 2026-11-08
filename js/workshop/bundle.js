@@ -43,7 +43,7 @@
   ];
 
   const SHELLS = {
-    canvas: RENDERER.concat(['js/morrowlamp/shell-canvas.js']),
+    canvas: RENDERER.concat(['js/morrowlamp/interact.js', 'js/morrowlamp/shell-canvas.js']),
     parser: ['js/morrowlamp/shell-parser.js']
   };
 

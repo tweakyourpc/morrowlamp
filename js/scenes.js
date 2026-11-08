@@ -48,7 +48,32 @@
   }
 
   const S = {};
-  const scene = (id, def) => { S[id] = def; };
+  const scene = (id, def) => { S[id] = def.mirror ? mirrored(def) : def; };
+
+  /* A room drawn the wrong way round for its compass is mirrored, as its
+     remastered render is (kit.mirror_x): the picture flipped left to right,
+     and every walkable strip, hotspot, exit and entry point with it, so a
+     room never swaps sides when it wakes from EGA into its render. */
+  function mirrored(def) {
+    const W = 320;
+    const rect = (r) => [W - r[0] - r[2], r[1], r[2], r[3]];
+    const pt = (p) => (p ? [W - p[0], p[1]] : p);
+    const zone = (z) => Object.assign({}, z, { x: W - z.x - z.w, walkTo: pt(z.walkTo) });
+    const entry = {};
+    for (const k of Object.keys(def.entry || {})) entry[k] = pt(def.entry[k]);
+    return Object.assign({}, def, {
+      walk: (def.walk || []).map(rect),
+      entry,
+      spots: (def.spots || []).map(zone),
+      exits: (def.exits || []).map(zone),
+      paint(g, f) {
+        g.ctx.save();
+        g.ctx.translate(g.W, 0);
+        g.ctx.scale(-1, 1);
+        try { def.paint(g, f); } finally { g.ctx.restore(); }
+      }
+    });
+  }
 
   /* ============================================================
      ABOVE GROUND
@@ -58,7 +83,7 @@
     music: 'manor',
     scale: [138, 0.55, 190, 1.0],
     walk: [[14, 138, 292, 54]],
-    entry: { start: [118, 172], s: [160, 150], u: [214, 176], d: [214, 176] },
+    entry: { start: [118, 172], s: [160, 150], u: [214, 176], d: [214, 176], w: [30, 166] },   // w: back round the house from the garden
     paint(g, f) {
       const C = g.C;
       // Flat overcast dithering to mist. This has to reach all the way
@@ -94,6 +119,9 @@
       g.vgrad(0, 138, 320, 62, ['brown', 'dkgray']);
       g.speck(0, 138, 320, 62, C.black, 0.05, 21);
       g.speck(0, 138, 320, 62, C.ltgray, 0.025, 77);
+      // the path round the west side of the house
+      g.poly([[0, 150], [40, 138], [52, 140], [16, 170], [0, 172]], C.ltgray);
+      g.stipple(0, 138, 52, 34, C.brown, 0.45);
       // gateposts and the road curling east
       g.px(6, 108, 12, 46, C.ltgray); g.px(4, 104, 16, 6, C.dkgray);
       g.poly([[300, 140], [320, 138], [320, 176], [286, 160]], C.ltgray);
@@ -119,6 +147,7 @@
     exits: [
       { dir: 'n', x: 138, y: 88, w: 34, h: 52, walkTo: [156, 144] },
       { dir: 'e', x: 288, y: 136, w: 32, h: 44, walkTo: [286, 168] },
+      { dir: 'w', x: 0, y: 136, w: 24, h: 40, walkTo: [24, 166] },
       { dir: 'd', x: 220, y: 140, w: 52, h: 32, walkTo: [214, 176] }
     ]
   });
@@ -178,20 +207,55 @@
   scene('hall', {
     music: 'manor',
     scale: [132, 0.55, 192, 1.0],
-    walk: [[16, 132, 288, 60]],
-    entry: { start: [70, 170], n: [160, 180], w: [232, 158], e: [88, 158], u: [160, 160], d: [160, 160] },
+    walk: [[56, 134, 208, 24], [16, 156, 288, 38]],
+    entry: { start: [110, 172], n: [160, 180], w: [272, 172], e: [48, 172], u: [96, 160], d: [160, 160] },
     paint(g, f) {
       const C = g.C;
+      // A room in perspective, as the render sees it: the north wall ahead, the west and
+      // east walls receding on either side with their doors in them.
+      const clip = (pts, draw) => {
+        g.ctx.save();
+        g.ctx.beginPath();
+        pts.forEach(([x, y], k) => (k ? g.ctx.lineTo(x, y) : g.ctx.moveTo(x, y)));
+        g.ctx.closePath();
+        g.ctx.clip();
+        draw();
+        g.ctx.restore();
+      };
       g.vgrad(0, 0, 320, 40, ['black', 'dkgray']);             // high ceiling
-      stoneWall(g, 0, 24, 320, 108, C.dkgray, C.black, 13);
-      g.stipple(0, 24, 320, 40, C.black, 0.3);
-      // dusty light from a window we never see
-      lightShaft(g, 96, 132, 60, 150, 24, 132, C.yellow);
-      // side doorways
-      doorway(g, 8, 62, 34, 70, C.brown, C.black);             // west, study
-      doorway(g, 278, 62, 34, 70, C.brown, C.black);           // east, kitchen
-      g.stipple(10, 64, 30, 66, C.brown, 0.15);
-      g.stipple(280, 64, 30, 66, C.red, 0.12);
+      stoneWall(g, 52, 24, 216, 108, C.dkgray, C.black, 13);  // north wall
+      g.stipple(52, 24, 216, 40, C.black, 0.3);
+      const westWall = [[0, 0], [52, 24], [52, 132], [0, 184]];
+      const eastWall = [[320, 0], [268, 24], [268, 132], [320, 184]];
+      for (const [wall, seed] of [[westWall, 14], [eastWall, 15]]) {
+        clip(wall, () => { stoneWall(g, 0, 0, 320, 184, C.dkgray, C.black, seed); g.stipple(0, 0, 320, 184, C.black, 0.4); });
+      }
+      g.line(52, 24, 52, 132, C.black); g.line(268, 24, 268, 132, C.black);   // the corners
+      // the doors in the side walls: west to the study, east to the kitchen
+      g.poly([[6, 50], [30, 52], [30, 154], [6, 178]], C.black);
+      g.line(6, 50, 6, 178, C.brown); g.line(30, 52, 30, 154, C.brown); g.line(6, 50, 30, 52, C.brown);
+      g.stipple(8, 54, 20, 118, C.brown, 0.15);
+      g.poly([[314, 50], [290, 52], [290, 154], [314, 178]], C.black);
+      g.line(314, 50, 314, 178, C.brown); g.line(290, 52, 290, 154, C.brown); g.line(314, 50, 290, 52, C.brown);
+      g.stipple(292, 54, 20, 118, C.red, 0.14);                // the kitchen's warmth
+      // the grand staircase, up the west wall to a landing at the back it can no longer reach
+      for (let k = 0; k < 9; k++) {
+        if (k >= 3 && k <= 5) continue;                        // the middle steps, now rubble
+        const d = k / 8;
+        const x = 34 + 22 * d, w = 40 - 16 * d, y = 150 - 12 * k;
+        g.px(x, y, w, 7, C.brown);
+        g.stipple(x, y, w, 2, C.black, 0.3);
+      }
+      g.speck(36, 140, 40, 18, C.ltgray, 0.4, 61);             // the rubble at the foot
+      g.px(52, 46, 34, 8, C.brown);                            // the landing
+      g.line(74, 146, 84, 48, C.brown);                        // the banister rail
+      g.px(84, 30, 4, 22, C.brown);                            // the post at the top, solid as a grudge
+      if (f.curtainOnStairs) {
+        g.line(85, 34, 62, 118, C.magenta); g.line(86, 34, 63, 118, C.magenta);
+      }
+      // the stairwell over the landing, up into the room under the eaves, and its moonlight
+      g.px(52, 0, 40, 10, C.black);
+      lightShaft(g, 54, 90, 40, 120, 10, 150, C.ltblue);
       // the glass trophy cabinet, north wall
       g.px(112, 54, 96, 78, C.brown);
       g.px(116, 58, 88, 66, C.black);
@@ -199,16 +263,22 @@
       for (let i = 0; i < 3; i++) g.px(116, 78 + i * 20, 88, 2, C.brown);
       g.px(158, 58, 2, 66, C.brown);
       g.px(112, 128, 96, 6, C.dkgray);
-      // grandfather clock, stopped at 11:41 forever
+      // grandfather clock, stopped at 9:41 forever (the time every iPhone keynote shows)
       g.px(228, 40, 30, 92, C.brown);
       g.stipple(228, 40, 30, 92, C.black, 0.25);
       g.px(232, 46, 22, 24, C.black);
       g.circle(243, 58, 9, C.ltgray);
       g.circle(243, 58, 7, C.white);
-      g.line(243, 58, 243, 52, C.black);                       // 11
-      g.line(243, 58, 248, 61, C.black);                       // 41
+      // Stopped at 9:41 until it is wound; then it keeps the player's own time.
+      const at = f.clockRunning ? new Date() : null;
+      const mins = at ? at.getMinutes() + at.getSeconds() / 60 : 41;
+      const hours = at ? (at.getHours() % 12) + mins / 60 : 9 + 41 / 60;
+      const hand = (turns, len) => g.line(243, 58, 243 + Math.sin(turns * Math.PI * 2) * len, 58 - Math.cos(turns * Math.PI * 2) * len, C.black);
+      hand(hours / 12, 4.5);                                   // the hour hand
+      hand(mins / 60, 6.5);                                    // the minute hand
       g.px(232, 76, 22, 50, C.black);
       if (f.clockOpen) g.stipple(232, 76, 22, 50, C.yellow, 0.2);
+      else if (f.clockRunning) g.px(240 + Math.round(Math.sin(Date.now() / 318) * 3), 96, 6, 20, C.yellow);   // pendulum, swinging
       else g.px(240, 96, 6, 20, C.yellow);                     // pendulum, still
       // chandelier, slumped
       g.px(150, 0, 2, 20, C.dkgray);
@@ -219,9 +289,11 @@
       }
       g.stipple(126, 14, 50, 20, C.white, 0.12);
       // floor
-      g.vgrad(0, 132, 320, 68, ['dkgray', 'black']);
-      for (let x = -40; x < 360; x += 26) g.line(x, 200, 160 + (x - 160) * 0.35, 132, C.black);
-      for (let y = 136; y < 200; y += 10) g.stipple(0, y, 320, 1, C.black, 0.4);
+      clip([[52, 132], [268, 132], [320, 184], [320, 200], [0, 200], [0, 184]], () => {
+        g.vgrad(0, 132, 320, 68, ['dkgray', 'black']);
+        for (let x = -40; x < 360; x += 26) g.line(x, 200, 160 + (x - 160) * 0.35, 132, C.black);
+        for (let y = 136; y < 200; y += 10) g.stipple(0, y, 320, 1, C.black, 0.4);
+      });
       // the trapdoor to the cellar
       const tx = 128, ty = 154;
       g.poly([[tx, ty], [tx + 62, ty], [tx + 74, ty + 30], [tx - 12, ty + 30]], C.brown);
@@ -237,6 +309,7 @@
     },
     spots: [
       { id: 'cabinet', x: 110, y: 52, w: 100, h: 82, walkTo: [160, 148] },
+      { id: 'stairs', x: 32, y: 28, w: 58, h: 130, walkTo: [92, 160] },
       { id: 'clock', x: 226, y: 38, w: 34, h: 96, walkTo: [226, 150] },
       { id: 'chandelier', x: 126, y: 0, w: 50, h: 34, walkTo: [150, 150] },
       { id: 'hatch', x: 114, y: 152, w: 88, h: 34, walkTo: [160, 190] },
@@ -244,10 +317,11 @@
       { id: 'musicSheet', x: 250, y: 108, icon: true, walkTo: [226, 150] }
     ],
     exits: [
-      { dir: 'w', x: 4, y: 58, w: 42, h: 78, walkTo: [40, 156] },
-      { dir: 'e', x: 274, y: 58, w: 42, h: 78, walkTo: [280, 156] },
+      { dir: 'w', x: 2, y: 48, w: 30, h: 132, walkTo: [36, 172] },
+      { dir: 'e', x: 288, y: 48, w: 30, h: 132, walkTo: [284, 172] },
       { dir: 's', x: 0, y: 186, w: 320, h: 14, walkTo: [160, 190] },
-      { dir: 'd', x: 114, y: 152, w: 88, h: 34, walkTo: [160, 190] }
+      { dir: 'd', x: 114, y: 152, w: 88, h: 34, walkTo: [160, 190] },
+      { dir: 'u', x: 32, y: 28, w: 58, h: 130, walkTo: [92, 160], needs: 'stairsCrossed' }
     ]
   });
 
@@ -350,6 +424,21 @@
       g.px(268, 50, 20, 88, C.brown);
       g.stipple(288, 52, 22, 84, C.ltcyan, 0.1);
       for (let sy = 62; sy < 132; sy += 22) g.px(290, sy, 20, 3, C.brown);
+      // the back door, north wall, bolted on this side
+      doorway(g, 148, 48, 38, 90, C.brown, C.black);
+      if (f.backDoorOpen) {
+        g.px(152, 52, 30, 86, C.black);
+        g.stipple(152, 52, 30, 60, C.blue, 0.35);              // the night outside
+        g.stipple(152, 96, 30, 42, C.green, 0.2);
+      } else {
+        g.px(152, 52, 30, 86, C.brown);
+        g.stipple(152, 52, 30, 86, C.black, 0.25);
+        g.px(178, 88, 6, 3, C.dkgray);                         // the bolt
+      }
+      if (f.servantStair) {                                    // behind the pantry, where nobody looks
+        g.px(252, 64, 14, 74, C.black);
+        g.stipple(252, 64, 14, 30, C.brown, 0.2);
+      }
       // the table, and someone's unfinished business
       g.px(112, 106, 96, 8, C.brown);
       g.px(118, 114, 7, 28, C.brown); g.px(196, 114, 7, 28, C.brown);
@@ -369,9 +458,14 @@
       { id: 'knife', x: 138, y: 100, icon: true, walkTo: [140, 152] },
       { id: 'loaf', x: 176, y: 100, icon: true, walkTo: [176, 152] },
       { id: 'candle', x: 298, y: 78, icon: true, walkTo: [262, 162] },
-      { id: 'flour', x: 298, y: 112, icon: true, walkTo: [262, 162] }
+      { id: 'flour', x: 298, y: 112, icon: true, walkTo: [262, 162] },
+      { id: 'backDoor', x: 146, y: 46, w: 42, h: 58, walkTo: [168, 152] }
     ],
-    exits: [{ dir: 'w', x: 0, y: 60, w: 22, h: 78, walkTo: [24, 160] }]
+    exits: [
+      { dir: 'w', x: 0, y: 60, w: 22, h: 78, walkTo: [24, 160] },
+      { dir: 'n', x: 146, y: 46, w: 42, h: 58, walkTo: [168, 150] },
+      { dir: 'u', x: 250, y: 62, w: 18, h: 78, walkTo: [254, 160], needs: 'servantStair' }
+    ]
   });
 
   /* ============================================================
@@ -495,6 +589,7 @@
      ============================================================ */
 
   scene('caveMouth', {
+    mirror: true,   // looking south into the halls, so west is on the right
     music: 'under',
     scale: [136, 0.5, 192, 1.0],
     walk: [[10, 136, 300, 56]],
@@ -567,6 +662,7 @@
   });
 
   scene('gatePassage', {
+    mirror: true,   // looking south into the halls, so west is on the right
     music: 'throne', dark: true,
     scale: [140, 0.55, 192, 1.0],
     walk: [[24, 140, 272, 52]],
@@ -1040,6 +1136,187 @@
       { id: 'sunstone', x: 138, y: 168, icon: true, walkTo: [148, 182] }
     ],
     exits: [{ dir: 'u', x: 188, y: 0, w: 50, h: 146, walkTo: [200, 168] }]
+  });
+
+  /* ============================================================
+     UPSTAIRS AND THE BACK OF THE HOUSE (story bible, sections 6 and 6b)
+     ============================================================ */
+
+  scene('grandmotherRoom', {
+    music: 'manor',
+    scale: [138, 0.58, 192, 1.0],
+    // The floor, less the bed at the front left; the stairwell is at the back left,
+    // where the hall's stairs come up, and the render has it the same way round.
+    walk: [[112, 140, 192, 56], [16, 140, 96, 12]],
+    entry: { start: [160, 172], u: [124, 150] },       // every way in arrives moving up
+    paint(g, f) {
+      const C = g.C;
+      // a low room under the eaves
+      g.vgrad(0, 0, 320, 140, ['black', 'dkgray']);
+      g.poly([[0, 0], [120, 0], [0, 60]], C.black);            // the eaves coming down
+      g.poly([[200, 0], [320, 0], [320, 60]], C.black);
+      for (let x = 10; x < 320; x += 34) g.px(x, 30, 3, 110, C.brown);   // old panelling
+      g.stipple(0, 40, 320, 100, C.black, 0.3);
+      // the hole in the roof, and the night it lets in
+      // up to the left, over the stairwell: it runs out to the north gable
+      g.px(40, 0, 76, 30, C.blue);
+      g.stipple(40, 0, 76, 30, C.black, 0.4);
+      for (const [sx, sy] of [[48, 6], [69, 14], [94, 4], [107, 20], [58, 22]]) g.px(sx, sy, 1, 1, C.white);
+      g.circle(96, 12, 5, C.white);                           // the moon, letting itself in
+      g.poly([[40, 30], [46, 24], [58, 32], [76, 26], [94, 33], [116, 30]], C.dkgray);
+      lightShaft(g, 46, 112, 10, 120, 30, 150, C.ltblue);        // down onto the stairwell
+      // the writing table, its chair pushed back
+      g.px(196, 100, 74, 6, C.brown);
+      g.px(200, 106, 5, 30, C.brown); g.px(262, 106, 5, 30, C.brown);
+      g.px(176, 96, 4, 40, C.brown); g.px(176, 112, 16, 4, C.brown);
+      // the servants' door, in the corner
+      doorway(g, 284, 58, 28, 82, C.brown, C.black);
+      if (f.servantStair) g.px(288, 62, 20, 78, C.black);
+      else { g.px(288, 62, 20, 78, C.ltgray); g.stipple(288, 62, 20, 78, C.dkgray, 0.4); }
+      // the floor, and the stair falling away below
+      g.vgrad(0, 140, 320, 60, ['brown', 'dkgray']);
+      for (let x = 0; x < 320; x += 20) g.px(x, 140, 1, 60, C.black);
+      // the stairwell at the back left, the top of the hall's stairs, and its rail
+      g.poly([[12, 140], [96, 140], [104, 156], [6, 156]], C.black);
+      g.px(14, 143, 80, 2, C.brown); g.px(12, 148, 86, 2, C.brown);   // the top steps
+      g.line(96, 140, 104, 156, C.brown);
+      g.px(102, 124, 3, 32, C.brown);                          // the newel post
+      // the narrow bed at the front left, made forty years ago: seen from its foot, so the
+      // headboard and the pillow are at the far end, as the render has them
+      g.px(34, 152, 62, 16, C.brown);                          // the headboard
+      g.px(34, 150, 62, 3, C.brown);
+      g.poly([[30, 166], [100, 166], [112, 186], [16, 186]], C.brown);   // the frame
+      g.poly([[33, 164], [97, 164], [108, 184], [20, 184]], C.ltgray);   // the mattress, on it
+      g.poly([[38, 165], [92, 165], [94, 172], [36, 172]], C.white);     // the pillow, at the head
+      g.poly([[34, 173], [96, 173], [108, 184], [20, 184]], C.blue);     // the quilt
+      g.stipple(20, 173, 88, 11, C.ltblue, 0.3);
+      g.px(14, 184, 100, 10, C.brown);                         // the footboard
+      if (f.ladderUp) { g.px(58, 0, 3, 30, C.brown); g.px(94, 0, 3, 30, C.brown); }
+    },
+    spots: [
+      { id: 'cylinder', x: 214, y: 94, icon: true, walkTo: [228, 158] },
+      { id: 'verse', x: 244, y: 96, icon: true, walkTo: [228, 158] },
+      { id: 'servantDoor', x: 282, y: 56, w: 32, h: 86, walkTo: [272, 162] },
+      { id: 'roofHole', x: 38, y: 0, w: 80, h: 34, walkTo: [124, 152] }
+    ],
+    exits: [
+      { dir: 'd', x: 6, y: 138, w: 98, h: 20, walkTo: [118, 150], needs: 'stairsCrossed' },
+      { dir: 'e', x: 282, y: 56, w: 32, h: 86, walkTo: [272, 162], needs: 'servantStair' },
+      { dir: 'u', x: 38, y: 0, w: 80, h: 34, walkTo: [124, 152], needs: 'ladderUp' }
+    ]
+  });
+
+  scene('kitchenGarden', {
+    // Looking south at the back of the house, west is on the right: the path to the yard
+    // and the roof hole (the west slope) are on that side, as the render has them.
+    mirror: true,
+    music: 'manor',
+    scale: [140, 0.55, 192, 1.0],
+    walk: [[14, 140, 292, 56]],
+    entry: { start: [150, 172], w: [40, 166], n: [196, 154], s: [160, 188], u: [116, 160] },
+    paint(g, f) {
+      const C = g.C;
+      // night, and the back of the manor
+      g.vgrad(0, 0, 320, 60, ['black', 'blue']);
+      for (const [sx, sy] of [[20, 8], [62, 16], [250, 6], [296, 20], [214, 14]]) g.px(sx, sy, 1, 1, C.white);
+      g.circle(280, 16, 7, C.white);
+      // the same house the yard sees: two storeys, and a gable end, since the ridge runs
+      // front to back (drawn before the mirror, so this left edge is the west slope)
+      stoneWall(g, 60, 60, 200, 80, C.dkgray, C.black, 17);
+      g.ctx.save();
+      g.ctx.beginPath();
+      g.ctx.moveTo(60, 61); g.ctx.lineTo(160, 14); g.ctx.lineTo(260, 61);
+      g.ctx.closePath();
+      g.ctx.clip();
+      stoneWall(g, 60, 14, 200, 47, C.dkgray, C.black, 18);
+      g.ctx.restore();
+      g.line(56, 62, 160, 12, C.brown); g.line(160, 12, 264, 62, C.brown);   // the verges
+      g.px(58, 59, 204, 2, C.ltgray);                          // the string course at the eaves
+      g.poly([[95, 44], [104, 50], [114, 42], [126, 41], [135, 26], [128, 22], [108, 34]], C.black);   // the hole, the shape of a bad winter
+      g.line(104, 48, 110, 40, C.brown); g.line(118, 43, 124, 34, C.brown);   // broken battens
+      for (const [wx, wy] of [[76, 68], [151, 68], [226, 68], [80, 102]]) {
+        g.px(wx, wy, 18, 24, C.black);
+        g.stipple(wx, wy, 18, 10, C.ltblue, 0.2);
+      }
+      // the back door, bolted from the inside: the kitchen's (east) half of the house
+      doorway(g, 182, 96, 30, 44, C.brown, C.black);
+      g.px(186, 100, 22, 40, f.backDoorOpen ? C.black : C.brown);
+      if (f.backDoorOpen) g.stipple(186, 100, 22, 40, C.yellow, 0.12);
+      if (f.ladderUp) {                                        // the ladder, propped up the gable to the hole
+        g.line(108, 140, 112, 42, C.brown); g.line(122, 140, 124, 42, C.brown);
+        for (let y = 50; y < 140; y += 12) g.line(108 + (140 - y) * 0.04, y, 122 + (140 - y) * 0.02, y, C.brown);
+      }
+      // the overgrown beds
+      g.vgrad(0, 140, 320, 60, ['green', 'black']);
+      g.speck(0, 140, 320, 60, C.ltgreen, 0.06, 83);
+      for (let x = 30; x < 300; x += 46) g.ellipse(x, 176, 18, 6, C.brown);
+      // the yew, older than the house, and the one grave under it
+      g.ellipse(286, 104, 30, 46, C.green);
+      g.stipple(258, 60, 58, 92, C.black, 0.4);
+      g.px(282, 120, 8, 36, C.brown);
+      g.px(266, 132, 18, 24, C.ltgray);
+      g.px(268, 130, 14, 4, C.ltgray);
+      g.stipple(266, 132, 18, 24, C.dkgray, 0.3);
+      // moonlight on everything
+      g.stipple(0, 140, 320, 60, C.ltblue, 0.06);
+      // the path round the side of the house to the yard (drawn on the left, then mirrored: west)
+      g.poly([[0, 150], [30, 142], [44, 146], [12, 176], [0, 178]], C.ltgray);
+      g.stipple(0, 142, 44, 36, C.green, 0.4);
+    },
+    spots: [
+      { id: 'grave', x: 262, y: 124, w: 26, h: 34, walkTo: [254, 168] },
+      { id: 'backDoor', x: 180, y: 94, w: 34, h: 48, walkTo: [196, 152] },
+      { id: 'roofHole', x: 94, y: 20, w: 44, h: 32, walkTo: [116, 152] },
+      { id: 'ladder', x: 104, y: 42, w: 24, h: 98, walkTo: [116, 152], onlyIf: 'ladderUp' }
+    ],
+    exits: [
+      { dir: 'w', x: 0, y: 138, w: 30, h: 42, walkTo: [24, 166] },
+      { dir: 's', x: 180, y: 94, w: 34, h: 48, walkTo: [196, 150] },
+      { dir: 'n', x: 0, y: 186, w: 320, h: 14, walkTo: [160, 190] },
+      { dir: 'u', x: 94, y: 20, w: 44, h: 32, walkTo: [116, 152], needs: 'ladderUp' }
+    ]
+  });
+
+  scene('glasshouse', {
+    music: 'manor',
+    scale: [140, 0.6, 192, 1.0],
+    walk: [[20, 140, 280, 56]],
+    entry: { start: [160, 172], n: [160, 176] },
+    paint(g, f) {
+      const C = g.C;
+      // the night through glass, half of it gone
+      g.vgrad(0, 0, 320, 140, ['black', 'blue']);
+      for (let x = 0; x <= 320; x += 32) g.px(x, 0, 3, 140, C.dkgray);   // the frame
+      for (let y = 0; y < 140; y += 28) g.px(0, y, 320, 2, C.dkgray);
+      g.poly([[0, 0], [160, 0], [0, 40]], C.dkgray);
+      for (let i = 0; i < 10; i++) {                           // the panes that are left, holding the moon in pieces
+        const x = 4 + ((i * 67) % 300), y = 4 + ((i * 41) % 110);
+        g.stipple(x, y, 26, 22, C.ltcyan, 0.3);
+      }
+      // dead vines, climbed the frame and stayed
+      for (let x = 10; x < 320; x += 52) {
+        g.line(x, 140, x + 14, 70, C.brown); g.line(x + 14, 70, x + 6, 20, C.brown);
+      }
+      // the ladder on its hooks, along the left
+      g.px(14, 30, 3, 104, C.brown); g.px(34, 30, 3, 104, C.brown);
+      for (let y = 38; y < 134; y += 12) g.px(14, y, 23, 2, C.brown);
+      // the potting bench, and the phonograph on it
+      g.px(90, 104, 180, 8, C.brown);
+      g.px(96, 112, 6, 28, C.brown); g.px(258, 112, 6, 28, C.brown);
+      for (const px of [104, 120, 244]) { g.px(px, 92, 12, 12, C.red); g.stipple(px, 92, 12, 12, C.black, 0.3); }
+      g.px(160, 88, 40, 16, C.brown);                          // the phonograph's case
+      g.px(168, 84, 24, 4, C.dkgray);                          // the mandrel
+      g.poly([[188, 86], [222, 48], [236, 62]], C.yellow);     // the horn, like a frozen lily
+      g.stipple(188, 48, 48, 40, C.brown, 0.25);
+      // glass on the floor
+      g.vgrad(0, 140, 320, 60, ['dkgray', 'black']);
+      g.speck(0, 140, 320, 60, C.ltcyan, 0.05, 91);
+    },
+    spots: [
+      { id: 'phonograph', x: 156, y: 46, w: 84, h: 60, walkTo: [196, 156] },
+      { id: 'ladder', x: 10, y: 28, w: 30, h: 108, walkTo: [44, 160] }
+    ],
+    exits: [{ dir: 's', x: 0, y: 186, w: 320, h: 14, walkTo: [160, 190] }]
   });
 
   /* ---------------- lookup helpers ---------------- */

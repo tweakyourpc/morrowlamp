@@ -1,0 +1,224 @@
+{
+ "room": "guardroom",
+ "size": [
+  1280,
+  800
+ ],
+ "camera": {
+  "matrix": [
+   1.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.99955,
+   -0.029986,
+   0.0,
+   0.0,
+   0.029986,
+   0.99955,
+   0.0,
+   0.0,
+   1.7,
+   6.0,
+   1.0
+  ],
+  "fov": 50.2297,
+  "aspect": 1.6,
+  "near": 0.1,
+  "far": 60.0,
+  "depthRange": 40.0
+ },
+ "passes": {
+  "beauty": "beauty.webp",
+  "albedo": "albedo.webp",
+  "normal": "normal.webp",
+  "emit": "emit.webp",
+  "data": "data.webp"
+ },
+ "ids": {
+  "1": "floor",
+  "2": "sentinel",
+  "3": "vaultDoor",
+  "4": "vaultKey",
+  "5": "exit:s",
+  "6": "exit:w"
+ },
+ "variants": [
+  {
+   "id": "sentinel.dance",
+   "when": {
+    "flag": "guardDancing"
+   },
+   "rect": [
+    341,
+    260,
+    648,
+    337
+   ],
+   "passes": {
+    "beauty": "v.sentinel.dance.beauty.webp",
+    "albedo": "v.sentinel.dance.albedo.webp",
+    "normal": "v.sentinel.dance.normal.webp",
+    "emit": "v.sentinel.dance.emit.webp",
+    "data": "v.sentinel.dance.data.webp"
+   }
+  },
+  {
+   "id": "vaultKey",
+   "when": {
+    "flag": "guardDancing",
+    "here": "vaultKey"
+   },
+   "rect": [
+    699,
+    496,
+    47,
+    47
+   ],
+   "passes": {
+    "beauty": "v.vaultKey.beauty.webp",
+    "albedo": "v.vaultKey.albedo.webp",
+    "normal": "v.vaultKey.normal.webp",
+    "emit": "v.vaultKey.emit.webp",
+    "data": "v.vaultKey.data.webp"
+   }
+  },
+  {
+   "id": "vault.open",
+   "when": {
+    "open": "vaultDoor"
+   },
+   "rect": [
+    573,
+    278,
+    426,
+    255
+   ],
+   "passes": {
+    "beauty": "v.vault.open.beauty.webp",
+    "albedo": "v.vault.open.albedo.webp",
+    "normal": "v.vault.open.normal.webp",
+    "emit": "v.vault.open.emit.webp",
+    "data": "v.vault.open.data.webp"
+   }
+  }
+ ],
+ "walk": {
+  "area": [
+   -4.5,
+   4.5,
+   -2.9,
+   2.3
+  ],
+  "blocks": [
+   [
+    -0.55,
+    0.55,
+    -3.45,
+    -2.55
+   ],
+   [
+    -4.7,
+    -3.1,
+    -1.3,
+    -0.7
+   ]
+  ]
+ },
+ "points": {
+  "start": [
+   -2.2,
+   0.0,
+   0.5
+  ],
+  "s": [
+   0.0,
+   0.0,
+   1.9
+  ],
+  "n": [
+   -1.0,
+   0.0,
+   -2.1
+  ],
+  "e": [
+   2.95,
+   0.0,
+   -2.1
+  ]
+ },
+ "walkTo": {
+  "sentinel": [
+   -0.9,
+   0.0,
+   -2.2
+  ],
+  "vaultKey": [
+   0.85,
+   0.0,
+   -2.2
+  ],
+  "vaultDoor": [
+   2.95,
+   0.0,
+   -2.2
+  ],
+  "exit:s": [
+   0.0,
+   0.0,
+   -2.45
+  ],
+  "exit:w": [
+   2.95,
+   0.0,
+   -2.4
+  ],
+  "exit:n": [
+   0.0,
+   0.0,
+   2.2
+  ]
+ },
+ "zones": [
+  {
+   "id": "exit:n",
+   "rect": [
+    0,
+    740,
+    1280,
+    60
+   ]
+  },
+  {
+   "id": "exit:w",
+   "fromHotspot": "vaultDoor",
+   "when": {
+    "open": "vaultDoor"
+   }
+  }
+ ],
+ "lights": {
+  "ambient": [
+   0.05,
+   0.05,
+   0.06
+  ],
+  "key": {
+   "color": [
+    1.0,
+    0.6,
+    0.3
+   ],
+   "dir": [
+    0.0,
+    -0.4,
+    0.9
+   ],
+   "intensity": 0.3
+  }
+ },
+ "music": "throne",
+ "wake": "change",
+ "exposure": 1.1
+}

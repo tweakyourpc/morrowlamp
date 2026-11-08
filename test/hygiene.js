@@ -38,7 +38,9 @@ const ml = Z.ml;
 
 /* Files that are legitimately not text. Anything else claiming to be
    binary is a bug in the file, not an exception to add here. */
-const BINARY = [/\.png$/i, /\.jpe?g$/i, /\.gif$/i, /\.ico$/i, /\.woff2?$/i];
+const BINARY = [/\.png$/i, /\.jpe?g$/i, /\.gif$/i, /\.ico$/i, /\.woff2?$/i,
+  /* the remastered asset tier: Blender passes, voice clips, the hero, source scenes */
+  /\.webp$/i, /\.webm$/i, /\.glb$/i, /\.blend$/i];
 const isBinary = (file) => BINARY.some((re) => re.test(file));
 
 function tracked() {

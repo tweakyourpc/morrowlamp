@@ -1,0 +1,241 @@
+{
+ "room": "grandmotherRoom",
+ "size": [
+  1280,
+  800
+ ],
+ "camera": {
+  "matrix": [
+   1.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.998634,
+   -0.052254,
+   0.0,
+   0.0,
+   0.052254,
+   0.998634,
+   0.0,
+   0.0,
+   1.6,
+   5.6,
+   1.0
+  ],
+  "fov": 54.1671,
+  "aspect": 1.6,
+  "near": 0.1,
+  "far": 60.0,
+  "depthRange": 40.0
+ },
+ "passes": {
+  "beauty": "beauty.webp",
+  "albedo": "albedo.webp",
+  "normal": "normal.webp",
+  "emit": "emit.webp",
+  "data": "data.webp"
+ },
+ "ids": {
+  "1": "floor",
+  "2": "cylinder",
+  "3": "verse",
+  "4": "servantDoor",
+  "5": "roofHole",
+  "6": "exit:d"
+ },
+ "variants": [
+  {
+   "id": "cylinder",
+   "when": {
+    "here": "cylinder"
+   },
+   "rect": [
+    822,
+    418,
+    18,
+    28
+   ],
+   "passes": {
+    "beauty": "v.cylinder.beauty.webp",
+    "albedo": "v.cylinder.albedo.webp",
+    "normal": "v.cylinder.normal.webp",
+    "emit": "v.cylinder.emit.webp",
+    "data": "v.cylinder.data.webp"
+   }
+  },
+  {
+   "id": "verse",
+   "when": {
+    "here": "verse"
+   },
+   "rect": [
+    855,
+    415,
+    48,
+    31
+   ],
+   "passes": {
+    "beauty": "v.verse.beauty.webp",
+    "albedo": "v.verse.albedo.webp",
+    "normal": "v.verse.normal.webp",
+    "emit": "v.verse.emit.webp",
+    "data": "v.verse.data.webp"
+   }
+  },
+  {
+   "id": "servantDoor.open",
+   "when": {
+    "flag": "servantStair"
+   },
+   "rect": [
+    1012,
+    316,
+    80,
+    231
+   ],
+   "passes": {
+    "beauty": "v.servantDoor.open.beauty.webp",
+    "albedo": "v.servantDoor.open.albedo.webp",
+    "normal": "v.servantDoor.open.normal.webp",
+    "emit": "v.servantDoor.open.emit.webp",
+    "data": "v.servantDoor.open.data.webp"
+   }
+  },
+  {
+   "id": "ladder",
+   "when": {
+    "flag": "ladderUp"
+   },
+   "rect": [
+    369,
+    181,
+    154,
+    106
+   ],
+   "passes": {
+    "beauty": "v.ladder.beauty.webp",
+    "albedo": "v.ladder.albedo.webp",
+    "normal": "v.ladder.normal.webp",
+    "emit": "v.ladder.emit.webp",
+    "data": "v.ladder.data.webp"
+   }
+  }
+ ],
+ "walk": {
+  "area": [
+   -3.6,
+   3.6,
+   -2.6,
+   2.6
+  ],
+  "blocks": [
+   [
+    -3.7,
+    -1.75,
+    -2.75,
+    -0.8
+   ],
+   [
+    -3.3000000000000003,
+    -2.1,
+    0.3999999999999999,
+    2.6
+   ],
+   [
+    1.4000000000000001,
+    3.0,
+    -2.3,
+    -1.45
+   ]
+  ]
+ },
+ "points": {
+  "start": [
+   0.3,
+   0.0,
+   0.6
+  ],
+  "u": [
+   -1.4,
+   0.0,
+   -1.4
+  ]
+ },
+ "walkTo": {
+  "cylinder": [
+   1.85,
+   0.0,
+   -1.2
+  ],
+  "verse": [
+   2.4,
+   0.0,
+   -1.2
+  ],
+  "servantDoor": [
+   3.3,
+   0.0,
+   -1.6
+  ],
+  "roofHole": [
+   -1.2,
+   0.0,
+   -0.5
+  ],
+  "exit:d": [
+   -1.5,
+   0.0,
+   -1.4
+  ],
+  "exit:e": [
+   3.4,
+   0.0,
+   -1.6
+  ],
+  "exit:u": [
+   -1.2,
+   0.0,
+   -0.5
+  ]
+ },
+ "zones": [
+  {
+   "id": "exit:e",
+   "fromHotspot": "servantDoor",
+   "when": {
+    "flag": "servantStair"
+   }
+  },
+  {
+   "id": "exit:u",
+   "fromHotspot": "roofHole",
+   "when": {
+    "flag": "ladderUp"
+   }
+  }
+ ],
+ "lights": {
+  "ambient": [
+   0.08,
+   0.1,
+   0.16
+  ],
+  "key": {
+   "color": [
+    0.62,
+    0.72,
+    1.0
+   ],
+   "dir": [
+    0.35,
+    -1.0,
+    0.25
+   ],
+   "intensity": 0.5
+  }
+ },
+ "music": "intrigue",
+ "wake": "change",
+ "exposure": 1.2
+}

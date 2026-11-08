@@ -1,0 +1,26 @@
+# The public website: the Workshop, the classic editions and the remaster.
+# tools/publish_site.py copies only what the pages load into dist/ and checks
+# nothing they name is missing. Netlify Drop users can run it locally and
+# drag dist/ in; a connected repository runs it here.
+
+[build]
+  command = "python3 tools/publish_site.py"
+  publish = "dist"
+
+# Pages and scripts change with every release: always revalidate.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+# Rendered rooms, voice clips and the hero rarely change and are the bulk of
+# the download: keep them a day.
+[[headers]]
+  for = "/remastered/*"
+  [headers.values]
+    Cache-Control = "public, max-age=86400"
+
+[[headers]]
+  for = "/*.glb"
+  [headers.values]
+    Content-Type = "model/gltf-binary"

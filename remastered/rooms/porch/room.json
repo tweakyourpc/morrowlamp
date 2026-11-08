@@ -1,0 +1,159 @@
+{
+ "room": "porch",
+ "size": [
+  1280,
+  800
+ ],
+ "camera": {
+  "matrix": [
+   1.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.998989,
+   -0.044954,
+   0.0,
+   0.0,
+   0.044954,
+   0.998989,
+   0.0,
+   0.0,
+   1.7,
+   6.0,
+   1.0
+  ],
+  "fov": 50.2297,
+  "aspect": 1.6,
+  "near": 0.1,
+  "far": 60.0,
+  "depthRange": 40.0
+ },
+ "passes": {
+  "beauty": "beauty.webp",
+  "albedo": "albedo.webp",
+  "normal": "normal.webp",
+  "emit": "emit.webp",
+  "data": "data.webp"
+ },
+ "ids": {
+  "1": "floor",
+  "2": "door",
+  "3": "doormat",
+  "4": "exit:s"
+ },
+ "variants": [
+  {
+   "id": "doormat",
+   "when": {
+    "here": "doormat"
+   },
+   "rect": [
+    562,
+    534,
+    133,
+    24
+   ],
+   "passes": {
+    "beauty": "v.doormat.beauty.webp",
+    "albedo": "v.doormat.albedo.webp",
+    "normal": "v.doormat.normal.webp",
+    "emit": "v.doormat.emit.webp",
+    "data": "v.doormat.data.webp"
+   }
+  }
+ ],
+ "walk": {
+  "area": [
+   -2.5500000000000003,
+   2.5500000000000003,
+   -2.15,
+   1.8499999999999999
+  ],
+  "blocks": [
+   [
+    1.05,
+    2.6500000000000004,
+    -2.0,
+    -1.2000000000000002
+   ]
+  ]
+ },
+ "points": {
+  "start": [
+   -1.5,
+   0.0,
+   0.8
+  ],
+  "n": [
+   0.0,
+   0.0,
+   1.55
+  ],
+  "s": [
+   -0.1,
+   0.0,
+   -1.7
+  ]
+ },
+ "walkTo": {
+  "door": [
+   -0.1,
+   0.0,
+   -1.95
+  ],
+  "doormat": [
+   -0.1,
+   0.0,
+   -1.1
+  ],
+  "exit:n": [
+   -0.1,
+   0.0,
+   -2.1
+  ],
+  "exit:s": [
+   0.0,
+   0.0,
+   1.8
+  ]
+ },
+ "zones": [
+  {
+   "id": "exit:n",
+   "fromHotspot": "door"
+  },
+  {
+   "id": "exit:s",
+   "rect": [
+    0,
+    740,
+    1280,
+    60
+   ]
+  }
+ ],
+ "lights": {
+  "ambient": [
+   0.09,
+   0.11,
+   0.17
+  ],
+  "key": {
+   "color": [
+    0.62,
+    0.72,
+    1.0
+   ],
+   "dir": [
+    -0.75,
+    -0.4,
+    -0.55
+   ],
+   "intensity": 0.45
+  }
+ },
+ "music": "outside",
+ "wake": "look",
+ "exposure": 1.1
+}

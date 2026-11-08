@@ -1,0 +1,223 @@
+{
+ "room": "kitchenGarden",
+ "size": [
+  1280,
+  800
+ ],
+ "camera": {
+  "matrix": [
+   1.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.981906,
+   0.189368,
+   0.0,
+   0.0,
+   -0.189368,
+   0.981906,
+   0.0,
+   0.0,
+   1.7,
+   7.0,
+   1.0
+  ],
+  "fov": 50.2297,
+  "aspect": 1.6,
+  "near": 0.1,
+  "far": 60.0,
+  "depthRange": 40.0
+ },
+ "passes": {
+  "beauty": "beauty.webp",
+  "albedo": "albedo.webp",
+  "normal": "normal.webp",
+  "emit": "emit.webp",
+  "data": "data.webp"
+ },
+ "ids": {
+  "1": "floor",
+  "2": "backDoor",
+  "3": "roofHole",
+  "4": "grave",
+  "5": "ladder",
+  "6": "exit:w"
+ },
+ "variants": [
+  {
+   "id": "ladder",
+   "when": {
+    "flag": "ladderUp"
+   },
+   "rect": [
+    730,
+    188,
+    155,
+    496
+   ],
+   "passes": {
+    "beauty": "v.ladder.beauty.webp",
+    "albedo": "v.ladder.albedo.webp",
+    "normal": "v.ladder.normal.webp",
+    "emit": "v.ladder.emit.webp",
+    "data": "v.ladder.data.webp"
+   }
+  },
+  {
+   "id": "backDoor.open",
+   "when": {
+    "open": "backDoor"
+   },
+   "rect": [
+    449,
+    522,
+    83,
+    160
+   ],
+   "passes": {
+    "beauty": "v.backDoor.open.beauty.webp",
+    "albedo": "v.backDoor.open.albedo.webp",
+    "normal": "v.backDoor.open.normal.webp",
+    "emit": "v.backDoor.open.emit.webp",
+    "data": "v.backDoor.open.data.webp"
+   }
+  }
+ ],
+ "walk": {
+  "area": [
+   -5.6,
+   5.0,
+   -6.3,
+   2.4
+  ],
+  "blocks": [
+   [
+    -5.5,
+    -4.4,
+    -2.6999999999999997,
+    -0.5999999999999999
+   ],
+   [
+    -6.8999999999999995,
+    -5.7,
+    -4.0,
+    -2.8
+   ]
+  ]
+ },
+ "points": {
+  "start": [
+   0.0,
+   0.0,
+   0.6
+  ],
+  "w": [
+   4.3,
+   0.0,
+   -1.8
+  ],
+  "n": [
+   -2.45,
+   0.0,
+   -5.9
+  ],
+  "s": [
+   0.0,
+   0.0,
+   2.1
+  ],
+  "u": [
+   3.45,
+   0.0,
+   -4.5
+  ]
+ },
+ "walkTo": {
+  "backDoor": [
+   -2.45,
+   0.0,
+   -6.1
+  ],
+  "roofHole": [
+   3.45,
+   0.0,
+   -4.5
+  ],
+  "ladder": [
+   3.45,
+   0.0,
+   -4.5
+  ],
+  "grave": [
+   -4.0,
+   0.0,
+   -1.4
+  ],
+  "exit:w": [
+   4.6,
+   0.0,
+   -1.8
+  ],
+  "exit:s": [
+   -2.45,
+   0.0,
+   -6.1
+  ],
+  "exit:n": [
+   0.0,
+   0.0,
+   2.3
+  ],
+  "exit:u": [
+   3.45,
+   0.0,
+   -4.5
+  ]
+ },
+ "zones": [
+  {
+   "id": "exit:s",
+   "fromHotspot": "backDoor"
+  },
+  {
+   "id": "exit:n",
+   "rect": [
+    0,
+    740,
+    1280,
+    60
+   ]
+  },
+  {
+   "id": "exit:u",
+   "fromHotspot": "roofHole",
+   "when": {
+    "flag": "ladderUp"
+   }
+  }
+ ],
+ "lights": {
+  "ambient": [
+   0.09,
+   0.11,
+   0.17
+  ],
+  "key": {
+   "color": [
+    0.62,
+    0.72,
+    1.0
+   ],
+   "dir": [
+    -0.45,
+    -0.55,
+    0.8
+   ],
+   "intensity": 0.45
+  }
+ },
+ "music": "outside",
+ "wake": "change",
+ "exposure": 1.15
+}

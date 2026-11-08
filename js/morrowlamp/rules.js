@@ -38,7 +38,7 @@
   /* The clauses `when` understands, for the same reason. */
   const CONDITIONS = [
     'room', 'notRoom', 'carrying', 'carryingAny', 'notCarrying', 'present', 'notPresent',
-    'flags', 'open', 'lit', 'placed', 'notPlaced', 'visited', 'score', 'turns'
+    'flags', 'open', 'lit', 'placed', 'notPlaced', 'visited', 'score', 'turns', 'class'
   ];
 
   const REFS = ['@target', '@with', '@room', '@player'];
@@ -139,6 +139,9 @@
     for (const t of list(when.placed)) if (!S.secured.includes(id(t))) return false;
     for (const t of list(when.notPlaced)) if (S.secured.includes(id(t))) return false;
     for (const r of list(when.visited)) if (!S.visited[id(r)]) return false;
+    /* Who the player chose to be. Only a cartridge with stats has a
+       character sheet; without one, no class clause can hold. */
+    if (when.class !== undefined && !(S.sheet && list(when.class).includes(S.sheet.cls))) return false;
 
     if (when.score) {
       if (when.score.min !== undefined && S.score < when.score.min) return false;
