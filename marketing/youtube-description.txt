@@ -1,0 +1,43 @@
+Title:
+The Sunken Crown: Remastered | Official Trailer | Free Point-and-Click Adventure in Your Browser
+
+Upload: marketing/trailer/sunken-crown-trailer-voiceover-master.mp4 (the high-bitrate master)
+
+Description:
+Your grandmother left you a house. Under the hill it stands on, a kingdom sank one night with its king and his crown, and nobody has found them since. Now the mist has come, just as she said it would.
+
+The Sunken Crown is a point-and-click adventure in the spirit of the Infocom text adventures and the EGA role-playing games of the 1980s. Explore Ashcombe Manor and the drowned halls beneath it, recover the six lost treasures, and find out what really happened to the Sunken King.
+
+Every room begins as it would have looked on a 1987 home computer. The first time you do something there, it wakes into full modern light, so the house fills in as you play.
+
+Play free, no download or account needed: https://tweakyourpc.github.io/morrowlamp/remastered.html
+
+What's in it:
+- 21 rooms, from the manor and its overgrown kitchen garden to the halls under the hill
+- Click to play, or type commands the old-fashioned way
+- Fully narrated, with a choice of three narrators (or play text only)
+- Rooms in classic EGA, CGA or VGA that wake into modern renders, or modern from the start
+- An original score that plays as you go
+- Your game saves itself, and a save code lets you carry on in any browser
+- Runs in any modern browser on desktop or laptop
+
+Chapters:
+0:00 Ashcombe
+0:11 Every room begins in EGA
+0:21 Beneath the hill
+0:37 The Sunken Crown
+0:47 Play free
+
+How it was made:
+The Sunken Crown is free and open source (MIT). I made it with open-source tools: Blender for the rooms, three.js in the browser, Piper for the voices (trained on public-domain LibriVox recordings), and a score written as code. I used AI assistance (Claude Code) for programming and procedural art, and the full credits are in the game under "About & credits".
+
+Arcade veterans: one famous cheat still works in these halls.
+
+Source code: https://github.com/tweakyourpc/morrowlamp
+Christopher Davis on GitHub: https://github.com/tweakyourpc
+LinkedIn: https://www.linkedin.com/in/srqhelpdesk/
+
+#PointAndClick #AdventureGame #IndieGame #RetroGaming #BrowserGame
+
+Tags (for the Tags box):
+point and click adventure, adventure game, indie game, retro game, EGA, Infocom, text adventure, browser game, free game, open source game, Blender, three.js, Sunken Crown, Morrowlamp

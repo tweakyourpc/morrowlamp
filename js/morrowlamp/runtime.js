@@ -415,7 +415,11 @@
         if (!target) { say(describeRoom(S.room, true)); return; }
         const o = world.object(target);
         if (!o) { say(strings.dontSeeThat, 'bad'); return; }
+        /* A thing with writing on it and nothing else to say about it is
+           read when looked at, so a pointing shell's Look reaches the words
+           a typist would get with "read". */
         if (o.examine) { say(o.examine); }
+        else if (o.read) { say(o.read); }
         else say(ml.rules.expand(strings.nothingSpecial, { target }, ctx()), 'dim');
         /* Looking into the trophy case reports the hunt, not the contents.
            Generic: any cartridge with `treasures.securedIn` gets this. */

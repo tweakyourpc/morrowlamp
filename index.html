@@ -4,8 +4,18 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>THE SUNKEN CROWN</title>
+  <style>
+    /* The way to the remastered edition, above the classic game. */
+    /* Above the classic splash (z-index 20), so it can be followed before the game starts. */
+    .remaster-link { position: relative; z-index: 30; display: block; padding: 10px 16px; text-align: center; background: #14110c; border-bottom: 1px solid #5a4422;
+      font: 600 15px/1.4 Georgia, "Palatino Linotype", serif; color: #e8c478; text-decoration: none; letter-spacing: 0.04em; }
+    .remaster-link span { color: #b8ac93; font-weight: 400; }
+    .remaster-link:hover, .remaster-link:focus-visible { background: #1f1910; text-decoration: underline; text-underline-offset: 3px; }
+    .remaster-link:focus-visible { outline: 2px solid #e8c478; outline-offset: -4px; }
+  </style>
 </head>
 <body>
+  <a class="remaster-link" href="remastered.html">Play The Sunken Crown: Remastered <span>with rendered rooms and spoken narration</span> &rarr;</a>
   <main id="morrowlamp-app" aria-label="Morrowlamp adventure"></main>
   <script src="js/morrowlamp/core.js"></script>
   <script src="js/morrowlamp/world.js"></script>
@@ -25,6 +35,7 @@
   <script src="js/scenes.js"></script>
   <script src="js/world.js"></script>
   <script src="js/cartridges/sunken-crown.js"></script>
+  <script src="js/morrowlamp/interact.js"></script>
   <script src="js/morrowlamp/shell-canvas.js"></script>
   <script src="js/publisher.js"></script>
 </body>

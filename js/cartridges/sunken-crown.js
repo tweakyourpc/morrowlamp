@@ -46,6 +46,10 @@
     sarcophagus: 'tomb', scepter: 'vault',
     mirror: 'mirrorHall', idol: 'mirrorSanctum',
     plinth: 'lakeIslet', chalice: 'lakeIslet',
+    stairs: 'hall', backDoor: ['kitchen', 'kitchenGarden'],
+    servantDoor: 'grandmotherRoom', roofHole: ['kitchenGarden', 'grandmotherRoom'],
+    cylinder: 'grandmotherRoom', verse: 'grandmotherRoom',
+    grave: 'kitchenGarden', phonograph: 'glasshouse', ladder: 'glasshouse',
     sunstone: 'wellBottom'
   };
 
@@ -74,7 +78,11 @@
      Formerly five hardcoded `if (rid === …)` lines in the engine. */
   const NOTES = {
     caveMouth: [{ when: { flags: { gatesOpen: true } }, text: 'The brass gates stand open to the south.' }],
-    cellar: [{ when: { flags: { tunnelDug: true } }, text: 'A passage now gapes in the north wall (south).' }],
+    cellar: [{ when: { flags: { tunnelDug: true } }, text: 'A passage now gapes in the far wall, heading south.' }],
+    hall: [
+      { when: { flags: { clockRunning: false } }, text: 'The grandfather clock\'s hands have stopped at 9:41, as if for good.' },
+      { when: { flags: { clockRunning: true } }, text: 'The grandfather clock is going again, keeping the right time.' }
+    ],
     guardroom: [{ when: { flags: { guardDancing: true } }, text: 'The sentinel dances down the passage, off duty at last.' }],
     mirrorHall: [{ when: { flags: { mirrorOpened: true } }, text: 'The west mirror stands open, a dark doorway beyond.' }],
     lakeShore: [{ when: { flags: { boatPatched: true } }, text: 'The patched boat floats at the water\'s edge, ready.' }]
@@ -137,6 +145,8 @@
       throw:  { words: ['throw', 'toss', 'hurl', 'fling'], form: 'target', seps: ['at'], prompt: 'Throw what?', fallback: 'You throw it. It lands nearby, unimpressed, and you pick it back up.' },
       eat:    { words: ['eat', 'taste', 'munch'], form: 'target', prompt: 'Eat what?', fallback: 'You raise it to your mouth. On reflection, you do not eat that.' },
       drink:  { words: ['drink', 'sip'], form: 'target', optional: true, prompt: 'Drink what?', fallback: 'You cannot drink that.' },
+      wind:   { words: ['wind', 'start'], form: 'target', seps: ['with', 'using'], optional: true, prompt: 'Wind what?', fallback: 'There is nothing here that winds.' },
+      tie:    { words: ['tie', 'knot', 'loop', 'lasso'], form: 'target', seps: ['to', 'on', 'onto', 'round', 'around', 'over'], prompt: 'Tie what?', fallback: 'You tie a knot in the air. It holds nothing.' },
       climb:  { words: ['climb'], form: 'target', climb: true, prompt: 'Climb what?', fallback: 'There is nothing here to climb.' },
       enter:  { words: ['enter'], form: 'target', prompt: 'Enter what?', fallback: 'You can\'t enter that.' },
       jump:   { words: ['jump', 'leap'], form: 'target', optional: true, anywhere: true, fallback: 'You jump on the spot. The halls are unmoved.' },
@@ -154,9 +164,13 @@
      bottom: the first rule whose head and conditions match wins.
      ------------------------------------------------------------ */
   const rules = [
-    /* --- the lullaby --- */
+    /* --- the lullaby ---
+       Every puzzle answers the click a pointing shell sends as well as
+       the word a typist would use: looking at the music reads it, using
+       the shovel on the crack digs, using the lyre plays it.
+       test/click-route.js wins the game by clicks alone to keep it so. */
     {
-      id: 'read-the-music', verb: 'read', target: 'musicSheet',
+      id: 'read-the-music', verb: ['read', 'examine'], target: 'musicSheet',
       do: [
         { say: '@sheet' },
         { set: 'melodyKnown' },
@@ -190,9 +204,24 @@
       do: [{ give: 'vaultKey' }, { say: 'You lift the key from the dancing sentinel\'s belt. It does not notice; it is busy.' }]
     },
 
-    /* --- music sets the sentinel dancing --- */
+    /* --- music sets the sentinel dancing ---
+       Both verses (the second is upstairs, in the grandmother's room)
+       release him for good, and he hands over the key himself. */
     {
-      id: 'play-the-lullaby', verb: ['play', 'sing'], target: [null, 'lyre'],
+      id: 'play-both-verses', verb: ['play', 'sing', 'use'], target: [null, 'lyre'],
+      when: { room: 'guardroom', flags: { melodyKnown: true, secondVerse: true, guardDancing: false } },
+      do: [
+        { set: 'guardDancing' },
+        { give: 'vaultKey' },
+        { say: { cls: 'good', text: 'Your fingers find the tune, and then, because the page told you to, they keep going into the second verse. The silver lyre sings it true.' } },
+        { say: { cls: 'good', text: 'The sentinel stops humming. It listens to the first verse the way a dog listens to its name. At the second, it goes very still.' } },
+        { say: { cls: 'good', text: '"That is the rest of it," it says quietly. "Nobody ever knew the rest of it." It unbuckles its belt and sets the iron vault key in your hand.' } },
+        { say: { cls: 'good', text: '"Relieved, at last. Thank you, keeper." It bows, and walks out into the passage humming both verses, and does not come back.' } },
+        { music: 'triumph' }
+      ]
+    },
+    {
+      id: 'play-the-lullaby', verb: ['play', 'sing', 'use'], target: [null, 'lyre'],
       when: { room: 'guardroom', flags: { melodyKnown: true, guardDancing: false } },
       do: [
         { set: 'guardDancing' },
@@ -204,12 +233,19 @@
       ]
     },
     {
-      id: 'play-untuned-lyre', verb: 'play', target: 'lyre',
+      /* The page has the second verse's words; the tune is the music
+         sheet's. Say so, rather than the generic out-of-tune line. */
+      id: 'second-verse-without-the-tune', verb: ['play', 'sing', 'use'], target: [null, 'lyre'],
+      when: { flags: { melodyKnown: false, secondVerse: true } },
+      do: [{ say: 'You know the words of the second verse by heart, but not the tune they go to. The page has no music on it. Somewhere there is music for the first verse; your grandmother kept things somewhere safe and ticking.' }]
+    },
+    {
+      id: 'play-untuned-lyre', verb: ['play', 'use'], target: 'lyre',
       when: { carrying: ['lyre'], flags: { melodyKnown: false } },
       do: [{ say: 'You strum the lyre. Its strings are out of tune — it sounds like a cat falling downstairs. You have a feeling you need to learn the right song.' }]
     },
     {
-      id: 'play-the-lullaby-elsewhere', verb: ['play', 'sing'], target: [null, 'lyre'],
+      id: 'play-the-lullaby-elsewhere', verb: ['play', 'sing', 'use'], target: [null, 'lyre'],
       when: { flags: { melodyKnown: true } },
       do: [{ say: 'The lullaby of the Sunken King rolls through the halls, and for a moment, the dark is less dark.' }]
     },
@@ -238,7 +274,7 @@
 
     /* --- digging out of the cellar --- */
     {
-      id: 'dig-the-crack', verb: 'dig', target: [null, 'crack', 'shovel'],
+      id: 'dig-the-crack', verb: ['dig', 'use'], target: [null, 'crack', 'shovel'], with: [null, 'crack', 'shovel'],
       when: { room: 'cellar', carrying: ['shovel'], flags: { tunnelDug: false } },
       do: [
         { set: 'tunnelDug' },
@@ -248,6 +284,11 @@
     },
     {
       id: 'dig-already-dug', verb: 'dig',
+      when: { room: 'cellar', flags: { tunnelDug: true } },
+      do: [{ say: 'The passage is already dug. The wall is in the past.' }]
+    },
+    {
+      id: 'shovel-already-dug', verb: 'use', target: ['shovel', 'crack'], with: [null, 'shovel', 'crack'],
       when: { room: 'cellar', flags: { tunnelDug: true } },
       do: [{ say: 'The passage is already dug. The wall is in the past.' }]
     },
@@ -310,12 +351,49 @@
     },
 
     /* --- the boat --- */
+    /* The grandfather clock stopped at 9:41, the time every iPhone keynote shows. The
+       brass key in its case is a winding key; with it the clock goes again, and a
+       shell may show the real time on its face from then on. No points: it is a
+       kindness to the house, not a puzzle. */
+    {
+      /* `put` too: with the case open, a click of the key on the clock arrives as "put brass key in clock". */
+      id: 'wind-the-clock', verb: ['wind', 'fix', 'use', 'put'], target: [null, 'clock', 'brassKey'], with: [null, 'clock', 'brassKey'],
+      when: { room: 'hall', carrying: ['brassKey'], flags: { clockRunning: false } },
+      do: [
+        { set: 'clockRunning' },
+        { say: 'You fit the brass key into the winding hole in the clock\'s face and give it a dozen stiff turns. Somewhere inside, a spring remembers its job. You nudge the pendulum, the clock begins to tick, and you set the hands to the right time, which nobody in this house has known for forty years.' }
+      ]
+    },
+    {
+      id: 'wind-the-clock-without-the-key', verb: ['wind', 'fix'], target: [null, 'clock'],
+      when: { room: 'hall', notCarrying: ['brassKey'], flags: { clockRunning: false } },
+      do: [{ say: 'A clock this old winds with a key, through the little holes in its face. You do not have one in your pocket.' }]
+    },
+    {
+      id: 'the-clock-is-going', verb: ['wind', 'fix', 'use', 'put'], target: [null, 'clock', 'brassKey'], with: [null, 'clock', 'brassKey'],
+      when: { room: 'hall', flags: { clockRunning: true } },
+      do: [{ say: 'It is going nicely. You resist the urge to fiddle with it.' }]
+    },
+    {
+      id: 'examine-the-running-clock', verb: 'examine', target: 'clock',
+      when: { room: 'hall', flags: { clockRunning: true } },
+      do: [{ say: 'The grandfather clock ticks steadily now, its pendulum swinging, keeping the right time, which is more than this house has managed in forty years.' }]
+    },
     {
       id: 'patch-the-boat', verb: ['fix', 'use'], target: [null, 'boat', 'pitchPot', 'curtain'], with: [null, 'boat', 'pitchPot', 'curtain'],
       when: { room: 'lakeShore', carrying: ['pitchPot', 'curtain'], flags: { boatPatched: false } },
       do: [
         { set: 'boatPatched' },
         { say: 'With the pitch and the curtain you patch the hole with the grim efficiency of someone who has done this before. The boat now looks merely resigned instead of doomed.' }
+      ]
+    },
+    {
+      /* The curtain may be tied to the stairs by now; the doormat will do. */
+      id: 'patch-the-boat-with-the-doormat', verb: ['fix', 'use'], target: [null, 'boat', 'pitchPot', 'doormat'], with: [null, 'boat', 'pitchPot', 'doormat'],
+      when: { room: 'lakeShore', carrying: ['pitchPot', 'doormat'], flags: { boatPatched: false } },
+      do: [
+        { set: 'boatPatched' },
+        { say: 'You pack the hole with pitch and jam the doormat in after it, lettering first. From inside the boat the patch reads ELCOME, and the boat floats, which is more than it has done in a century. It seems to mean the greeting.' }
       ]
     },
     {
@@ -377,9 +455,161 @@
       do: [{ say: 'It creaks open, revealing the entrance hall beyond.' }, { goto: 'hall' }]
     },
     {
-      id: 'look-under-the-doormat', verb: ['examine', 'push', 'pull', 'take'], target: 'doormat',
+      id: 'look-under-the-doormat', verb: ['examine', 'push', 'pull'], target: 'doormat',
       when: { room: 'porch' },
       do: [{ say: 'The W has worn almost entirely away. It now reads, philosophically: ELCOME. There is nothing under it but three hundred years of porch.' }]
+    },
+
+    /* --- the broken stairs (story bible, section 6) ---
+       One shared way up (the curtain, which is then gone), one way for
+       the Delver and one for the Prowler, and the Scholar learns of the
+       servants' stair. Whoever gets up first leaves a way back down. */
+    {
+      id: 'examine-the-roped-stairs', verb: 'examine', target: 'stairs',
+      when: { flags: { curtainOnStairs: true } },
+      do: [{ say: 'The grand staircase, its middle steps a heap of rubble, and the moth-eaten curtain tied to the banister post across the gap. It is the most useful that curtain has been in a century.' }]
+    },
+    {
+      id: 'scholar-reads-the-stairs', verb: 'examine', target: 'stairs',
+      when: { class: 'scholar', flags: { servantStair: false } },
+      do: [
+        { say: '@examine:stairs' },
+        { set: 'servantStair' },
+        { say: { cls: 'info', text: 'You read the footnotes. A house this age had a servants\' stair, and it always began in the kitchen, behind the pantry, where nobody looks.' } }
+      ]
+    },
+    {
+      id: 'tie-the-curtain', verb: ['use', 'tie', 'throw'], target: ['curtain', 'stairs'], with: [null, 'curtain', 'stairs'],
+      when: { room: 'hall', carrying: ['curtain'], flags: { stairsCrossed: false } },
+      do: [
+        { destroy: 'curtain' },
+        { set: { stairsCrossed: true, curtainOnStairs: true } },
+        { say: 'You knot one end of the curtain into a loop and throw it. It catches the banister post on the second try, which you will tell people was the first. You climb hand over hand across the gap, and the moth-eaten curtain, against every expectation, does not let you down.' },
+        { say: { cls: 'info', text: 'It stays tied there, a rope for the way back.' } },
+        { goto: 'grandmotherRoom' }
+      ]
+    },
+    {
+      id: 'delver-climbs-the-stairs', verb: ['climb', 'push', 'pull'], target: [null, 'stairs'],
+      when: { room: 'hall', class: 'delver', flags: { stairsCrossed: false } },
+      do: [
+        { set: 'stairsCrossed' },
+        { say: 'You set your boots on the broken stringer, get a fist round the banister rail and haul. Something in the staircase complains. Something in you complains louder. You win.' },
+        { say: { cls: 'info', text: 'At the top you kick a loose plank across the gap, for the way back.' } },
+        { goto: 'grandmotherRoom' }
+      ]
+    },
+    {
+      id: 'prowler-jumps-the-stairs', verb: ['climb', 'push', 'pull', 'jump'], target: [null, 'stairs'],
+      when: { room: 'hall', class: 'prowler', flags: { stairsCrossed: false } },
+      do: [
+        { set: 'stairsCrossed' },
+        { say: 'You take a run at it from the hall floor, plant a foot on the last good step and jump. For a moment there is nothing under you but opinion. Then the landing, hard, on hands and knees. You have done worse to get into places.' },
+        { say: { cls: 'info', text: 'From up here you hook the broken rail across the gap. It will do for the way back.' } },
+        { goto: 'grandmotherRoom' }
+      ]
+    },
+    {
+      id: 'the-stairs-need-a-rope', verb: ['climb', 'push', 'pull', 'jump'], target: [null, 'stairs'],
+      when: { room: 'hall', flags: { stairsCrossed: false } },
+      do: [{ say: 'You test the bottom steps. They hold; the middle ones are a heap of rubble. The banister post at the top is solid. Something long, looped over it, would get you up.' }]
+    },
+    {
+      id: 'climb-the-crossed-stairs', verb: ['climb', 'push', 'pull'], target: [null, 'stairs'],
+      when: { room: 'hall', flags: { stairsCrossed: true } },
+      do: [{ goto: 'grandmotherRoom' }]
+    },
+    {
+      id: 'ladder-on-the-stairs', verb: ['use', 'put', 'drop'], target: ['ladder', 'stairs'], with: ['ladder', 'stairs'],
+      when: { room: 'hall', carrying: ['ladder'] },
+      do: [{ say: 'The ladder is long enough for a roof, which is exactly the problem: it will not turn the corner of the stairs. Outside, though, there is a hole in the roof.' }]
+    },
+
+    /* --- the grandmother's room --- */
+    {
+      id: 'read-the-second-verse', verb: ['read', 'examine'], target: 'verse',
+      do: [
+        { say: '@read:verse' },
+        { set: 'secondVerse' },
+        { say: { text: '(You know the second verse of the lullaby now.)', cls: 'good' } },
+        { sound: 'chime' }
+      ]
+    },
+    {
+      id: 'open-the-servants-door', verb: ['open', 'push', 'pull'], target: 'servantDoor',
+      when: { room: 'grandmotherRoom', flags: { servantStair: false } },
+      do: [
+        { set: 'servantStair' },
+        { say: 'You put your shoulder to it. It gives with a shriek of old paint, and behind it a narrow stair winds down into the dark, towards the smell of the kitchen.' }
+      ]
+    },
+    {
+      id: 'the-servants-door-is-open', verb: ['open', 'push', 'pull'], target: 'servantDoor',
+      when: { flags: { servantStair: true } },
+      do: [{ say: 'The servants\' door stands open on its narrow stair down to the kitchen.' }]
+    },
+
+    /* --- the back of the house (story bible, section 6b) --- */
+    {
+      id: 'open-the-back-door', verb: ['open', 'unlock', 'push', 'pull'], target: 'backDoor',
+      when: { room: 'kitchen', flags: { backDoorOpen: false } },
+      do: [{ open: 'backDoor' }, { set: 'backDoorOpen' }, { say: '@openText:backDoor' }]
+    },
+    {
+      id: 'close-the-back-door', verb: 'close', target: 'backDoor',
+      when: { flags: { backDoorOpen: true } },
+      do: [{ close: 'backDoor' }, { clear: 'backDoorOpen' }, { say: 'You shut the back door on the night.' }]
+    },
+    {
+      id: 'back-door-bolted', verb: ['open', 'unlock', 'push', 'pull'], target: 'backDoor',
+      when: { room: 'kitchenGarden', flags: { backDoorOpen: false } },
+      do: [{ say: 'The back door is bolted from the inside. Whoever bolted it went out the front, like a guest.' }]
+    },
+    {
+      id: 'prop-the-ladder', verb: ['use', 'put', 'drop', 'climb'], target: ['ladder', 'roofHole'], with: [null, 'ladder', 'roofHole'],
+      when: { room: 'kitchenGarden', carrying: ['ladder'], flags: { ladderUp: false } },
+      do: [
+        { drop: 'ladder' },
+        { set: 'ladderUp' },
+        { say: 'You walk the ladder up the back wall until its top rests on the lip of the hole in the roof. It is a long way up, and the ladder knows it, but it holds.' }
+      ]
+    },
+    {
+      id: 'take-down-the-ladder', verb: 'take', target: 'ladder',
+      when: { room: 'kitchenGarden', flags: { ladderUp: true } },
+      do: [{ clear: 'ladderUp' }, { give: 'ladder' }, { say: 'You walk the ladder back down off the wall and shoulder it.' }]
+    },
+    {
+      id: 'climb-the-ladder-up', verb: 'climb', target: [null, 'ladder', 'roofHole'],
+      when: { room: 'kitchenGarden', flags: { ladderUp: true } },
+      do: [{ goto: 'grandmotherRoom' }]
+    },
+    {
+      id: 'climb-the-ladder-down', verb: 'climb', target: [null, 'ladder', 'roofHole'],
+      when: { room: 'grandmotherRoom', flags: { ladderUp: true } },
+      do: [{ goto: 'kitchenGarden' }]
+    },
+    {
+      id: 'no-ladder-at-the-roof', verb: 'climb', target: [null, 'roofHole'],
+      when: { room: 'kitchenGarden', flags: { ladderUp: false } },
+      do: [{ say: 'The hole in the roof is two storeys up, and the wall offers nothing to hold. Somewhere there must be a ladder.' }]
+    },
+    {
+      id: 'play-the-cylinder', verb: ['use', 'play', 'put'], target: ['cylinder', 'phonograph'], with: [null, 'cylinder', 'phonograph'],
+      when: { room: 'glasshouse', carrying: ['cylinder'] },
+      do: [
+        { say: 'You set the cylinder on the mandrel, wind the crank and lower the needle. Hiss, like rain on a far roof. Then a voice you have not heard since you were small.' },
+        { say: { cls: 'info', text: '"If you are hearing this, the mist came, and you went looking. Good. I did too, once, when I was younger than you are now."' } },
+        { say: { cls: 'info', text: '"I went down the well and through the halls, and I stood in front of the King with his crown in my two hands. And I put it back."' } },
+        { say: { cls: 'info', text: '"I will not tell you why on one cylinder. I have hidden the rest where you will find them, if you are the kind who looks. You always were."' } },
+        { say: { cls: 'info', text: '"Sing to the soldier, all of it. Mind the mirrors. And when the King asks you a question, and he will, tell him the truth."' } },
+        { say: 'The needle runs off the end into hiss. The glasshouse is very quiet.' }
+      ]
+    },
+    {
+      id: 'play-the-cylinder-elsewhere', verb: ['use', 'play'], target: 'cylinder',
+      when: { notRoom: 'glasshouse', carrying: ['cylinder'] },
+      do: [{ say: 'You need something to play it on. The sleeve says the glasshouse.' }]
     },
 
     /* --- lighting the candle --- */
@@ -483,11 +713,14 @@
     }
   ];
 
-  /* The music sheet's own prose lives in world.js; the rule above points
-     at it with a marker rather than copying the words a second time. */
+  /* Prose that lives in world.js (the music sheet, the verse, the stairs)
+     is pointed at with a marker rather than copied a second time:
+     '@sheet', or '@read:<object>', '@examine:<object>', '@openText:<object>'. */
   for (const rule of rules) {
     for (const step of rule.do || []) {
       if (step.say === '@sheet') step.say = source.objects.musicSheet.read;
+      const m = typeof step.say === 'string' && /^@(read|examine|openText):(\w+)$/.exec(step.say);
+      if (m) step.say = source.objects[m[2]][m[1]];
     }
   }
 
@@ -665,7 +898,9 @@
     startFlags: {
       melodyKnown: false, gatesOpen: false, guardDancing: false, tunnelDug: false,
       mirrorOpened: false, flourRevealed: false, boatPatched: false,
-      loafEaten: false, lurkerMet: false
+      loafEaten: false, lurkerMet: false,
+      stairsCrossed: false, curtainOnStairs: false, servantStair: false, secondVerse: false,
+      backDoorOpen: false, ladderUp: false, clockRunning: false
     },
     world: buildWorld(),
     vocabulary,
@@ -749,7 +984,9 @@
         id: 'regalia-complete', kind: 'win',
         text: [
           'You place the last treasure on its velvet cushion, and the cabinet — full at last — blazes with a light that has been waiting for this exact moment.',
-          'The Sunken King\'s regalia is complete. His story is told; yours has just begun.'
+          'The Sunken King\'s regalia is complete. His story is told; yours has just begun.',
+          'A year later, Ashcombe has a new roof, a staircase that reaches its landing, a doormat that says the whole word, and a listing on a holiday-homes site: "Lovely period property. Charming staircase. Slightly haunted, in a good way."',
+          'The host is off duty. He keeps the vault key on his belt, for old times\' sake.'
         ]
       }
     ],
@@ -806,6 +1043,57 @@
         showClasses: true,
         showSplash: true
       },
+      /* The story so far, for a player who wants it before they begin:
+         a page per picture, each picture one of the game's own rooms.
+         It tells the legend and the premise, and keeps every puzzle and
+         every secret the game has for itself. */
+      prologue: [
+        {
+          room: 'yard', heading: 'Ashcombe',
+          text: [
+            'On a hill the maps have stopped bothering to name stands Ashcombe Manor: two storeys of grey stone, a dry well, and a front door that sticks in every season.',
+            'Under the hill, older than the manor and older than the maps, there was once a kingdom.'
+          ]
+        },
+        {
+          room: 'throne', heading: 'The Sunken King',
+          text: [
+            'Its king was loved, mostly, and sang badly, often. His court was music and brass and lamplight, and his halls ran deep beneath the hill.',
+            'Then, in one night that nobody wrote down properly, the halls sank. The water rose, the lamps went out, and the King went down with his crown.'
+          ]
+        },
+        {
+          room: 'caveMouth', heading: 'The Sealed Halls',
+          text: [
+            'His court mage sealed the way in behind doors of brass, and left the cavern to keep the password in its own voice.',
+            'His sentinel stayed at his post. He is there still, although he has not been strictly alive for some time.',
+            'Six treasures of the crown lie scattered through the dark, and the dark has kept them, along with the story of what really happened that night.'
+          ]
+        },
+        {
+          room: 'study', heading: 'Your Grandmother',
+          text: [
+            'Your grandmother lived at Ashcombe for forty years. She grew tomatoes in the glasshouse, read everything in the study twice, and kept an oil lantern trimmed and ready, as if she expected to need it.',
+            'She told you about the Sunken King when you were small. You stopped believing her at about the age of nine.'
+          ]
+        },
+        {
+          room: 'hall', heading: 'The Mist',
+          text: [
+            'Now she is gone, and Ashcombe is yours: the deed, the dust, a staircase with a hole in the middle, and a note in her shaky hand.',
+            'It says to go when the mist comes. Once in a lifetime, the old stories say, the mist rises off the drowned halls, and the way down opens.',
+            'This morning you woke to a white world.'
+          ]
+        },
+        {
+          room: 'porch', heading: 'How it plays',
+          text: [
+            'The Sunken Crown is a point-and-click adventure. Choose a verb, then click on the world, or type what you want to do the old-fashioned way.',
+            'Unless you choose otherwise, every room starts out as it looked on a home computer in 1987, and wakes into full light when you do something there, so the house itself becomes your map.',
+            'Find the six lost treasures, work out what stands between you and each of them, and stay out of the dark. Something down there has been waiting a long time for company.'
+          ]
+        }
+      ],
       speech: {
         room: 'caveMouth', target: 'gates', verb: 'say', submit: 'Speak',
         heading: 'THE CAVERN OF ECHOES',

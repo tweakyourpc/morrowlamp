@@ -6,6 +6,7 @@
      node tools/morrow.js prove    <cartridge>
      node tools/morrow.js build    <cartridge> [-o out.html]
      node tools/morrow.js play     <cartridge> [--route file] [--command …]
+     node tools/morrow.js strings  <cartridge> [--json]
 
    Everything here is assembly, not new machinery. `compile()` is
    already a pure function of { cartridge, sources }, the validator
@@ -191,7 +192,72 @@ function cmdPlay(cartridge, flags) {
   return meta.win ? 0 : 1;
 }
 
-const COMMANDS = { validate: cmdValidate, prove: cmdProve, build: cmdBuild, play: cmdPlay };
+/* Every narrative line a cartridge can print, with the room it belongs
+   to and the key a voiced shell finds its recording by. This is what a
+   voice builder reads: the script, addressed, and nothing else. Names
+   and labels are left out for the same reason the strings table leaves
+   them out — they are concatenated into generated sentences. */
+const NARRATIVE = new Set([
+  'intro', 'help', 'quitText', 'desc', 'short', 'text', 'deny', 'examine', 'read', 'takeText',
+  'cannotTake', 'dropText', 'cannotOpen', 'lockedText', 'openText', 'unlockText', 'lightText',
+  'douseText', 'acceptText', 'rejectText', 'useText', 'prompt', 'fallback', 'say', 'die', 'hit',
+  'miss', 'defeated', 'hitText', 'missText', 'failText', 'warning', 'warnings', 'outText'
+]);
+
+function cmdStrings(cartridge, flags) {
+  require(path.join(ROOT, 'js/remastered/voice-key.js'));
+  const table = cartridge.strings || {};
+  const objects = (cartridge.world || {}).objects || {};
+  const rooms = (cartridge.world || {}).rooms || {};
+  const roomOf = (id) => {
+    for (let at = id, hops = 0; at && hops < 12; hops++) {
+      if (rooms[at]) return at;
+      at = (objects[at] || {}).at;
+    }
+    return null;
+  };
+  const lines = new Map();
+  const emit = (value, where, room) => {
+    const resolved = ml.strings.resolve(value, table);
+    for (const item of [].concat(resolved)) {
+      const text = item && typeof item === 'object' ? item.text : item;
+      if (typeof text !== 'string' || !text.trim() || ml.strings.REF.test(text)) continue;
+      const key = Z.remastered.voiceKey(text);
+      const line = lines.get(key) || { key, text: Z.remastered.normalizeLine(text), speaker: 'narrator', rooms: new Set(), from: [] };
+      line.rooms.add(room || 'common');
+      line.from.push(where);
+      lines.set(key, line);
+    }
+  };
+  const walk = (value, where, room, narrative) => {
+    if (typeof value === 'string' || (value && typeof value === 'object' && typeof value.text === 'string')) {
+      if (narrative) emit(value, where, room);
+      return;
+    }
+    if (Array.isArray(value)) { value.forEach((v, i) => walk(v, where + '[' + i + ']', room, narrative)); return; }
+    if (!value || typeof value !== 'object' || typeof value === 'function') return;
+    for (const k of Object.keys(value)) {
+      if (k === 'strings' && where === '') continue;
+      let r = room;
+      if (where === 'world.rooms') r = k;
+      else if (where === 'presentation' && k === 'prologue') r = 'prologue';
+      else if (where === 'world.objects') r = roomOf(k);
+      else if (/^rules\[\d+\]$/.test(where) && value.when && typeof value.when.room === 'string') r = value.when.room;
+      walk(value[k], where ? where + '.' + k : k, r, narrative || NARRATIVE.has(k));
+    }
+  };
+  walk(cartridge, '', null, false);
+
+  const out = Array.from(lines.values()).map((l) => ({
+    key: l.key, room: l.rooms.size === 1 ? Array.from(l.rooms)[0] : 'common',
+    speaker: l.speaker, text: l.text, from: l.from
+  }));
+  if (flags.json) print(JSON.stringify({ cartridge: cartridge.meta.id, lines: out }, null, 1));
+  else for (const l of out) print(l.key + '  ' + l.room.padEnd(14) + l.text.slice(0, 90));
+  return 0;
+}
+
+const COMMANDS = { validate: cmdValidate, prove: cmdProve, build: cmdBuild, play: cmdPlay, strings: cmdStrings };
 
 /* ---------------- argument reading ---------------- */
 const USAGE = [
@@ -201,6 +267,7 @@ const USAGE = [
   '  node tools/morrow.js prove    <cartridge> [--json] [--verbose]',
   '  node tools/morrow.js build    <cartridge> [-o out.html] [--json]',
   '  node tools/morrow.js play     <cartridge> [--route file] [--command "…"]',
+  '  node tools/morrow.js strings  <cartridge> [--json]',
   '',
   'A cartridge is a .js source file or a .json (.morrow) data file.',
   'Every command exits 0 when it is happy and 1 when it is not.',
@@ -241,4 +308,6 @@ function main(argv) {
   return run(loadCartridge(file), flags);
 }
 
-process.exit(main(process.argv.slice(2)));
+/* exitCode, not exit(): a large --json report written to a pipe must be
+   allowed to drain before the process ends. */
+process.exitCode = main(process.argv.slice(2));

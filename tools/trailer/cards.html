@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Trailer cards</title>
+<!-- The trailer's words, one card per ?card=id, rendered by capture.mjs to
+     transparent 1920x1080 PNGs and laid over the footage by cut.py. In the
+     box art's manner (marketing/morrowlamp-github-marketing.png): carved gold
+     capitals, the Morrowlamp crescent and lantern. Fonts are open-licence
+     (SIL OFL) and synced beside this page as fonts/. -->
+<style>
+  @font-face { font-family: Cormorant; src: url(../../fonts/CormorantGaramond-Bold.ttf); font-weight: 700; }
+  @font-face { font-family: Cormorant; src: url(../../fonts/CormorantGaramond-SemiBold.ttf); font-weight: 600; }
+  @font-face { font-family: Garamond; src: url(../../fonts/EBGaramond-Regular.ttf); font-weight: 400; }
+  @font-face { font-family: Garamond; src: url(../../fonts/EBGaramond-SemiBold.ttf); font-weight: 600; }
+  :root { --gold-hi: #fff1c4; --gold: #e7b95a; --gold-lo: #9a6a22; }
+  html, body { margin: 0; width: 1920px; height: 1080px; background: transparent; overflow: hidden; }
+  .card { position: absolute; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+  .card.on { display: flex; }
+  .card.low { justify-content: flex-end; padding-bottom: 150px; box-sizing: border-box; }
+  .gold {
+    font-family: Cormorant, serif; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em;
+    background: linear-gradient(180deg, var(--gold-hi) 0%, var(--gold) 45%, var(--gold-lo) 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    filter: drop-shadow(0 3px 2px rgba(0, 0, 0, 0.9)) drop-shadow(0 0 26px rgba(255, 190, 90, 0.35));
+  }
+  .line { font-size: 92px; line-height: 1.05; }
+  /* A sentence, said plainly: sentence case, no tracking. */
+  .say { font-size: 78px; line-height: 1.1; text-transform: none; letter-spacing: 0.01em; font-weight: 600; }
+  .small { font-family: Garamond, serif; font-weight: 600; font-size: 44px; letter-spacing: 0.32em; text-transform: uppercase; color: #e9dcb8;
+           filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.95)); }
+  .italic { font-family: Garamond, serif; font-style: italic; font-weight: 400; font-size: 40px; color: #f1e6c8; letter-spacing: 0.02em;
+            filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.95)); }
+  .title { font-size: 168px; line-height: 0.95; letter-spacing: 0.1em; }
+  .sub { margin-top: 26px; }
+  .rule { width: 520px; height: 2px; margin: 34px 0; background: linear-gradient(90deg, transparent, var(--gold), transparent); }
+  .logo { display: flex; align-items: center; gap: 34px; }
+  .logo .gold { font-size: 120px; letter-spacing: 0.12em; }
+  .url { font-family: Garamond, serif; font-weight: 600; font-size: 52px; color: #fff1c4; letter-spacing: 0.04em; margin-top: 18px;
+         filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.95)); }
+  .dim { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 55%, rgba(0, 0, 0, 0.05), rgba(0, 0, 0, 0.62)); }
+  body.thumb, body.thumb html { width: 1280px; height: 720px; }
+  body.thumb .card { width: 1280px; height: 720px; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff1c4"/><stop offset=".5" stop-color="#e7b95a"/><stop offset="1" stop-color="#9a6a22"/></linearGradient>
+    <symbol id="lamp" viewBox="0 0 120 150">
+      <!-- the crescent, and the lantern hanging in its arms -->
+      <path d="M78 8a58 58 0 1 0 34 104A50 50 0 1 1 78 8z" fill="url(#g)"/>
+      <path d="M56 38h16v6h-16z M52 46h24l-3 8h-18z M54 56h20v38h-20z M50 94h28v7h-28z M60 30h8v8h-8z" fill="url(#g)"/>
+      <rect x="58" y="60" width="12" height="30" fill="#ffd98a"/>
+      <circle cx="64" cy="75" r="14" fill="#ffcf70" opacity=".35"/>
+    </symbol>
+  </defs>
+</svg>
+
+<div class="card" id="presents">
+  <div class="logo"><svg width="150" height="188"><use href="#lamp"/></svg><div class="gold">Morrowlamp</div></div>
+  <div class="small sub">Software presents</div>
+</div>
+
+<div class="card low" id="drowned"><div class="gold say">Your grandmother left you a house.</div></div>
+<div class="card low" id="ega1"><div class="small">Every room begins in EGA</div></div>
+<div class="card low" id="ega2"><div class="small">…and wakes as you play</div></div>
+<div class="card low" id="unclaimed"><div class="gold say">Nobody ever found the crown.</div></div>
+<div class="card low" id="reborn"><div class="gold say">Something down there is still awake.</div></div>
+
+<div class="card" id="title">
+  <div class="dim"></div>
+  <div class="gold title" style="position:relative">The Sunken<br>Crown</div>
+  <div class="rule" style="position:relative"></div>
+  <div class="small" style="position:relative">Remastered</div>
+</div>
+
+<div class="card low" id="f1"><div class="small">Twenty-one rooms to explore</div></div>
+<div class="card low" id="f2"><div class="small">Choose your narrator</div></div>
+<div class="card low" id="f3"><div class="small">Classic EGA, or modern light</div></div>
+<div class="card low" id="f4"><div class="small">Plays in your browser</div></div>
+
+<div class="card" id="end">
+  <div class="dim"></div>
+  <div style="position:relative;display:flex;flex-direction:column;align-items:center">
+    <div class="gold title" style="font-size:120px">The Sunken<br>Crown</div>
+    <div class="small" style="margin-top:18px">Remastered</div>
+    <div class="rule"></div>
+    <div class="url">Play free in your browser</div>
+    <div class="url" style="margin-top:6px;font-size:46px">tweakyourpc.github.io/morrowlamp/remastered.html</div>
+    <div class="logo" style="margin-top:48px;gap:18px"><svg width="64" height="80"><use href="#lamp"/></svg><div class="gold" style="font-size:44px">Morrowlamp Software</div></div>
+  </div>
+</div>
+
+<!-- One line of title, so the watching eyes below it stay clear; the subtitle sits low and right. -->
+<div class="card" id="thumb" style="justify-content:flex-start;padding-top:26px;box-sizing:border-box">
+  <div style="position:absolute;inset:0 0 62% 0;background:linear-gradient(rgba(0,0,0,0.75),transparent)"></div>
+  <div class="gold title" style="position:relative;font-size:96px;letter-spacing:0.08em;white-space:nowrap">The Sunken Crown</div>
+  <div class="small" style="position:absolute;right:44px;bottom:34px;font-size:34px">Remastered</div>
+</div>
+
+<script>
+  const id = new URLSearchParams(location.search).get('card');
+  if (id === 'thumb') document.body.classList.add('thumb');
+  const card = document.getElementById(id);
+  if (card) card.classList.add('on');
+  document.fonts.ready.then(() => { window.cardReady = !!card; });
+</script>
+</body>
+</html>

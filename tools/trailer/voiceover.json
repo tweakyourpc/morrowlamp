@@ -1,0 +1,46 @@
+{
+ "_doc": "The trailer's voiceover: your grandmother, cast as she is in the game (voices.json writers.grandmother), over the trailer's own score. Each line starts at `at` seconds into the film (cut.py's timeline; tools/trailer/score.js MARKS has the hits it sits between). voiceover.py voices and places them; a line that would overlap the one before it is pushed later and reported.",
+ "voice": "grandmother",
+ "lines": [
+  {
+   "at": 0.9,
+   "text": "Do you remember the stories I used to tell you?"
+  },
+  {
+   "at": 5.2,
+   "text": "A kingdom under the hill. A king who sang badly, and a crown nobody could find."
+  },
+  {
+   "at": 11.75,
+   "text": "You used to stay up far too late, the screen glowing in the dark."
+  },
+  {
+   "at": 17.8,
+   "text": "You were nine when you stopped believing me."
+  },
+  {
+   "at": 20.8,
+   "text": "Well. The house is yours now. So is everything under it."
+  },
+  {
+   "at": 26.2,
+   "text": "Take the lantern."
+  },
+  {
+   "at": 29.4,
+   "text": "And stay out of the dark."
+  },
+  {
+   "at": 39.0,
+   "text": "The mist has come, just like I told you."
+  },
+  {
+   "at": 44.4,
+   "text": "Go and see for yourself."
+  },
+  {
+   "at": 56.6,
+   "text": "I kept the lantern lit for you."
+  }
+ ]
+}

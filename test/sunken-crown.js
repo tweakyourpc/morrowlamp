@@ -58,7 +58,7 @@ const WINNING_ROUTE = require('./winning-route.js');
 function testWorldParity() {
   const source = Z.world;
   const cart = CART.world;
-  assert.strictEqual(Object.keys(cart.rooms).length, 18, 'all 18 scenes are present');
+  assert.strictEqual(Object.keys(cart.rooms).length, 21, 'all 21 rooms are present (18, plus upstairs and the back of the house)');
   assert.strictEqual(Object.keys(cart.rooms).length, Object.keys(source.rooms).length);
   assert.strictEqual(Object.keys(cart.objects).length, Object.keys(source.objects).length);
   assert.strictEqual(cart.startRoom, source.startRoom);
@@ -432,13 +432,14 @@ function testContainerRecovery() {
   cmd('open clock');
   assert.ok(has('brassKey') && has('musicSheet'), 'the clock\'s contents can be taken');
 
+  // The sheet of music, not the brass key: putting the key in the clock winds it.
   fresh();
-  cmd('n'); cmd('n'); cmd('open clock'); cmd('take brass key');
-  cmd('put brass key in clock');
+  cmd('n'); cmd('n'); cmd('open clock'); cmd('take music sheet');
+  cmd('put music sheet in clock');
   cmd('close clock');
   cmd('open clock');
-  assert.ok(txt(cmd('take brass key')).includes('Taken.'), 'a placed item survives a close/open cycle');
-  assert.ok(has('brassKey'), 'and returns to inventory');
+  assert.ok(txt(cmd('take music sheet')).includes('Taken.'), 'a placed item survives a close/open cycle');
+  assert.ok(has('musicSheet'), 'and returns to inventory');
   console.log('  ok — container contents remain recoverable');
 }
 

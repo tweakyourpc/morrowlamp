@@ -1,0 +1,158 @@
+{
+ "room": "lakeShore",
+ "size": [
+  1280,
+  800
+ ],
+ "camera": {
+  "matrix": [
+   1.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.999484,
+   -0.032126,
+   0.0,
+   0.0,
+   0.032126,
+   0.999484,
+   0.0,
+   0.0,
+   1.7,
+   6.0,
+   1.0
+  ],
+  "fov": 50.2297,
+  "aspect": 1.6,
+  "near": 0.1,
+  "far": 60.0,
+  "depthRange": 40.0
+ },
+ "passes": {
+  "beauty": "beauty.webp",
+  "albedo": "albedo.webp",
+  "normal": "normal.webp",
+  "emit": "emit.webp",
+  "data": "data.webp"
+ },
+ "ids": {
+  "1": "floor",
+  "2": "boat",
+  "3": "plinth",
+  "4": "exit:e"
+ },
+ "variants": [
+  {
+   "id": "boat.patched",
+   "when": {
+    "flag": "boatPatched"
+   },
+   "rect": [
+    965,
+    549,
+    36,
+    35
+   ],
+   "passes": {
+    "beauty": "v.boat.patched.beauty.webp",
+    "albedo": "v.boat.patched.albedo.webp",
+    "normal": "v.boat.patched.normal.webp",
+    "emit": "v.boat.patched.emit.webp",
+    "data": "v.boat.patched.data.webp"
+   }
+  }
+ ],
+ "walk": {
+  "area": [
+   -4.4,
+   4.5,
+   -0.6000000000000001,
+   2.2
+  ],
+  "blocks": [
+   [
+    1.0999999999999999,
+    3.7,
+    -1.7,
+    -0.30000000000000004
+   ]
+  ]
+ },
+ "points": {
+  "start": [
+   -1.5,
+   0.0,
+   0.8
+  ],
+  "w": [
+   4.0,
+   0.0,
+   0.4
+  ],
+  "e": [
+   1.2,
+   0.0,
+   0.3
+  ],
+  "creature": [
+   -1.3,
+   0.0,
+   -0.25
+  ]
+ },
+ "walkTo": {
+  "boat": [
+   1.2,
+   0.0,
+   0.3
+  ],
+  "plinth": [
+   -1.8,
+   0.0,
+   -0.2
+  ],
+  "exit:e": [
+   4.4,
+   0.0,
+   0.4
+  ],
+  "exit:w": [
+   1.2,
+   0.0,
+   0.3
+  ]
+ },
+ "zones": [
+  {
+   "id": "exit:w",
+   "fromHotspot": "boat",
+   "when": {
+    "flag": "boatPatched"
+   }
+  }
+ ],
+ "lights": {
+  "ambient": [
+   0.06,
+   0.09,
+   0.13
+  ],
+  "key": {
+   "color": [
+    0.35,
+    0.7,
+    1.0
+   ],
+   "dir": [
+    0.0,
+    -1.0,
+    0.0
+   ],
+   "intensity": 0.35
+  }
+ },
+ "music": "lake",
+ "wake": "change",
+ "exposure": 1.1
+}

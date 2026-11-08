@@ -14,6 +14,20 @@ double-click it, and play.
 **The Sunken Crown is no longer the product.** Morrowlamp is the product. The Sunken Crown is
 the first game made with it, and the conformance target that keeps the factory honest.
 
+## Play The Sunken Crown: Remastered
+
+**[Play it free in your browser](https://tweakyourpc.github.io/morrowlamp/remastered.html)**:
+the first Morrowlamp title, remastered with rendered rooms, a 3D hero carrying a live lantern,
+three narrators to choose from, and an original score. Every room starts in 1987 EGA and wakes
+into its modern render the first time you act in it. The classic EGA edition is at the
+[site's front page](https://tweakyourpc.github.io/morrowlamp/).
+
+The remaster is built on the same Machine as the classic editions: `remastered.html` and
+`js/remastered/` are its shell, `remastered/` its rendered rooms, voices and films, and
+`tools/blender/`, `tools/voice/` and `tools/trailer/` the pipelines that make them.
+`tools/publish_pages.sh` publishes the site. Its working notes are in
+[docs/remastered/HANDOFF.md](docs/remastered/HANDOFF.md).
+
 **Created and orchestrated by Christopher Davis.** See [CREDITS.md](CREDITS.md) for the
 human-directed, multi-agent development methodology.
 
@@ -402,12 +416,17 @@ node test/strings-contract.js          # every @s: slot resolves, and nothing el
 node test/prove.js                     # winnability: a game that validates and cannot be won
 node test/workshop.js                  # bundle manifest, blank-cartridge round trip, Machine purity
 node test/sunken-crown.js              # the flagship cartridge, end to end (19 groups)
+node test/click-route.js               # the flagship won by clicks alone, as the graphical shells play it
+node test/upstairs.js                  # the stairs, the grandmother's room and the back of the house
+node test/savecode.js                  # save codes: every walkthrough step round-trips and still wins
 node test/cartridge-thistle.js         # the second cartridge plays through on the same Machine
 node test/cartridge-crumbly.js         # the third one proves the RPG layer is generic
 node test/one-machine.js               # THE INVARIANT (see below)
 node test/compiler.js                  # BUILD GAME: every artifact, self-containment, sandboxed playthroughs
 node test/shell-boundary.js            # real page shells against markup-derived DOM fixtures
 node test/hygiene.js                   # tracked-text and compiled-artifact publication hygiene
+node test/remastered-manifest.js       # remastered rooms, narrators and the floppy budget
+node test/remastered-score.js          # the remastered score keeps every written note
 ```
 
 ### The invariant
@@ -632,6 +651,51 @@ close to what the real engines of the period actually did, and it is more intere
 storing finished art.
 
 Both tiers stay first-class. Neither is a compromise.
+
+## The remastered edition
+
+`remastered.html` is The Sunken Crown with Blender-rendered rooms, a 3D hero, a live lantern and
+spoken narration. It is a fourth presentation of the same game, not a second game: it loads the
+same Machine and the same cartridge as the other pages, phrases clicks through the same
+`js/morrowlamp/interact.js` as the canvas shell, and shares its save slots with `index.html`.
+`test/one-machine.js` holds it to that.
+
+It is also the one deliberate exception to "no runtime assets". The retro pages and every
+compiled adventure stay asset-free; the remaster is an opt-in tier of files served next to them.
+
+- **Rooms** are built in Blender by `tools/blender/rooms/<room>.py`, rendered by
+  `tools/blender/render_room.py` (locally, or on a GPU box through `tools/blender/remote_render.sh`)
+  and packed to WebP by `tools/blender/pack_room.py`. Each room ships a beauty pass, the albedo,
+  normals, emission and a data pass (16-bit depth and hotspot ids), plus small masked overlays for
+  state changes such as an open clock door. The browser relights the room around the hero's
+  lantern, and the depth pass hides the hero behind whatever stands in front of them.
+- **The hero** is built and rigged by `tools/blender/build_actor.py` and exported as glTF.
+- **Rooms wake as you play them.** A room first appears as its retro picture (CGA, EGA or VGA, the
+  player's choice on the title screen). The first thing the player does there that changes the
+  world dissolves it into the rendered room, outward from where they acted, and it stays woken,
+  saved with the game. Looking around and walking do not count; taking, opening, using, talking
+  and finding things do.
+- **Voice** is built by `tools/voice/build_voices.py` from the script that
+  `tools/morrow.js strings` lists: Piper, one sentence per call, several takes, the best chosen by
+  Whisper, encoded as Opus. A clip is found by the hash of the line it speaks
+  (`js/remastered/voice-key.js`), so editing a line can never play the old recording.
+  The player picks the narrator (four recorded voices in `tools/voice/voices.json`, the browser's
+  own speech for no download at all, or text only). Written words are not the narrator's: the
+  grandmother's note and the chroniclers' books are read in their writers' voices, which never
+  match the chosen narrator.
+- **Music** plays the same score as `js/music.js` through `js/remastered/score.js`: the same notes on
+  richer synthesized instruments, a pad, reverb sized to each place, an echo, water in the caves.
+  `js/remastered/moods.js` gives places their own mood (intrigue in the study, tension on the way to
+  the Sentinel, glass in the mirrors, no music at all outdoors, only the night) and raises a
+  heartbeat when the game turns dangerous. Still no audio files. Add `?score=chip` to the URL to
+  hear the classic chip score instead.
+- **Rooms not remastered yet** fall back to their EGA painters, so the whole game is playable.
+- `test/remastered-manifest.js` checks that every hotspot, overlay, stand point and voice clip
+  names something real, that every narrator records the same lines, and the download budget: a
+  first visit on one 1.44 MB floppy, the whole game with one narrator on five at most.
+  `test/remastered-score.js` checks that the remastered score plays every written note.
+
+Serve the folder with `tools/serve.py` and open `remastered.html`.
 
 ## Philosophy
 

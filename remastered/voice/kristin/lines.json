@@ -1,0 +1,2571 @@
+{
+ "008f39da": {
+  "file": "common/008f39da.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 13.45,
+  "wer": 0.0
+ },
+ "017daa6c": {
+  "file": "kitchen/017daa6c.webm",
+  "room": "kitchen",
+  "speaker": "narrator",
+  "seconds": 4.16,
+  "wer": 0.0
+ },
+ "0188f039": {
+  "file": "common/0188f039.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 2.52,
+  "wer": 0.0
+ },
+ "0249dea9": {
+  "file": "prologue/0249dea9.webm",
+  "room": "prologue",
+  "speaker": "narrator",
+  "seconds": 10.1,
+  "wer": 0.0
+ },
+ "0374421c": {
+  "file": "common/0374421c.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 4.72,
+  "wer": 0.0
+ },
+ "039b1f6d": {
+  "file": "common/039b1f6d.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 7.62,
+  "wer": 0.062
+ },
+ "049dbd1b": {
+  "file": "guardroom/049dbd1b.webm",
+  "room": "guardroom",
+  "speaker": "narrator",
+  "seconds": 5.21,
+  "wer": 0.111
+ },
+ "05e09a37": {
+  "file": "caveMouth/05e09a37.webm",
+  "room": "caveMouth",
+  "speaker": "narrator",
+  "seconds": 1.16,
+  "wer": 0.0
+ },
+ "074c2bf0": {
+  "file": "common/074c2bf0.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 0.96,
+  "wer": 0.5
+ },
+ "08c7413f": {
+  "file": "common/08c7413f.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 2.16,
+  "wer": 0.0
+ },
+ "09bd3359": {
+  "file": "prologue/09bd3359.webm",
+  "room": "prologue",
+  "speaker": "narrator",
+  "seconds": 11.27,
+  "wer": 0.0
+ },
+ "09dbafda": {
+  "file": "common/09dbafda.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 5.7,
+  "wer": 0.0
+ },
+ "0a1cb0d5": {
+  "file": "common/0a1cb0d5.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 1.95,
+  "wer": 0.0
+ },
+ "0a5d7bc9": {
+  "file": "hall/0a5d7bc9.webm",
+  "room": "hall",
+  "speaker": "narrator",
+  "seconds": 13.81,
+  "wer": 0.0
+ },
+ "0aafe73e": {
+  "file": "common/0aafe73e.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 5.69,
+  "wer": 0.0
+ },
+ "0abd0d1f": {
+  "file": "tunnel/0abd0d1f.webm",
+  "room": "tunnel",
+  "speaker": "narrator",
+  "seconds": 13.06,
+  "wer": 0.042
+ },
+ "0b0f4dc6": {
+  "file": "kitchen/0b0f4dc6.webm",
+  "room": "kitchen",
+  "speaker": "narrator",
+  "seconds": 7.59,
+  "wer": 0.0
+ },
+ "0b4e8f5e": {
+  "file": "cellar/0b4e8f5e.webm",
+  "room": "cellar",
+  "speaker": "narrator",
+  "seconds": 20.9,
+  "wer": 0.0
+ },
+ "0c5017b9": {
+  "file": "common/0c5017b9.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 1.75,
+  "wer": 0.0
+ },
+ "0d2bb076": {
+  "file": "common/0d2bb076.webm",
+  "room": "common",
+  "speaker": "narrator+grandmother",
+  "seconds": 6.39,
+  "wer": 0.5
+ },
+ "0d95fa4f": {
+  "file": "hall/0d95fa4f.webm",
+  "room": "hall",
+  "speaker": "narrator",
+  "seconds": 12.62,
+  "wer": 0.0
+ },
+ "0db1ab55": {
+  "file": "glasshouse/0db1ab55.webm",
+  "room": "glasshouse",
+  "speaker": "narrator",
+  "seconds": 8.32,
+  "wer": 0.0
+ },
+ "0dcfc478": {
+  "file": "common/0dcfc478.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 7.36,
+  "wer": 0.083
+ },
+ "0e93d900": {
+  "file": "prologue/0e93d900.webm",
+  "room": "prologue",
+  "speaker": "narrator",
+  "seconds": 10.05,
+  "wer": 0.062
+ },
+ "0eab1266": {
+  "file": "cellar/0eab1266.webm",
+  "room": "cellar",
+  "speaker": "narrator",
+  "seconds": 3.28,
+  "wer": 0.0
+ },
+ "0ee935a5": {
+  "file": "common/0ee935a5.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 6.64,
+  "wer": 0.0
+ },
+ "1098301d": {
+  "file": "common/1098301d.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 0.81,
+  "wer": 0.5
+ },
+ "109e35fd": {
+  "file": "caveMouth/109e35fd.webm",
+  "room": "caveMouth",
+  "speaker": "narrator",
+  "seconds": 3.93,
+  "wer": 0.0
+ },
+ "10e6fed4": {
+  "file": "wellBottom/10e6fed4.webm",
+  "room": "wellBottom",
+  "speaker": "narrator",
+  "seconds": 13.83,
+  "wer": 0.0
+ },
+ "11034f82": {
+  "file": "common/11034f82.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 0.94,
+  "wer": 0.0
+ },
+ "11159856": {
+  "file": "common/11159856.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 0.87,
+  "wer": 0.0
+ },
+ "11178277": {
+  "file": "hall/11178277.webm",
+  "room": "hall",
+  "speaker": "narrator",
+  "seconds": 9.28,
+  "wer": 0.042
+ },
+ "114478fe": {
+  "file": "lakeShore/114478fe.webm",
+  "room": "lakeShore",
+  "speaker": "narrator",
+  "seconds": 20.21,
+  "wer": 0.062
+ },
+ "11d271c5": {
+  "file": "guardroom/11d271c5.webm",
+  "room": "guardroom",
+  "speaker": "narrator",
+  "seconds": 9.35,
+  "wer": 0.0
+ },
+ "123f4bcd": {
+  "file": "guardroom/123f4bcd.webm",
+  "room": "guardroom",
+  "speaker": "narrator",
+  "seconds": 4.29,
+  "wer": 1.0
+ },
+ "1274e10c": {
+  "file": "glasshouse/1274e10c.webm",
+  "room": "glasshouse",
+  "speaker": "narrator",
+  "seconds": 2.33,
+  "wer": 0.0
+ },
+ "130e4cb2": {
+  "file": "common/130e4cb2.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 6.64,
+  "wer": 0.286
+ },
+ "13539e22": {
+  "file": "mirrorHall/13539e22.webm",
+  "room": "mirrorHall",
+  "speaker": "narrator",
+  "seconds": 13.14,
+  "wer": 0.0
+ },
+ "135ae13c": {
+  "file": "common/135ae13c.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 15.67,
+  "wer": 0.0
+ },
+ "13d19d9a": {
+  "file": "kitchenGarden/13d19d9a.webm",
+  "room": "kitchenGarden",
+  "speaker": "narrator",
+  "seconds": 7.56,
+  "wer": 0.062
+ },
+ "13f0fb97": {
+  "file": "common/13f0fb97.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 3.45,
+  "wer": 0.0
+ },
+ "1403fc51": {
+  "file": "common/1403fc51.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 9.34,
+  "wer": 0.0
+ },
+ "1699e8b0": {
+  "file": "common/1699e8b0.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 7.68,
+  "wer": 0.0
+ },
+ "16df872f": {
+  "file": "study/16df872f.webm",
+  "room": "study",
+  "speaker": "narrator",
+  "seconds": 11.69,
+  "wer": 0.0
+ },
+ "17b02f12": {
+  "file": "caveMouth/17b02f12.webm",
+  "room": "caveMouth",
+  "speaker": "narrator",
+  "seconds": 15.37,
+  "wer": 0.214
+ },
+ "184f3271": {
+  "file": "hall/184f3271.webm",
+  "room": "hall",
+  "speaker": "narrator",
+  "seconds": 7.4,
+  "wer": 0.083
+ },
+ "19a69e1f": {
+  "file": "common/19a69e1f.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 5.34,
+  "wer": 0.0
+ },
+ "1a50c7f8": {
+  "file": "mirrorHall/1a50c7f8.webm",
+  "room": "mirrorHall",
+  "speaker": "narrator",
+  "seconds": 3.49,
+  "wer": 0.0
+ },
+ "1a65470e": {
+  "file": "kitchenGarden/1a65470e.webm",
+  "room": "kitchenGarden",
+  "speaker": "narrator",
+  "seconds": 8.99,
+  "wer": 0.2
+ },
+ "1ad2e835": {
+  "file": "common/1ad2e835.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 4.86,
+  "wer": 0.0
+ },
+ "1ad7d0b2": {
+  "file": "common/1ad7d0b2.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 1.89,
+  "wer": 0.0
+ },
+ "1bd69485": {
+  "file": "caveMouth/1bd69485.webm",
+  "room": "caveMouth",
+  "speaker": "narrator",
+  "seconds": 8.85,
+  "wer": 0.0
+ },
+ "1e02423f": {
+  "file": "common/1e02423f.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 2.46,
+  "wer": 0.0
+ },
+ "1f09be15": {
+  "file": "common/1f09be15.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 3.67,
+  "wer": 0.571
+ },
+ "1fd975e1": {
+  "file": "grandmotherRoom/1fd975e1.webm",
+  "room": "grandmotherRoom",
+  "speaker": "narrator",
+  "seconds": 9.88,
+  "wer": 0.0
+ },
+ "2019c70f": {
+  "file": "study/2019c70f.webm",
+  "room": "study",
+  "speaker": "narrator",
+  "seconds": 8.29,
+  "wer": 0.0
+ },
+ "21638bfa": {
+  "file": "yard/21638bfa.webm",
+  "room": "yard",
+  "speaker": "narrator",
+  "seconds": 5.01,
+  "wer": 0.0
+ },
+ "228a133e": {
+  "file": "porch/228a133e.webm",
+  "room": "porch",
+  "speaker": "narrator",
+  "seconds": 9.7,
+  "wer": 0.2
+ },
+ "234b5cc5": {
+  "file": "grandmotherRoom/234b5cc5.webm",
+  "room": "grandmotherRoom",
+  "speaker": "narrator",
+  "seconds": 10.35,
+  "wer": 0.4
+ },
+ "255c1ae8": {
+  "file": "caveMouth/255c1ae8.webm",
+  "room": "caveMouth",
+  "speaker": "narrator",
+  "seconds": 7.58,
+  "wer": 0.0
+ },
+ "2688fb18": {
+  "file": "tomb/2688fb18.webm",
+  "room": "tomb",
+  "speaker": "narrator",
+  "seconds": 8.38,
+  "wer": 0.043
+ },
+ "26bf7dd4": {
+  "file": "mirrorHall/26bf7dd4.webm",
+  "room": "mirrorHall",
+  "speaker": "narrator",
+  "seconds": 2.32,
+  "wer": 0.0
+ },
+ "27f136a5": {
+  "file": "common/27f136a5.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 4.39,
+  "wer": 0.0
+ },
+ "286744a8": {
+  "file": "caveMouth/286744a8.webm",
+  "room": "caveMouth",
+  "speaker": "narrator",
+  "seconds": 8.88,
+  "wer": 0.0
+ },
+ "28ca7e75": {
+  "file": "study/28ca7e75.webm",
+  "room": "study",
+  "speaker": "narrator",
+  "seconds": 4.1,
+  "wer": 0.0
+ },
+ "292191ef": {
+  "file": "kitchenGarden/292191ef.webm",
+  "room": "kitchenGarden",
+  "speaker": "narrator",
+  "seconds": 3.24,
+  "wer": 0.0
+ },
+ "29912dc1": {
+  "file": "glasshouse/29912dc1.webm",
+  "room": "glasshouse",
+  "speaker": "narrator",
+  "seconds": 20.71,
+  "wer": 0.12
+ },
+ "2a74072d": {
+  "file": "common/2a74072d.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 11.82,
+  "wer": 0.062
+ },
+ "2c7621cb": {
+  "file": "guardroom/2c7621cb.webm",
+  "room": "guardroom",
+  "speaker": "narrator",
+  "seconds": 14.08,
+  "wer": 0.214
+ },
+ "2ce08b05": {
+  "file": "lakeShore/2ce08b05.webm",
+  "room": "lakeShore",
+  "speaker": "narrator",
+  "seconds": 7.1,
+  "wer": 0.0
+ },
+ "2d371bf5": {
+  "file": "porch/2d371bf5.webm",
+  "room": "porch",
+  "speaker": "narrator",
+  "seconds": 4.51,
+  "wer": 0.0
+ },
+ "2df72d8a": {
+  "file": "hall/2df72d8a.webm",
+  "room": "hall",
+  "speaker": "narrator",
+  "seconds": 4.32,
+  "wer": 0.0
+ },
+ "2e997fff": {
+  "file": "lakeIslet/2e997fff.webm",
+  "room": "lakeIslet",
+  "speaker": "narrator",
+  "seconds": 10.0,
+  "wer": 0.0
+ },
+ "2f9b5a6b": {
+  "file": "common/2f9b5a6b.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 11.67,
+  "wer": 0.0
+ },
+ "2fa69e90": {
+  "file": "tomb/2fa69e90.webm",
+  "room": "tomb",
+  "speaker": "narrator",
+  "seconds": 9.78,
+  "wer": 0.0
+ },
+ "2ffa3f48": {
+  "file": "porch/2ffa3f48.webm",
+  "room": "porch",
+  "speaker": "narrator",
+  "seconds": 10.01,
+  "wer": 0.067
+ },
+ "304125bf": {
+  "file": "common/304125bf.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 3.72,
+  "wer": 0.0
+ },
+ "31675275": {
+  "file": "hall/31675275.webm",
+  "room": "hall",
+  "speaker": "narrator",
+  "seconds": 3.49,
+  "wer": 0.0
+ },
+ "31da8f04": {
+  "file": "guardroom/31da8f04.webm",
+  "room": "guardroom",
+  "speaker": "narrator",
+  "seconds": 8.83,
+  "wer": 0.0
+ },
+ "3296d4eb": {
+  "file": "prologue/3296d4eb.webm",
+  "room": "prologue",
+  "speaker": "narrator",
+  "seconds": 2.28,
+  "wer": 0.0
+ },
+ "338e0b85": {
+  "file": "hall/338e0b85.webm",
+  "room": "hall",
+  "speaker": "narrator",
+  "seconds": 5.1,
+  "wer": 0.0
+ },
+ "33ffb22d": {
+  "file": "common/33ffb22d.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 4.14,
+  "wer": 0.0
+ },
+ "3408ffb3": {
+  "file": "common/3408ffb3.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 3.66,
+  "wer": 0.0
+ },
+ "35fc110b": {
+  "file": "common/35fc110b.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 1.17,
+  "wer": 0.0
+ },
+ "36b21ff5": {
+  "file": "porch/36b21ff5.webm",
+  "room": "porch",
+  "speaker": "narrator",
+  "seconds": 3.44,
+  "wer": 0.111
+ },
+ "36e96dda": {
+  "file": "common/36e96dda.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 6.34,
+  "wer": 0.0
+ },
+ "37021584": {
+  "file": "prologue/37021584.webm",
+  "room": "prologue",
+  "speaker": "narrator",
+  "seconds": 8.42,
+  "wer": 0.0
+ },
+ "38174ae8": {
+  "file": "caveMouth/38174ae8.webm",
+  "room": "caveMouth",
+  "speaker": "narrator",
+  "seconds": 22.13,
+  "wer": 0.0
+ },
+ "38378ae8": {
+  "file": "guardroom/38378ae8.webm",
+  "room": "guardroom",
+  "speaker": "narrator",
+  "seconds": 9.24,
+  "wer": 0.0
+ },
+ "39d88ba7": {
+  "file": "common/39d88ba7.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 3.76,
+  "wer": 0.077
+ },
+ "3a69d0af": {
+  "file": "grandmotherRoom/3a69d0af.webm",
+  "room": "grandmotherRoom",
+  "speaker": "narrator",
+  "seconds": 7.27,
+  "wer": 0.083
+ },
+ "3bc27a3d": {
+  "file": "hall/3bc27a3d.webm",
+  "room": "hall",
+  "speaker": "narrator",
+  "seconds": 10.32,
+  "wer": 0.0
+ },
+ "3bfff1b5": {
+  "file": "hall/3bfff1b5.webm",
+  "room": "hall",
+  "speaker": "narrator",
+  "seconds": 10.95,
+  "wer": 0.0
+ },
+ "3c216b7a": {
+  "file": "grandmotherRoom/3c216b7a.webm",
+  "room": "grandmotherRoom",
+  "speaker": "narrator",
+  "seconds": 24.49,
+  "wer": 0.038
+ },
+ "3c859320": {
+  "file": "study/3c859320.webm",
+  "room": "study",
+  "speaker": "chronicler",
+  "seconds": 9.16,
+  "wer": 0.059
+ },
+ "3cc5b85f": {
+  "file": "guardroom/3cc5b85f.webm",
+  "room": "guardroom",
+  "speaker": "narrator",
+  "seconds": 9.54,
+  "wer": 0.0
+ },
+ "3d8161fe": {
+  "file": "wellBottom/3d8161fe.webm",
+  "room": "wellBottom",
+  "speaker": "narrator",
+  "seconds": 8.79,
+  "wer": 0.0
+ },
+ "3d9874ab": {
+  "file": "hall/3d9874ab.webm",
+  "room": "hall",
+  "speaker": "narrator",
+  "seconds": 5.26,
+  "wer": 0.0
+ },
+ "3e79e396": {
+  "file": "study/3e79e396.webm",
+  "room": "study",
+  "speaker": "chronicler",
+  "seconds": 12.75,
+  "wer": 0.0
+ },
+ "3f945421": {
+  "file": "common/3f945421.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 7.72,
+  "wer": 0.333
+ },
+ "404cee79": {
+  "file": "wellBottom/404cee79.webm",
+  "room": "wellBottom",
+  "speaker": "narrator",
+  "seconds": 3.23,
+  "wer": 0.0
+ },
+ "40f4de5a": {
+  "file": "common/40f4de5a.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 9.01,
+  "wer": 0.0
+ },
+ "41fd1911": {
+  "file": "common/41fd1911.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 2.11,
+  "wer": 0.0
+ },
+ "432eaa38": {
+  "file": "mirrorHall/432eaa38.webm",
+  "room": "mirrorHall",
+  "speaker": "narrator",
+  "seconds": 7.96,
+  "wer": 0.0
+ },
+ "434ef2f7": {
+  "file": "common/434ef2f7.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 13.26,
+  "wer": 0.034
+ },
+ "4642fa79": {
+  "file": "guardroom/4642fa79.webm",
+  "room": "guardroom",
+  "speaker": "narrator",
+  "seconds": 10.04,
+  "wer": 0.0
+ },
+ "46a01205": {
+  "file": "cellar/46a01205.webm",
+  "room": "cellar",
+  "speaker": "narrator",
+  "seconds": 4.25,
+  "wer": 0.0
+ },
+ "46d5a032": {
+  "file": "mirrorSanctum/46d5a032.webm",
+  "room": "mirrorSanctum",
+  "speaker": "narrator",
+  "seconds": 4.7,
+  "wer": 0.0
+ },
+ "4756ff6e": {
+  "file": "common/4756ff6e.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 2.38,
+  "wer": 0.125
+ },
+ "47bd97d9": {
+  "file": "lakeIslet/47bd97d9.webm",
+  "room": "lakeIslet",
+  "speaker": "narrator",
+  "seconds": 5.06,
+  "wer": 0.0
+ },
+ "4809c01b": {
+  "file": "common/4809c01b.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 8.76,
+  "wer": 0.095
+ },
+ "4828c44b": {
+  "file": "common/4828c44b.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 0.74,
+  "wer": 0.0
+ },
+ "48928f88": {
+  "file": "caveMouth/48928f88.webm",
+  "room": "caveMouth",
+  "speaker": "narrator",
+  "seconds": 5.64,
+  "wer": 0.111
+ },
+ "4a36ee92": {
+  "file": "common/4a36ee92.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 1.4,
+  "wer": 0.0
+ },
+ "4a646754": {
+  "file": "kitchen/4a646754.webm",
+  "room": "kitchen",
+  "speaker": "narrator",
+  "seconds": 7.88,
+  "wer": 0.048
+ },
+ "4a8fc0a3": {
+  "file": "cellar/4a8fc0a3.webm",
+  "room": "cellar",
+  "speaker": "narrator",
+  "seconds": 4.38,
+  "wer": 0.0
+ },
+ "4bc9c325": {
+  "file": "vault/4bc9c325.webm",
+  "room": "vault",
+  "speaker": "narrator",
+  "seconds": 8.86,
+  "wer": 0.182
+ },
+ "4c8a7bd0": {
+  "file": "yard/4c8a7bd0.webm",
+  "room": "yard",
+  "speaker": "narrator",
+  "seconds": 19.13,
+  "wer": 0.105
+ },
+ "4c94f007": {
+  "file": "guardroom/4c94f007.webm",
+  "room": "guardroom",
+  "speaker": "narrator",
+  "seconds": 6.78,
+  "wer": 0.0
+ },
+ "4cbc2884": {
+  "file": "hall/4cbc2884.webm",
+  "room": "hall",
+  "speaker": "narrator",
+  "seconds": 11.74,
+  "wer": 0.0
+ },
+ "4d942c2c": {
+  "file": "kitchen/4d942c2c.webm",
+  "room": "kitchen",
+  "speaker": "narrator",
+  "seconds": 20.04,
+  "wer": 0.0
+ },
+ "4df45b17": {
+  "file": "common/4df45b17.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 6.0,
+  "wer": 0.0
+ },
+ "50855896": {
+  "file": "study/50855896.webm",
+  "room": "study",
+  "speaker": "narrator",
+  "seconds": 5.74,
+  "wer": 0.071
+ },
+ "519fb541": {
+  "file": "lakeShore/519fb541.webm",
+  "room": "lakeShore",
+  "speaker": "narrator",
+  "seconds": 4.98,
+  "wer": 0.071
+ },
+ "520ec45e": {
+  "file": "glasshouse/520ec45e.webm",
+  "room": "glasshouse",
+  "speaker": "narrator",
+  "seconds": 8.12,
+  "wer": 0.0
+ },
+ "52731b62": {
+  "file": "grandmotherRoom/52731b62.webm",
+  "room": "grandmotherRoom",
+  "speaker": "narrator",
+  "seconds": 6.48,
+  "wer": 0.0
+ },
+ "53425bf2": {
+  "file": "mirrorSanctum/53425bf2.webm",
+  "room": "mirrorSanctum",
+  "speaker": "narrator",
+  "seconds": 13.48,
+  "wer": 0.0
+ },
+ "539a4b2d": {
+  "file": "lakeShore/539a4b2d.webm",
+  "room": "lakeShore",
+  "speaker": "narrator",
+  "seconds": 3.74,
+  "wer": 0.0
+ },
+ "559d600a": {
+  "file": "common/559d600a.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 2.65,
+  "wer": 0.0
+ },
+ "55b1ebfb": {
+  "file": "lakeShore/55b1ebfb.webm",
+  "room": "lakeShore",
+  "speaker": "narrator",
+  "seconds": 4.33,
+  "wer": 0.0
+ },
+ "55fba853": {
+  "file": "common/55fba853.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 3.71,
+  "wer": 0.0
+ },
+ "571b4489": {
+  "file": "common/571b4489.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 8.45,
+  "wer": 0.0
+ },
+ "57d8a935": {
+  "file": "grandmotherRoom/57d8a935.webm",
+  "room": "grandmotherRoom",
+  "speaker": "narrator",
+  "seconds": 3.28,
+  "wer": 0.0
+ },
+ "583bf6ec": {
+  "file": "common/583bf6ec.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 9.01,
+  "wer": 0.0
+ },
+ "58a92bdb": {
+  "file": "kitchen/58a92bdb.webm",
+  "room": "kitchen",
+  "speaker": "narrator",
+  "seconds": 2.76,
+  "wer": 0.0
+ },
+ "58b258a7": {
+  "file": "common/58b258a7.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 0.7,
+  "wer": 0.0
+ },
+ "592ea0c0": {
+  "file": "common/592ea0c0.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 7.28,
+  "wer": 0.0
+ },
+ "59ac70a0": {
+  "file": "grandmotherRoom/59ac70a0.webm",
+  "room": "grandmotherRoom",
+  "speaker": "narrator",
+  "seconds": 3.08,
+  "wer": 0.0
+ },
+ "5b7a27ee": {
+  "file": "prologue/5b7a27ee.webm",
+  "room": "prologue",
+  "speaker": "narrator",
+  "seconds": 6.91,
+  "wer": 0.0
+ },
+ "5bcc12c4": {
+  "file": "glasshouse/5bcc12c4.webm",
+  "room": "glasshouse",
+  "speaker": "narrator",
+  "seconds": 8.62,
+  "wer": 0.0
+ },
+ "5c4ca2f8": {
+  "file": "common/5c4ca2f8.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 2.68,
+  "wer": 0.0
+ },
+ "5c9ba676": {
+  "file": "throne/5c9ba676.webm",
+  "room": "throne",
+  "speaker": "narrator",
+  "seconds": 6.68,
+  "wer": 0.0
+ },
+ "5cebc7a2": {
+  "file": "yard/5cebc7a2.webm",
+  "room": "yard",
+  "speaker": "narrator",
+  "seconds": 7.09,
+  "wer": 0.1
+ },
+ "5e257f90": {
+  "file": "common/5e257f90.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 4.76,
+  "wer": 0.0
+ },
+ "5f3bdf19": {
+  "file": "study/5f3bdf19.webm",
+  "room": "study",
+  "speaker": "narrator",
+  "seconds": 19.57,
+  "wer": 0.0
+ },
+ "60d92e82": {
+  "file": "prologue/60d92e82.webm",
+  "room": "prologue",
+  "speaker": "narrator",
+  "seconds": 5.47,
+  "wer": 0.0
+ },
+ "62887b0f": {
+  "file": "kitchen/62887b0f.webm",
+  "room": "kitchen",
+  "speaker": "narrator",
+  "seconds": 2.17,
+  "wer": 0.0
+ },
+ "62d55b30": {
+  "file": "guardroom/62d55b30.webm",
+  "room": "guardroom",
+  "speaker": "narrator",
+  "seconds": 4.33,
+  "wer": 0.0
+ },
+ "63d86a04": {
+  "file": "mirrorSanctum/63d86a04.webm",
+  "room": "mirrorSanctum",
+  "speaker": "narrator",
+  "seconds": 3.42,
+  "wer": 0.0
+ },
+ "647162c5": {
+  "file": "common/647162c5.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 7.97,
+  "wer": 0.0
+ },
+ "66685cbd": {
+  "file": "kitchen/66685cbd.webm",
+  "room": "kitchen",
+  "speaker": "narrator",
+  "seconds": 2.51,
+  "wer": 0.0
+ },
+ "66957bdd": {
+  "file": "common/66957bdd.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 3.19,
+  "wer": 0.0
+ },
+ "66bdf614": {
+  "file": "common/66bdf614.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 7.35,
+  "wer": 0.0
+ },
+ "685fc02d": {
+  "file": "prologue/685fc02d.webm",
+  "room": "prologue",
+  "speaker": "narrator",
+  "seconds": 9.9,
+  "wer": 0.033
+ },
+ "691363b4": {
+  "file": "study/691363b4.webm",
+  "room": "study",
+  "speaker": "narrator",
+  "seconds": 4.79,
+  "wer": 0.0
+ },
+ "69c43888": {
+  "file": "yard/69c43888.webm",
+  "room": "yard",
+  "speaker": "narrator",
+  "seconds": 2.18,
+  "wer": 0.0
+ },
+ "6c5f73c9": {
+  "file": "common/6c5f73c9.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 5.42,
+  "wer": 0.0
+ },
+ "6cf0eb97": {
+  "file": "common/6cf0eb97.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 9.71,
+  "wer": 0.0
+ },
+ "6d0f6099": {
+  "file": "common/6d0f6099.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 4.06,
+  "wer": 0.167
+ },
+ "6d97b514": {
+  "file": "yard/6d97b514.webm",
+  "room": "yard",
+  "speaker": "narrator",
+  "seconds": 7.81,
+  "wer": 0.0
+ },
+ "6de7511b": {
+  "file": "mirrorHall/6de7511b.webm",
+  "room": "mirrorHall",
+  "speaker": "narrator",
+  "seconds": 12.3,
+  "wer": 0.5
+ },
+ "6ec25a96": {
+  "file": "study/6ec25a96.webm",
+  "room": "study",
+  "speaker": "narrator",
+  "seconds": 3.17,
+  "wer": 0.0
+ },
+ "6f377da9": {
+  "file": "common/6f377da9.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 3.04,
+  "wer": 0.0
+ },
+ "6f8d62b8": {
+  "file": "caveMouth/6f8d62b8.webm",
+  "room": "caveMouth",
+  "speaker": "narrator",
+  "seconds": 4.55,
+  "wer": 0.0
+ },
+ "6f980e25": {
+  "file": "tomb/6f980e25.webm",
+  "room": "tomb",
+  "speaker": "narrator",
+  "seconds": 4.29,
+  "wer": 0.0
+ },
+ "709b2afa": {
+  "file": "common/709b2afa.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 7.98,
+  "wer": 0.0
+ },
+ "70b83e47": {
+  "file": "hall/70b83e47.webm",
+  "room": "hall",
+  "speaker": "narrator",
+  "seconds": 5.79,
+  "wer": 0.0
+ },
+ "7132c2a5": {
+  "file": "mirrorSanctum/7132c2a5.webm",
+  "room": "mirrorSanctum",
+  "speaker": "narrator",
+  "seconds": 12.41,
+  "wer": 0.2
+ },
+ "736e4c53": {
+  "file": "kitchenGarden/736e4c53.webm",
+  "room": "kitchenGarden",
+  "speaker": "narrator",
+  "seconds": 3.33,
+  "wer": 0.2
+ },
+ "745846ab": {
+  "file": "porch/745846ab.webm",
+  "room": "porch",
+  "speaker": "narrator",
+  "seconds": 3.72,
+  "wer": 0.0
+ },
+ "7808cb02": {
+  "file": "guardroom/7808cb02.webm",
+  "room": "guardroom",
+  "speaker": "narrator",
+  "seconds": 19.61,
+  "wer": 0.095
+ },
+ "796e42d5": {
+  "file": "grandmotherRoom/796e42d5.webm",
+  "room": "grandmotherRoom",
+  "speaker": "narrator",
+  "seconds": 5.47,
+  "wer": 0.0
+ },
+ "7a9d047e": {
+  "file": "common/7a9d047e.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 0.88,
+  "wer": 0.0
+ },
+ "7aa0f02d": {
+  "file": "common/7aa0f02d.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 1.25,
+  "wer": 0.0
+ },
+ "7c511d9b": {
+  "file": "common/7c511d9b.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 15.91,
+  "wer": 0.062
+ },
+ "7cd45ffd": {
+  "file": "common/7cd45ffd.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 11.64,
+  "wer": 0.333
+ },
+ "7d124328": {
+  "file": "hall/7d124328.webm",
+  "room": "hall",
+  "speaker": "narrator",
+  "seconds": 3.4,
+  "wer": 0.0
+ },
+ "7da2aac9": {
+  "file": "common/7da2aac9.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 4.47,
+  "wer": 0.0
+ },
+ "7e62bdcb": {
+  "file": "common/7e62bdcb.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 8.88,
+  "wer": 0.111
+ },
+ "7f4e52a3": {
+  "file": "common/7f4e52a3.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 10.45,
+  "wer": 0.0
+ },
+ "7fadea1c": {
+  "file": "common/7fadea1c.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 8.81,
+  "wer": 0.0
+ },
+ "815a4049": {
+  "file": "prologue/815a4049.webm",
+  "room": "prologue",
+  "speaker": "narrator",
+  "seconds": 12.37,
+  "wer": 0.125
+ },
+ "8202fda3": {
+  "file": "common/8202fda3.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 9.11,
+  "wer": 0.0
+ },
+ "821f90fa": {
+  "file": "glasshouse/821f90fa.webm",
+  "room": "glasshouse",
+  "speaker": "narrator",
+  "seconds": 5.14,
+  "wer": 0.4
+ },
+ "827e2c54": {
+  "file": "hall/827e2c54.webm",
+  "room": "hall",
+  "speaker": "narrator",
+  "seconds": 14.15,
+  "wer": 0.05
+ },
+ "839669e9": {
+  "file": "lakeIslet/839669e9.webm",
+  "room": "lakeIslet",
+  "speaker": "narrator",
+  "seconds": 3.52,
+  "wer": 0.0
+ },
+ "83ad5d6f": {
+  "file": "common/83ad5d6f.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 3.85,
+  "wer": 0.0
+ },
+ "848019df": {
+  "file": "common/848019df.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 0.89,
+  "wer": 0.0
+ },
+ "8797b8b9": {
+  "file": "throne/8797b8b9.webm",
+  "room": "throne",
+  "speaker": "narrator",
+  "seconds": 24.33,
+  "wer": 0.067
+ },
+ "89e31432": {
+  "file": "wellBottom/89e31432.webm",
+  "room": "wellBottom",
+  "speaker": "narrator",
+  "seconds": 4.35,
+  "wer": 0.0
+ },
+ "8baf5b4b": {
+  "file": "lakeShore/8baf5b4b.webm",
+  "room": "lakeShore",
+  "speaker": "narrator",
+  "seconds": 2.39,
+  "wer": 0.0
+ },
+ "8c5349bc": {
+  "file": "throne/8c5349bc.webm",
+  "room": "throne",
+  "speaker": "narrator",
+  "seconds": 4.39,
+  "wer": 0.0
+ },
+ "8c6c9b8b": {
+  "file": "study/8c6c9b8b.webm",
+  "room": "study",
+  "speaker": "narrator",
+  "seconds": 2.11,
+  "wer": 0.0
+ },
+ "8d8d7504": {
+  "file": "throne/8d8d7504.webm",
+  "room": "throne",
+  "speaker": "narrator",
+  "seconds": 5.96,
+  "wer": 0.0
+ },
+ "8e91b651": {
+  "file": "common/8e91b651.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 0.93,
+  "wer": 0.0
+ },
+ "8ef9916c": {
+  "file": "porch/8ef9916c.webm",
+  "room": "porch",
+  "speaker": "narrator",
+  "seconds": 15.67,
+  "wer": 0.1
+ },
+ "8f0b7fd6": {
+  "file": "common/8f0b7fd6.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 5.34,
+  "wer": 0.0
+ },
+ "8fb0fa28": {
+  "file": "guardroom/8fb0fa28.webm",
+  "room": "guardroom",
+  "speaker": "narrator",
+  "seconds": 5.88,
+  "wer": 1.0
+ },
+ "90f5fc2c": {
+  "file": "hall/90f5fc2c.webm",
+  "room": "hall",
+  "speaker": "narrator",
+  "seconds": 10.78,
+  "wer": 0.0
+ },
+ "90f740f1": {
+  "file": "guardroom/90f740f1.webm",
+  "room": "guardroom",
+  "speaker": "narrator",
+  "seconds": 14.52,
+  "wer": 0.045
+ },
+ "91e49cc3": {
+  "file": "common/91e49cc3.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 7.49,
+  "wer": 0.0
+ },
+ "93110299": {
+  "file": "hall/93110299.webm",
+  "room": "hall",
+  "speaker": "narrator",
+  "seconds": 17.46,
+  "wer": 0.0
+ },
+ "9469f7a5": {
+  "file": "common/9469f7a5.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 9.15,
+  "wer": 0.0
+ },
+ "94e05ffb": {
+  "file": "common/94e05ffb.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 5.82,
+  "wer": 0.188
+ },
+ "9548e23d": {
+  "file": "caveMouth/9548e23d.webm",
+  "room": "caveMouth",
+  "speaker": "narrator",
+  "seconds": 7.34,
+  "wer": 0.2
+ },
+ "957864a8": {
+  "file": "prologue/957864a8.webm",
+  "room": "prologue",
+  "speaker": "narrator",
+  "seconds": 9.9,
+  "wer": 0.0
+ },
+ "95bb3676": {
+  "file": "common/95bb3676.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 1.09,
+  "wer": 0.0
+ },
+ "95d564d8": {
+  "file": "common/95d564d8.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 0.73,
+  "wer": 0.5
+ },
+ "97df9bf7": {
+  "file": "cellar/97df9bf7.webm",
+  "room": "cellar",
+  "speaker": "narrator",
+  "seconds": 14.6,
+  "wer": 0.071
+ },
+ "995194b2": {
+  "file": "cellar/995194b2.webm",
+  "room": "cellar",
+  "speaker": "narrator",
+  "seconds": 7.66,
+  "wer": 0.0
+ },
+ "99a508c3": {
+  "file": "guardroom/99a508c3.webm",
+  "room": "guardroom",
+  "speaker": "narrator",
+  "seconds": 7.45,
+  "wer": 0.0
+ },
+ "9aa5a482": {
+  "file": "lakeIslet/9aa5a482.webm",
+  "room": "lakeIslet",
+  "speaker": "narrator",
+  "seconds": 4.76,
+  "wer": 0.083
+ },
+ "9c0ce97b": {
+  "file": "common/9c0ce97b.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 9.24,
+  "wer": 0.077
+ },
+ "9c944494": {
+  "file": "common/9c944494.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 10.22,
+  "wer": 0.0
+ },
+ "9cb50600": {
+  "file": "hall/9cb50600.webm",
+  "room": "hall",
+  "speaker": "narrator",
+  "seconds": 5.33,
+  "wer": 0.0
+ },
+ "9cf06112": {
+  "file": "common/9cf06112.webm",
+  "room": "common",
+  "speaker": "grandmother",
+  "seconds": 16.45,
+  "wer": 0.571
+ },
+ "9db25ed4": {
+  "file": "kitchenGarden/9db25ed4.webm",
+  "room": "kitchenGarden",
+  "speaker": "narrator",
+  "seconds": 4.75,
+  "wer": 0.125
+ },
+ "9e045b92": {
+  "file": "common/9e045b92.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 5.97,
+  "wer": 0.0
+ },
+ "9e3b3c7a": {
+  "file": "caveMouth/9e3b3c7a.webm",
+  "room": "caveMouth",
+  "speaker": "narrator",
+  "seconds": 8.95,
+  "wer": 0.0
+ },
+ "9e7b2dec": {
+  "file": "common/9e7b2dec.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 6.35,
+  "wer": 0.0
+ },
+ "9f170b7a": {
+  "file": "hall/9f170b7a.webm",
+  "room": "hall",
+  "speaker": "narrator",
+  "seconds": 4.62,
+  "wer": 0.0
+ },
+ "9fee6015": {
+  "file": "cellar/9fee6015.webm",
+  "room": "cellar",
+  "speaker": "narrator",
+  "seconds": 4.09,
+  "wer": 0.0
+ },
+ "a0bb1918": {
+  "file": "throne/a0bb1918.webm",
+  "room": "throne",
+  "speaker": "narrator",
+  "seconds": 6.7,
+  "wer": 0.0
+ },
+ "a1b8c358": {
+  "file": "gatePassage/a1b8c358.webm",
+  "room": "gatePassage",
+  "speaker": "narrator",
+  "seconds": 11.03,
+  "wer": 0.0
+ },
+ "a1c1cb73": {
+  "file": "common/a1c1cb73.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 3.1,
+  "wer": 0.0
+ },
+ "a2780a89": {
+  "file": "common/a2780a89.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 0.77,
+  "wer": 0.0
+ },
+ "a3fdc3ac": {
+  "file": "lakeShore/a3fdc3ac.webm",
+  "room": "lakeShore",
+  "speaker": "narrator",
+  "seconds": 8.94,
+  "wer": 0.0
+ },
+ "a4144c2c": {
+  "file": "cellar/a4144c2c.webm",
+  "room": "cellar",
+  "speaker": "narrator",
+  "seconds": 3.02,
+  "wer": 0.0
+ },
+ "a416239b": {
+  "file": "grandmotherRoom/a416239b.webm",
+  "room": "grandmotherRoom",
+  "speaker": "narrator",
+  "seconds": 4.05,
+  "wer": 0.0
+ },
+ "a4f58534": {
+  "file": "common/a4f58534.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 10.1,
+  "wer": 0.0
+ },
+ "a50821f9": {
+  "file": "tomb/a50821f9.webm",
+  "room": "tomb",
+  "speaker": "narrator",
+  "seconds": 15.02,
+  "wer": 0.429
+ },
+ "a5dcba26": {
+  "file": "hall/a5dcba26.webm",
+  "room": "hall",
+  "speaker": "narrator",
+  "seconds": 16.8,
+  "wer": 0.0
+ },
+ "a5eb7c26": {
+  "file": "common/a5eb7c26.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 1.56,
+  "wer": 0.0
+ },
+ "a6fe89d5": {
+  "file": "common/a6fe89d5.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 7.85,
+  "wer": 0.0
+ },
+ "a8254811": {
+  "file": "kitchenGarden/a8254811.webm",
+  "room": "kitchenGarden",
+  "speaker": "narrator",
+  "seconds": 7.16,
+  "wer": 0.111
+ },
+ "a8f2fb75": {
+  "file": "hall/a8f2fb75.webm",
+  "room": "hall",
+  "speaker": "narrator",
+  "seconds": 7.43,
+  "wer": 0.0
+ },
+ "a904deab": {
+  "file": "common/a904deab.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 1.32,
+  "wer": 0.0
+ },
+ "a91be1f0": {
+  "file": "hall/a91be1f0.webm",
+  "room": "hall",
+  "speaker": "narrator",
+  "seconds": 7.09,
+  "wer": 0.067
+ },
+ "a9da8bf8": {
+  "file": "kitchen/a9da8bf8.webm",
+  "room": "kitchen",
+  "speaker": "narrator",
+  "seconds": 6.55,
+  "wer": 0.0
+ },
+ "aa7c7215": {
+  "file": "kitchenGarden/aa7c7215.webm",
+  "room": "kitchenGarden",
+  "speaker": "narrator",
+  "seconds": 8.95,
+  "wer": 0.0
+ },
+ "ac4d6a67": {
+  "file": "hall/ac4d6a67.webm",
+  "room": "hall",
+  "speaker": "narrator",
+  "seconds": 3.3,
+  "wer": 0.0
+ },
+ "ad726c4c": {
+  "file": "common/ad726c4c.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 5.62,
+  "wer": 0.0
+ },
+ "af1796cd": {
+  "file": "common/af1796cd.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 7.88,
+  "wer": 0.0
+ },
+ "af2a95f5": {
+  "file": "kitchen/af2a95f5.webm",
+  "room": "kitchen",
+  "speaker": "narrator",
+  "seconds": 7.83,
+  "wer": 0.0
+ },
+ "af57b10d": {
+  "file": "cellar/af57b10d.webm",
+  "room": "cellar",
+  "speaker": "narrator",
+  "seconds": 7.79,
+  "wer": 0.0
+ },
+ "afd8a728": {
+  "file": "common/afd8a728.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 4.94,
+  "wer": 0.2
+ },
+ "afdd7b8d": {
+  "file": "grandmotherRoom/afdd7b8d.webm",
+  "room": "grandmotherRoom",
+  "speaker": "narrator",
+  "seconds": 2.72,
+  "wer": 0.111
+ },
+ "b0627a79": {
+  "file": "kitchen/b0627a79.webm",
+  "room": "kitchen",
+  "speaker": "narrator",
+  "seconds": 2.41,
+  "wer": 0.0
+ },
+ "b0e90888": {
+  "file": "common/b0e90888.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 1.53,
+  "wer": 0.0
+ },
+ "b10da571": {
+  "file": "guardroom/b10da571.webm",
+  "room": "guardroom",
+  "speaker": "narrator",
+  "seconds": 6.24,
+  "wer": 0.0
+ },
+ "b3109d71": {
+  "file": "hall/b3109d71.webm",
+  "room": "hall",
+  "speaker": "narrator",
+  "seconds": 8.61,
+  "wer": 0.0
+ },
+ "b3daca5d": {
+  "file": "cellar/b3daca5d.webm",
+  "room": "cellar",
+  "speaker": "narrator",
+  "seconds": 2.48,
+  "wer": 0.0
+ },
+ "b4116029": {
+  "file": "guardroom/b4116029.webm",
+  "room": "guardroom",
+  "speaker": "narrator",
+  "seconds": 6.59,
+  "wer": 0.091
+ },
+ "b4541c58": {
+  "file": "common/b4541c58.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 4.78,
+  "wer": 0.0
+ },
+ "b4b97e53": {
+  "file": "common/b4b97e53.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 5.29,
+  "wer": 0.0
+ },
+ "b55a026a": {
+  "file": "common/b55a026a.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 3.11,
+  "wer": 0.0
+ },
+ "b5658d2c": {
+  "file": "hall/b5658d2c.webm",
+  "room": "hall",
+  "speaker": "narrator",
+  "seconds": 4.81,
+  "wer": 0.0
+ },
+ "b6579a2b": {
+  "file": "common/b6579a2b.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 5.72,
+  "wer": 0.0
+ },
+ "b7646130": {
+  "file": "glasshouse/b7646130.webm",
+  "room": "glasshouse",
+  "speaker": "narrator",
+  "seconds": 8.16,
+  "wer": 0.111
+ },
+ "b78f0394": {
+  "file": "cellar/b78f0394.webm",
+  "room": "cellar",
+  "speaker": "narrator",
+  "seconds": 6.5,
+  "wer": 0.0
+ },
+ "b7b1fe96": {
+  "file": "common/b7b1fe96.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 5.11,
+  "wer": 0.0
+ },
+ "b7ffa233": {
+  "file": "mirrorHall/b7ffa233.webm",
+  "room": "mirrorHall",
+  "speaker": "narrator",
+  "seconds": 8.87,
+  "wer": 0.042
+ },
+ "b82da1a2": {
+  "file": "common/b82da1a2.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 0.67,
+  "wer": 0.0
+ },
+ "b8864f35": {
+  "file": "caveMouth/b8864f35.webm",
+  "room": "caveMouth",
+  "speaker": "narrator",
+  "seconds": 3.63,
+  "wer": 0.111
+ },
+ "b89fcba2": {
+  "file": "hall/b89fcba2.webm",
+  "room": "hall",
+  "speaker": "narrator",
+  "seconds": 6.53,
+  "wer": 0.0
+ },
+ "ba30e7b5": {
+  "file": "throne/ba30e7b5.webm",
+  "room": "throne",
+  "speaker": "narrator",
+  "seconds": 7.15,
+  "wer": 0.0
+ },
+ "bac0b5c3": {
+  "file": "lakeShore/bac0b5c3.webm",
+  "room": "lakeShore",
+  "speaker": "narrator",
+  "seconds": 12.84,
+  "wer": 0.133
+ },
+ "bb32c41c": {
+  "file": "kitchenGarden/bb32c41c.webm",
+  "room": "kitchenGarden",
+  "speaker": "narrator",
+  "seconds": 2.93,
+  "wer": 0.0
+ },
+ "bbf4475f": {
+  "file": "common/bbf4475f.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 6.65,
+  "wer": 0.0
+ },
+ "bcf84e98": {
+  "file": "kitchen/bcf84e98.webm",
+  "room": "kitchen",
+  "speaker": "narrator",
+  "seconds": 2.43,
+  "wer": 0.0
+ },
+ "bd28bd4d": {
+  "file": "common/bd28bd4d.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 3.02,
+  "wer": 8.0
+ },
+ "bda0a77a": {
+  "file": "prologue/bda0a77a.webm",
+  "room": "prologue",
+  "speaker": "narrator",
+  "seconds": 9.45,
+  "wer": 0.0
+ },
+ "bde64e3e": {
+  "file": "common/bde64e3e.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 0.79,
+  "wer": 1.0
+ },
+ "be154546": {
+  "file": "common/be154546.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 6.88,
+  "wer": 0.0
+ },
+ "be3b0ca6": {
+  "file": "common/be3b0ca6.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 0.89,
+  "wer": 0.0
+ },
+ "bf7d2149": {
+  "file": "common/bf7d2149.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 3.12,
+  "wer": 0.0
+ },
+ "c1208223": {
+  "file": "common/c1208223.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 5.26,
+  "wer": 0.083
+ },
+ "c196ec56": {
+  "file": "tomb/c196ec56.webm",
+  "room": "tomb",
+  "speaker": "narrator",
+  "seconds": 2.7,
+  "wer": 0.0
+ },
+ "c24c95b6": {
+  "file": "kitchen/c24c95b6.webm",
+  "room": "kitchen",
+  "speaker": "narrator",
+  "seconds": 3.67,
+  "wer": 0.0
+ },
+ "c39d8d5f": {
+  "file": "common/c39d8d5f.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 2.69,
+  "wer": 0.0
+ },
+ "c54f56d5": {
+  "file": "hall/c54f56d5.webm",
+  "room": "hall",
+  "speaker": "narrator",
+  "seconds": 9.22,
+  "wer": 0.0
+ },
+ "c599e62d": {
+  "file": "guardroom/c599e62d.webm",
+  "room": "guardroom",
+  "speaker": "narrator",
+  "seconds": 8.91,
+  "wer": 1.0
+ },
+ "c617f7a2": {
+  "file": "common/c617f7a2.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 0.75,
+  "wer": 1.0
+ },
+ "c6c294b3": {
+  "file": "kitchenGarden/c6c294b3.webm",
+  "room": "kitchenGarden",
+  "speaker": "narrator",
+  "seconds": 5.66,
+  "wer": 0.0
+ },
+ "c730ec3d": {
+  "file": "common/c730ec3d.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 4.26,
+  "wer": 0.0
+ },
+ "c7505d41": {
+  "file": "lakeIslet/c7505d41.webm",
+  "room": "lakeIslet",
+  "speaker": "narrator",
+  "seconds": 4.27,
+  "wer": 0.0
+ },
+ "c819254c": {
+  "file": "guardroom/c819254c.webm",
+  "room": "guardroom",
+  "speaker": "narrator",
+  "seconds": 4.62,
+  "wer": 0.0
+ },
+ "c872ebbe": {
+  "file": "common/c872ebbe.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 1.21,
+  "wer": 0.0
+ },
+ "c91c7e60": {
+  "file": "common/c91c7e60.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 0.77,
+  "wer": 0.0
+ },
+ "ca517006": {
+  "file": "guardroom/ca517006.webm",
+  "room": "guardroom",
+  "speaker": "narrator",
+  "seconds": 7.06,
+  "wer": 0.0
+ },
+ "ca987eed": {
+  "file": "hall/ca987eed.webm",
+  "room": "hall",
+  "speaker": "narrator",
+  "seconds": 3.95,
+  "wer": 0.0
+ },
+ "cafad9c8": {
+  "file": "hall/cafad9c8.webm",
+  "room": "hall",
+  "speaker": "narrator",
+  "seconds": 5.04,
+  "wer": 0.4
+ },
+ "ce07dd09": {
+  "file": "common/ce07dd09.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 4.08,
+  "wer": 0.0
+ },
+ "ceb7d2cb": {
+  "file": "common/ceb7d2cb.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 11.0,
+  "wer": 0.0
+ },
+ "cf6a067a": {
+  "file": "common/cf6a067a.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 11.56,
+  "wer": 0.222
+ },
+ "cf7cbe3f": {
+  "file": "vault/cf7cbe3f.webm",
+  "room": "vault",
+  "speaker": "narrator",
+  "seconds": 3.44,
+  "wer": 0.0
+ },
+ "d02caeef": {
+  "file": "cellar/d02caeef.webm",
+  "room": "cellar",
+  "speaker": "narrator",
+  "seconds": 3.46,
+  "wer": 0.0
+ },
+ "d091f68d": {
+  "file": "guardroom/d091f68d.webm",
+  "room": "guardroom",
+  "speaker": "narrator",
+  "seconds": 6.34,
+  "wer": 0.0
+ },
+ "d1ac7529": {
+  "file": "guardroom/d1ac7529.webm",
+  "room": "guardroom",
+  "speaker": "narrator",
+  "seconds": 9.3,
+  "wer": 0.0
+ },
+ "d28c72e2": {
+  "file": "study/d28c72e2.webm",
+  "room": "study",
+  "speaker": "narrator",
+  "seconds": 6.33,
+  "wer": 0.0
+ },
+ "d49d2343": {
+  "file": "kitchen/d49d2343.webm",
+  "room": "kitchen",
+  "speaker": "narrator",
+  "seconds": 3.75,
+  "wer": 0.0
+ },
+ "d4cb6164": {
+  "file": "prologue/d4cb6164.webm",
+  "room": "prologue",
+  "speaker": "narrator",
+  "seconds": 8.52,
+  "wer": 0.0
+ },
+ "d4ec2f0e": {
+  "file": "common/d4ec2f0e.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 5.51,
+  "wer": 0.182
+ },
+ "d522cbf0": {
+  "file": "yard/d522cbf0.webm",
+  "room": "yard",
+  "speaker": "narrator",
+  "seconds": 6.64,
+  "wer": 0.0
+ },
+ "d548ef87": {
+  "file": "study/d548ef87.webm",
+  "room": "study",
+  "speaker": "narrator",
+  "seconds": 4.17,
+  "wer": 0.0
+ },
+ "d59bccf2": {
+  "file": "common/d59bccf2.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 3.54,
+  "wer": 0.0
+ },
+ "d6fff0ee": {
+  "file": "throne/d6fff0ee.webm",
+  "room": "throne",
+  "speaker": "narrator",
+  "seconds": 8.89,
+  "wer": 0.0
+ },
+ "d7263aec": {
+  "file": "common/d7263aec.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 4.49,
+  "wer": 0.25
+ },
+ "d8164f91": {
+  "file": "study/d8164f91.webm",
+  "room": "study",
+  "speaker": "narrator",
+  "seconds": 4.69,
+  "wer": 0.0
+ },
+ "d8e06140": {
+  "file": "common/d8e06140.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 2.25,
+  "wer": 0.5
+ },
+ "dc007029": {
+  "file": "common/dc007029.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 8.4,
+  "wer": 0.083
+ },
+ "de865ecc": {
+  "file": "common/de865ecc.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 2.11,
+  "wer": 0.0
+ },
+ "dede8762": {
+  "file": "wellBottom/dede8762.webm",
+  "room": "wellBottom",
+  "speaker": "narrator",
+  "seconds": 5.07,
+  "wer": 0.0
+ },
+ "df636552": {
+  "file": "common/df636552.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 0.82,
+  "wer": 0.0
+ },
+ "e06304ba": {
+  "file": "prologue/e06304ba.webm",
+  "room": "prologue",
+  "speaker": "narrator",
+  "seconds": 8.61,
+  "wer": 0.037
+ },
+ "e0947c8d": {
+  "file": "cellar/e0947c8d.webm",
+  "room": "cellar",
+  "speaker": "narrator",
+  "seconds": 8.02,
+  "wer": 0.091
+ },
+ "e2140bc0": {
+  "file": "lakeIslet/e2140bc0.webm",
+  "room": "lakeIslet",
+  "speaker": "narrator",
+  "seconds": 15.83,
+  "wer": 0.087
+ },
+ "e23dfb37": {
+  "file": "common/e23dfb37.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 1.01,
+  "wer": 0.0
+ },
+ "e254ec81": {
+  "file": "cellar/e254ec81.webm",
+  "room": "cellar",
+  "speaker": "narrator",
+  "seconds": 3.54,
+  "wer": 0.0
+ },
+ "e329a025": {
+  "file": "common/e329a025.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 5.18,
+  "wer": 0.0
+ },
+ "e3b8c96e": {
+  "file": "lakeShore/e3b8c96e.webm",
+  "room": "lakeShore",
+  "speaker": "narrator",
+  "seconds": 6.82,
+  "wer": 0.333
+ },
+ "e3dab7bc": {
+  "file": "glasshouse/e3dab7bc.webm",
+  "room": "glasshouse",
+  "speaker": "narrator",
+  "seconds": 10.05,
+  "wer": 0.0
+ },
+ "e4bd3fb4": {
+  "file": "common/e4bd3fb4.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 5.18,
+  "wer": 0.0
+ },
+ "e4f7cff4": {
+  "file": "common/e4f7cff4.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 8.39,
+  "wer": 0.0
+ },
+ "e52b0504": {
+  "file": "cellar/e52b0504.webm",
+  "room": "cellar",
+  "speaker": "narrator",
+  "seconds": 4.16,
+  "wer": 0.0
+ },
+ "e7e3c1c0": {
+  "file": "vault/e7e3c1c0.webm",
+  "room": "vault",
+  "speaker": "narrator",
+  "seconds": 5.75,
+  "wer": 0.0
+ },
+ "e89dd5a0": {
+  "file": "common/e89dd5a0.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 6.42,
+  "wer": 0.0
+ },
+ "e8f7c633": {
+  "file": "common/e8f7c633.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 6.21,
+  "wer": 0.0
+ },
+ "e99cc51b": {
+  "file": "mirrorHall/e99cc51b.webm",
+  "room": "mirrorHall",
+  "speaker": "narrator",
+  "seconds": 12.3,
+  "wer": 0.0
+ },
+ "eae285af": {
+  "file": "common/eae285af.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 0.86,
+  "wer": 0.0
+ },
+ "ebdb271e": {
+  "file": "caveMouth/ebdb271e.webm",
+  "room": "caveMouth",
+  "speaker": "narrator",
+  "seconds": 12.01,
+  "wer": 0.0
+ },
+ "ebde7ac7": {
+  "file": "glasshouse/ebde7ac7.webm",
+  "room": "glasshouse",
+  "speaker": "narrator",
+  "seconds": 7.61,
+  "wer": 0.0
+ },
+ "ec686684": {
+  "file": "lakeShore/ec686684.webm",
+  "room": "lakeShore",
+  "speaker": "narrator",
+  "seconds": 10.92,
+  "wer": 0.143
+ },
+ "eceb3fea": {
+  "file": "vault/eceb3fea.webm",
+  "room": "vault",
+  "speaker": "narrator",
+  "seconds": 15.59,
+  "wer": 0.105
+ },
+ "ed057409": {
+  "file": "common/ed057409.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 4.47,
+  "wer": 0.0
+ },
+ "ed9d9a72": {
+  "file": "common/ed9d9a72.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 1.66,
+  "wer": 0.0
+ },
+ "edb8775a": {
+  "file": "common/edb8775a.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 4.34,
+  "wer": 0.0
+ },
+ "edf09a11": {
+  "file": "study/edf09a11.webm",
+  "room": "study",
+  "speaker": "narrator",
+  "seconds": 9.51,
+  "wer": 0.074
+ },
+ "ee925bed": {
+  "file": "common/ee925bed.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 0.8,
+  "wer": 0.0
+ },
+ "eea7b38d": {
+  "file": "hall/eea7b38d.webm",
+  "room": "hall",
+  "speaker": "narrator",
+  "seconds": 4.14,
+  "wer": 0.0
+ },
+ "eee17ac8": {
+  "file": "gatePassage/eee17ac8.webm",
+  "room": "gatePassage",
+  "speaker": "narrator",
+  "seconds": 3.61,
+  "wer": 0.0
+ },
+ "ef829ec5": {
+  "file": "tunnel/ef829ec5.webm",
+  "room": "tunnel",
+  "speaker": "narrator",
+  "seconds": 3.42,
+  "wer": 0.25
+ },
+ "f0203d94": {
+  "file": "kitchen/f0203d94.webm",
+  "room": "kitchen",
+  "speaker": "narrator",
+  "seconds": 4.27,
+  "wer": 0.0
+ },
+ "f196d081": {
+  "file": "common/f196d081.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 9.4,
+  "wer": 0.0
+ },
+ "f27df9c9": {
+  "file": "common/f27df9c9.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 6.45,
+  "wer": 0.0
+ },
+ "f311e970": {
+  "file": "common/f311e970.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 2.01,
+  "wer": 0.0
+ },
+ "f3c4443b": {
+  "file": "throne/f3c4443b.webm",
+  "room": "throne",
+  "speaker": "narrator",
+  "seconds": 12.63,
+  "wer": 0.04
+ },
+ "f42e4377": {
+  "file": "yard/f42e4377.webm",
+  "room": "yard",
+  "speaker": "narrator",
+  "seconds": 6.27,
+  "wer": 0.0
+ },
+ "f4b741c6": {
+  "file": "porch/f4b741c6.webm",
+  "room": "porch",
+  "speaker": "narrator",
+  "seconds": 6.09,
+  "wer": 0.2
+ },
+ "f532528d": {
+  "file": "common/f532528d.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 0.67,
+  "wer": 1.0
+ },
+ "f56d9d67": {
+  "file": "kitchenGarden/f56d9d67.webm",
+  "room": "kitchenGarden",
+  "speaker": "narrator",
+  "seconds": 30.35,
+  "wer": 0.2
+ },
+ "f60345ae": {
+  "file": "prologue/f60345ae.webm",
+  "room": "prologue",
+  "speaker": "narrator",
+  "seconds": 5.61,
+  "wer": 0.0
+ },
+ "f65503e8": {
+  "file": "study/f65503e8.webm",
+  "room": "study",
+  "speaker": "narrator",
+  "seconds": 2.8,
+  "wer": 0.0
+ },
+ "f749e721": {
+  "file": "common/f749e721.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 8.6,
+  "wer": 0.067
+ },
+ "f8dbee7b": {
+  "file": "common/f8dbee7b.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 5.91,
+  "wer": 0.05
+ },
+ "f8e67c27": {
+  "file": "common/f8e67c27.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 5.29,
+  "wer": 0.0
+ },
+ "f9f1b767": {
+  "file": "glasshouse/f9f1b767.webm",
+  "room": "glasshouse",
+  "speaker": "narrator",
+  "seconds": 7.31,
+  "wer": 0.0
+ },
+ "fa620ad3": {
+  "file": "yard/fa620ad3.webm",
+  "room": "yard",
+  "speaker": "narrator",
+  "seconds": 4.32,
+  "wer": 0.4
+ },
+ "fa738e92": {
+  "file": "mirrorHall/fa738e92.webm",
+  "room": "mirrorHall",
+  "speaker": "narrator",
+  "seconds": 12.27,
+  "wer": 0.0
+ },
+ "fb14dbf5": {
+  "file": "study/fb14dbf5.webm",
+  "room": "study",
+  "speaker": "chronicler",
+  "seconds": 13.48,
+  "wer": 0.125
+ },
+ "fb16550e": {
+  "file": "common/fb16550e.webm",
+  "room": "common",
+  "speaker": "narrator",
+  "seconds": 3.9,
+  "wer": 0.091
+ },
+ "fc56e1a3": {
+  "file": "hall/fc56e1a3.webm",
+  "room": "hall",
+  "speaker": "narrator",
+  "seconds": 25.58,
+  "wer": 0.3
+ },
+ "fca87e75": {
+  "file": "guardroom/fca87e75.webm",
+  "room": "guardroom",
+  "speaker": "narrator",
+  "seconds": 8.83,
+  "wer": 0.0
+ },
+ "fe442676": {
+  "file": "kitchen/fe442676.webm",
+  "room": "kitchen",
+  "speaker": "narrator",
+  "seconds": 7.65,
+  "wer": 0.0
+ },
+ "ff12f720": {
+  "file": "guardroom/ff12f720.webm",
+  "room": "guardroom",
+  "speaker": "narrator",
+  "seconds": 6.27,
+  "wer": 0.0
+ },
+ "ff922f9b": {
+  "file": "glasshouse/ff922f9b.webm",
+  "room": "glasshouse",
+  "speaker": "narrator",
+  "seconds": 4.57,
+  "wer": 0.2
+ },
+ "ffcebee5": {
+  "file": "prologue/ffcebee5.webm",
+  "room": "prologue",
+  "speaker": "narrator",
+  "seconds": 6.1,
+  "wer": 0.043
+ }
+}

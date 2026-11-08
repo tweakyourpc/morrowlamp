@@ -1,0 +1,32 @@
+Notes on marketing/credits.txt (not part of the credits)
+
+1. Voices. Every voice is now public domain (2026-11-07). Four of the
+   five earlier voices were dropped because their licences forbid commercial
+   use: ryan (CC BY-NC-SA 4.0) and northern_english_male, amy and arctic,
+   which were all fine-tuned from Piper's "lessac" voice, whose Blizzard
+   2013 data is licensed for non-commercial research only. Sources are
+   each model's card on huggingface.co/rhasspy/piper-voices. Public-domain
+   voices need no credit, but crediting them is honest and costs nothing.
+   The "by Bryce Beattie" credit for cori comes from its model card, which
+   links to brycebeattie.com. The other cards name no author, so none is given.
+2. Piper itself (piper-tts 1.6.0, GPL-3.0) only generates the clips and
+   does not ship with the game, so its licence does not reach the game.
+3. Other AI systems. CREDITS.md says several generative systems were
+   used in different roles. Only Claude Code appears in this repository's
+   history, so add any others you used (and their roles) under
+   AI DEVELOPMENT.
+4. Portbroker is left out: it is your own development tool for keeping
+   track of ports and is not part of the game, the trailer or the film.
+5. Copyright line: the game's own title screen says "© 1987 Morrowlamp
+   Software" as a joke. These credits use the real year and your name.
+6. "Open source, start to finish" (2026-11-07). The game is MIT. Every tool
+   in the roll is free and open-source, with its licence beside it. Two
+   closed-source tools were used in production and are named in the roll:
+   NVIDIA OptiX and the GPU driver (Cycles on legion's GPU) and Claude Code.
+   Rendering on the CPU would remove the first, at many times the render time.
+   The Showrig render worker is your own tool. Its licence is not stated here,
+   so the roll does not call it open source. Add its licence if you publish it.
+7. Not used, so not credited: HandBrake and the ArtCraft tools (FilmCraft,
+   EffectCraft). The films were cut and encoded with FFmpeg, the title
+   cards rendered from HTML in headless Chromium, and every room, prop and
+   creature built by Python scripts in Blender.

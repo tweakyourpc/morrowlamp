@@ -548,6 +548,14 @@
         } else if (key === 'open' || key === 'lit') {
           if (!plainObject(value)) { err('condition-malformed', where, at, 'the ' + key + ' condition must be an object, got ' + describeType(value) + '.'); continue; }
           for (const oid in value) checkObjectRef(oid, where, at + '.' + oid, 'condition ' + key);
+        } else if (key === 'class') {
+          /* Read straight from the profile: the stats section is checked
+             further down, and a class clause only means something there. */
+          const declared = plainObject(profile.stats) && plainObject(profile.stats.classes) ? profile.stats.classes : null;
+          if (!declared) { err('class-without-stats', where, at, 'a class condition needs profile.stats with classes.'); continue; }
+          for (const cid of listOf(value)) {
+            if (!declared[cid]) err('unknown-class', where, at, 'condition class names undeclared class "' + cid + '".');
+          }
         }
       }
     }
@@ -1059,6 +1067,18 @@
     }
     if (presentation.interface && !INTERFACES.includes(presentation.interface)) {
       err('unknown-interface', 'INTERFACE', 'presentation.interface', 'unknown interface profile "' + presentation.interface + '" (known: ' + INTERFACES.join(', ') + ').');
+    }
+    if (presentation.prologue !== undefined) {
+      if (!Array.isArray(presentation.prologue) || !presentation.prologue.length) {
+        err('prologue-malformed', 'DISPLAY', 'presentation.prologue', 'the prologue must be a list of pages.');
+      } else {
+        presentation.prologue.forEach((page, i) => {
+          const base = 'presentation.prologue[' + i + ']';
+          const text = plainObject(page) ? [].concat(page.text || []) : [];
+          if (!text.length || text.some((t) => typeof t !== 'string' || !t.trim())) err('prologue-page-empty', 'DISPLAY', base + '.text', 'a prologue page needs its lines.');
+          if (plainObject(page) && page.room !== undefined && !rooms[page.room]) err('prologue-missing-room', 'DISPLAY', base + '.room', 'prologue page pictures missing room "' + page.room + '".');
+        });
+      }
     }
     if (presentation.speech !== undefined) {
       const speech = presentation.speech;

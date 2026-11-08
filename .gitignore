@@ -39,3 +39,20 @@ morrowlamp-build-*/
 # --- local development scratch ---
 scratch/
 notes.local.md
+
+# --- remaster build products ---
+# Films are published to YouTube and the site; the cut and its intermediates are
+# rebuilt by tools/blender/send_trailer.sh, and the largest is over GitHub's
+# 100 MB file limit. The thumbnail and the text stay tracked.
+/marketing/trailer/*.mp4
+/marketing/trailer/*.m4a
+/dist.zip
+# Blender scenes the builders write on every run (build_room.py, build_trailer.py,
+# build_epilogue.py). The hero's .blend stays: the trailer appends it.
+/art/blender/rooms/
+/art/blender/trailer/
+/art/blender/epilogue/
+# Python caches.
+__pycache__/
+.mypy_cache/
+.ruff_cache/

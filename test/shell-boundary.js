@@ -71,6 +71,7 @@ function loadMachine() {
   require('../js/scenes.js');
   require('../js/world.js');
   require('../js/cartridges/sunken-crown.js');
+  require('../js/morrowlamp/interact.js');
   require('../js/morrowlamp/shell-canvas.js');
   require('../js/morrowlamp/shell-parser.js');
   return Z;
